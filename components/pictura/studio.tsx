@@ -61,6 +61,122 @@ function SendIcon({ className = '' }: { className?: string }) {
   )
 }
 
+/* ---- Tour Overlay: positions tooltip next to real elements ---- */
+function TourOverlay({
+  step, steps, onNext, onSkip,
+}: {
+  step: number
+  steps: typeof TOUR_STEPS
+  onNext: () => void
+  onSkip: () => void
+}) {
+  const [rect, setRect] = useState<DOMRect | null>(null)
+  const current = steps[step]
+
+  useEffect(() => {
+    // Step 0 ("hero") has no specific target element - show centered
+    if (current.target === 'hero') { setRect(null); return }
+    const el = document.querySelector(`[data-tour="${current.target}"]`)
+    if (!el) { setRect(null); return }
+    const r = el.getBoundingClientRect()
+    setRect(r)
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [step, current.target])
+
+  // Compute tooltip position
+  const isBottom = rect ? rect.top < window.innerHeight / 2 : false
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+
+  return (
+    <motion.div
+      key="tour-overlay"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[70]"
+      onClick={onSkip}
+    >
+      {/* Dark backdrop with cutout for highlighted element */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* Highlight cutout around the target element */}
+      {rect && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute rounded-xl ring-2 ring-primary ring-offset-2 ring-offset-transparent"
+          style={{
+            left: rect.left - 6,
+            top: rect.top - 6,
+            width: rect.width + 12,
+            height: rect.height + 12,
+            boxShadow: '0 0 0 9999px rgba(0,0,0,0.50)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {/* Tooltip card */}
+      <motion.div
+        key={`tour-card-${step}`}
+        initial={{ opacity: 0, y: isBottom ? -8 : 8, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: isBottom ? -8 : 8, scale: 0.96 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 350 }}
+        className="absolute z-10 w-[calc(100%-2rem)] max-w-xs rounded-2xl border border-border/40 bg-background p-5 shadow-xl sm:w-80"
+        style={
+          rect && !isMobile
+            ? {
+                left: Math.min(Math.max(rect.left, 16), window.innerWidth - 336),
+                top: isBottom ? rect.bottom + 14 : undefined,
+                bottom: !isBottom ? window.innerHeight - rect.top + 14 : undefined,
+              }
+            : {
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+              }
+        }
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Progress dots */}
+        <div className="mb-4 flex items-center gap-1.5">
+          {steps.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 rounded-full transition-all duration-300 ${
+                i === step ? 'w-5 bg-primary' : i < step ? 'w-1 bg-primary/40' : 'w-1 bg-border'
+              }`}
+            />
+          ))}
+        </div>
+
+        <h3 className="text-sm font-bold text-foreground">{current.title}</h3>
+        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{current.description}</p>
+
+        <div className="mt-4 flex items-center justify-between">
+          <button
+            onClick={onSkip}
+            className="text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Skip tour
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground/40">{step + 1}/{steps.length}</span>
+            <button
+              onClick={onNext}
+              className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.97]"
+            >
+              {step === steps.length - 1 ? 'Done' : 'Next'}
+              <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
@@ -341,7 +457,7 @@ export function Studio() {
       </header>
 
       {/* Main content area */}
-      <div ref={galleryRef} className="flex-1 overflow-y-auto">
+      <div ref={galleryRef} data-tour="gallery" className="flex-1 overflow-y-auto">
         {loading && images.length === 0 ? (
           /* First-time loading state - orbital rings */
           <div className="flex h-full flex-col items-center justify-center px-6">
@@ -670,76 +786,15 @@ export function Studio() {
         </div>
       </div>
 
-      {/* Walkthrough Tour */}
+      {/* Walkthrough Tour - highlights real elements */}
       <AnimatePresence>
         {tourStep >= 0 && tourStep < TOUR_STEPS.length && (
-          <motion.div
-            key="tour-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-            onClick={dismissTour}
-          >
-            <motion.div
-              key={`tour-${tourStep}`}
-              initial={{ scale: 0.92, opacity: 0, y: 16 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.92, opacity: 0, y: -16 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-border/30 bg-background p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Step indicator dots */}
-              <div className="mb-5 flex items-center gap-1.5">
-                {TOUR_STEPS.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === tourStep ? 'w-6 bg-primary' : i < tourStep ? 'w-1.5 bg-primary/40' : 'w-1.5 bg-border'
-                    }`}
-                  />
-                ))}
-              </div>
-
-              {/* Icon */}
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
-                {tourStep === 0 && <PicturaIcon size={22} />}
-                {tourStep === 1 && <ChevronDown className="h-5 w-5 text-primary" />}
-                {tourStep === 2 && (
-                  <svg viewBox="0 0 36 36" className="h-5 w-5 text-primary" aria-hidden="true">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" />
-                  </svg>
-                )}
-                {tourStep === 3 && <ArrowRight className="h-5 w-5 text-primary" />}
-                {tourStep === 4 && <Grid3X3 className="h-5 w-5 text-primary" />}
-              </div>
-
-              <h3 className="text-base font-bold text-foreground">{TOUR_STEPS[tourStep].title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{TOUR_STEPS[tourStep].description}</p>
-
-              <div className="mt-6 flex items-center justify-between">
-                <button
-                  onClick={dismissTour}
-                  className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Skip tour
-                </button>
-                <button
-                  onClick={nextTourStep}
-                  className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.97]"
-                >
-                  {tourStep === TOUR_STEPS.length - 1 ? 'Get started' : 'Next'}
-                  <ArrowRight className="h-3 w-3" />
-                </button>
-              </div>
-
-              {/* Step count */}
-              <p className="mt-4 text-center text-[10px] text-muted-foreground/40">
-                {tourStep + 1} of {TOUR_STEPS.length}
-              </p>
-            </motion.div>
-          </motion.div>
+          <TourOverlay
+            step={tourStep}
+            steps={TOUR_STEPS}
+            onNext={nextTourStep}
+            onSkip={dismissTour}
+          />
         )}
       </AnimatePresence>
 

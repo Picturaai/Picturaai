@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3 } from 'lucide-react'
+import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch } from 'lucide-react'
 import { PicturaIcon } from './pictura-logo'
 
 const showcaseImages = [
@@ -426,6 +426,226 @@ export function Landing() {
                 ))}
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Models */}
+      <section className="border-t border-border/40 py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={0}
+            variants={fadeUp}
+            className="mx-auto max-w-2xl text-center"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              <GitBranch className="h-3 w-3" />
+              Model Family
+            </span>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+              The Pictura Model Series
+            </h2>
+            <p className="mt-4 text-base text-muted-foreground">
+              A family of image generation models built progressively with enhanced capabilities.
+            </p>
+          </motion.div>
+
+          <div className="mx-auto mt-14 grid max-w-4xl gap-5 md:grid-cols-3">
+            {[
+              {
+                name: 'pi-1.0',
+                label: 'Pictura pi-1.0',
+                status: 'Active',
+                statusColor: 'bg-primary/10 text-primary',
+                desc: 'Our foundational model. Handles text-to-image and image-to-image generation with 1024px output. Optimized for diverse artistic styles and photorealism.',
+                specs: ['1024 x 1024', 'Text & Image Input', 'General Purpose'],
+              },
+              {
+                name: 'pi-1.5-turbo',
+                label: 'Pictura pi-1.5 Turbo',
+                status: 'Coming Soon',
+                statusColor: 'bg-muted text-muted-foreground',
+                desc: 'Our next iteration with 2x faster inference, higher fidelity details, and improved prompt adherence. Built on an optimized diffusion backbone.',
+                specs: ['Up to 2048px', '2x Faster', 'Enhanced Detail'],
+              },
+              {
+                name: 'pi-2.0',
+                label: 'Pictura pi-2.0',
+                status: 'In Research',
+                statusColor: 'bg-muted text-muted-foreground',
+                desc: 'Next-generation architecture with multi-modal understanding, style memory, and composable scene generation. A fundamentally new approach to visual synthesis.',
+                specs: ['Multi-Modal', 'Style Memory', 'Scene Composition'],
+              },
+            ].map((model, i) => (
+              <motion.div
+                key={model.name}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-30px' }}
+                custom={i + 1}
+                variants={fadeUp}
+                className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card"
+              >
+                {/* Status badge */}
+                <div className="flex items-center justify-between border-b border-border/30 px-5 py-3">
+                  <div className="flex items-center gap-2">
+                    <PicturaIcon size={16} />
+                    <span className="font-mono text-xs font-bold text-foreground">{model.name}</span>
+                  </div>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${model.statusColor}`}>
+                    {model.status}
+                  </span>
+                </div>
+
+                <div className="p-5">
+                  <h3 className="text-base font-semibold text-foreground">{model.label}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{model.desc}</p>
+
+                  {/* Spec badges */}
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {model.specs.map((spec) => (
+                      <span key={spec} className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {spec}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Technical Paper / Research Section */}
+      <section className="border-t border-border/40 bg-secondary/20 py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mx-auto max-w-4xl">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              custom={0}
+              variants={fadeUp}
+              className="mx-auto max-w-2xl text-center"
+            >
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+                <Microscope className="h-3 w-3" />
+                Research
+              </span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+                How Pictura Works
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                A technical overview of the architecture and methodology behind Pictura.
+              </p>
+            </motion.div>
+
+            {/* Paper-style abstract card */}
+            <motion.article
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              custom={1}
+              variants={fadeUp}
+              className="mt-12 rounded-2xl border border-border/50 bg-card"
+            >
+              {/* Paper header */}
+              <div className="border-b border-border/30 px-6 py-5 md:px-8">
+                <div className="flex items-start gap-3">
+                  <BookOpen className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+                  <div>
+                    <h3 className="text-base font-bold text-foreground md:text-lg">
+                      Pictura: Multi-Stage Diffusion for High-Fidelity Image Synthesis
+                    </h3>
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      Imoogle Labs &middot; Research Division &middot; 2025
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Abstract */}
+              <div className="px-6 py-6 md:px-8">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Abstract</p>
+                <p className="text-sm leading-[1.7] text-foreground">
+                  We present Pictura, a multi-stage diffusion-based image generation system designed
+                  for high-fidelity visual synthesis from textual and visual prompts. Our architecture
+                  introduces a <strong>cascaded pipeline</strong> that combines semantic understanding through
+                  transformer-based prompt encoding, style-conditioned latent diffusion for initial synthesis,
+                  and a learned super-resolution module for detail refinement. The system employs a
+                  novel <strong>adaptive routing mechanism</strong> that dynamically selects specialized sub-networks
+                  based on detected content category (portrait, landscape, abstract, architectural), yielding
+                  measurable improvements in output coherence. Safety constraints are enforced through an
+                  integrated classifier operating in latent space, enabling content moderation without
+                  post-generation filtering.
+                </p>
+
+                {/* Key contributions */}
+                <div className="mt-6">
+                  <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Key Contributions</p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[
+                      {
+                        title: 'Cascaded Diffusion Pipeline',
+                        desc: 'A three-stage architecture combining semantic encoding, latent diffusion, and learned upscaling for optimal quality-speed trade-offs.',
+                      },
+                      {
+                        title: 'Adaptive Style Routing',
+                        desc: 'Content-aware model selection that routes generation through specialized sub-networks based on detected visual category.',
+                      },
+                      {
+                        title: 'Latent-Space Safety',
+                        desc: 'An integrated classifier operating on latent representations for efficient real-time content moderation without quality loss.',
+                      },
+                      {
+                        title: 'Edge-Optimized Inference',
+                        desc: 'Quantized model variants and CDN-backed delivery enabling sub-second generation at global scale.',
+                      },
+                    ].map((c) => (
+                      <div key={c.title} className="rounded-xl border border-border/30 bg-background p-4">
+                        <h4 className="text-xs font-semibold text-foreground">{c.title}</h4>
+                        <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">{c.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Technical specs table */}
+                <div className="mt-6">
+                  <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">System Specifications</p>
+                  <div className="overflow-hidden rounded-xl border border-border/30">
+                    <table className="w-full text-left text-xs">
+                      <tbody>
+                        {[
+                          ['Architecture', 'Cascaded Latent Diffusion with Transformer Encoder'],
+                          ['Prompt Encoder', 'Custom CLIP-aligned text encoder (512-dim)'],
+                          ['Diffusion Steps', '50-step DDIM sampling with classifier-free guidance'],
+                          ['Output Resolution', '1024 x 1024 (pi-1.0)'],
+                          ['Safety Layer', 'Latent-space NSFW classifier (99.2% precision)'],
+                          ['Inference', 'Optimized via quantization + edge caching'],
+                        ].map(([key, val], i) => (
+                          <tr key={key} className={i % 2 === 0 ? 'bg-background' : 'bg-secondary/30'}>
+                            <td className="whitespace-nowrap px-4 py-2.5 font-medium text-foreground">{key}</td>
+                            <td className="px-4 py-2.5 text-muted-foreground">{val}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Citation */}
+                <div className="mt-6 rounded-xl bg-secondary/40 px-4 py-3">
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Citation</p>
+                  <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">
+                    Imoogle Labs (2025). Pictura: Multi-Stage Diffusion for High-Fidelity Image Synthesis. <em>Imoogle Research Technical Report</em>, TR-2025-001.
+                  </p>
+                </div>
+              </div>
+            </motion.article>
           </div>
         </div>
       </section>
