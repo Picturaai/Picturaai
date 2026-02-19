@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X } from 'lucide-react'
+import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, Sparkles, Image as ImageIcon, Clock } from 'lucide-react'
 import { PicturaIcon } from './pictura-logo'
 
 const showcaseImages = [
@@ -57,12 +57,90 @@ const fadeUp = {
   visible: (i: number) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay: i * 0.1, ease: [0.25, 0.46, 0.45, 0.94] } }),
 }
 
+/* Currency map by country code */
+const CURRENCY_MAP: Record<string, { symbol: string; code: string; name: string }> = {
+  NG: { symbol: '\u20A6', code: 'NGN', name: 'Nigerian Naira' },
+  US: { symbol: '$', code: 'USD', name: 'US Dollar' },
+  GB: { symbol: '\u00A3', code: 'GBP', name: 'British Pound' },
+  EU: { symbol: '\u20AC', code: 'EUR', name: 'Euro' },
+  DE: { symbol: '\u20AC', code: 'EUR', name: 'Euro' },
+  FR: { symbol: '\u20AC', code: 'EUR', name: 'Euro' },
+  ES: { symbol: '\u20AC', code: 'EUR', name: 'Euro' },
+  IT: { symbol: '\u20AC', code: 'EUR', name: 'Euro' },
+  NL: { symbol: '\u20AC', code: 'EUR', name: 'Euro' },
+  IN: { symbol: '\u20B9', code: 'INR', name: 'Indian Rupee' },
+  JP: { symbol: '\u00A5', code: 'JPY', name: 'Japanese Yen' },
+  CN: { symbol: '\u00A5', code: 'CNY', name: 'Chinese Yuan' },
+  KR: { symbol: '\u20A9', code: 'KRW', name: 'Korean Won' },
+  BR: { symbol: 'R$', code: 'BRL', name: 'Brazilian Real' },
+  CA: { symbol: 'C$', code: 'CAD', name: 'Canadian Dollar' },
+  AU: { symbol: 'A$', code: 'AUD', name: 'Australian Dollar' },
+  ZA: { symbol: 'R', code: 'ZAR', name: 'South African Rand' },
+  KE: { symbol: 'KSh', code: 'KES', name: 'Kenyan Shilling' },
+  GH: { symbol: 'GH\u20B5', code: 'GHS', name: 'Ghanaian Cedi' },
+  EG: { symbol: 'E\u00A3', code: 'EGP', name: 'Egyptian Pound' },
+  AE: { symbol: 'AED', code: 'AED', name: 'UAE Dirham' },
+  SA: { symbol: 'SAR', code: 'SAR', name: 'Saudi Riyal' },
+  MX: { symbol: 'MX$', code: 'MXN', name: 'Mexican Peso' },
+  PH: { symbol: '\u20B1', code: 'PHP', name: 'Philippine Peso' },
+  ID: { symbol: 'Rp', code: 'IDR', name: 'Indonesian Rupiah' },
+  TH: { symbol: '\u0E3F', code: 'THB', name: 'Thai Baht' },
+  PK: { symbol: 'Rs', code: 'PKR', name: 'Pakistani Rupee' },
+  BD: { symbol: '\u09F3', code: 'BDT', name: 'Bangladeshi Taka' },
+  TR: { symbol: '\u20BA', code: 'TRY', name: 'Turkish Lira' },
+  PL: { symbol: 'z\u0142', code: 'PLN', name: 'Polish Zloty' },
+  SE: { symbol: 'kr', code: 'SEK', name: 'Swedish Krona' },
+  NO: { symbol: 'kr', code: 'NOK', name: 'Norwegian Krone' },
+  DK: { symbol: 'kr', code: 'DKK', name: 'Danish Krone' },
+  CH: { symbol: 'CHF', code: 'CHF', name: 'Swiss Franc' },
+  RU: { symbol: '\u20BD', code: 'RUB', name: 'Russian Ruble' },
+  SG: { symbol: 'S$', code: 'SGD', name: 'Singapore Dollar' },
+  MY: { symbol: 'RM', code: 'MYR', name: 'Malaysian Ringgit' },
+  TZ: { symbol: 'TSh', code: 'TZS', name: 'Tanzanian Shilling' },
+}
+
+const DEFAULT_CURRENCY = { symbol: '$', code: 'USD', name: 'US Dollar' }
+
+type GeoInfo = {
+  country: string
+  countryCode: string
+  city: string
+  currency: { symbol: string; code: string; name: string }
+}
+
 export function Landing() {
   const [activeImage, setActiveImage] = useState(0)
+  const [geo, setGeo] = useState<GeoInfo | null>(null)
 
   useEffect(() => {
     const interval = setInterval(() => setActiveImage((prev) => (prev + 1) % showcaseImages.length), 5000)
     return () => clearInterval(interval)
+  }, [])
+
+  // Auto-detect location
+  useEffect(() => {
+    const detect = async () => {
+      try {
+        const res = await fetch('https://ipapi.co/json/', { cache: 'force-cache' })
+        if (!res.ok) throw new Error('Geo lookup failed')
+        const data = await res.json()
+        const cc = (data.country_code || '').toUpperCase()
+        setGeo({
+          country: data.country_name || 'Unknown',
+          countryCode: cc,
+          city: data.city || '',
+          currency: CURRENCY_MAP[cc] || DEFAULT_CURRENCY,
+        })
+      } catch {
+        setGeo({
+          country: 'your country',
+          countryCode: '',
+          city: '',
+          currency: DEFAULT_CURRENCY,
+        })
+      }
+    }
+    detect()
   }, [])
 
   return (
@@ -368,7 +446,7 @@ export function Landing() {
 
               {/* Table rows */}
               {[
-                { feature: 'Pricing', pictura: 'Free', dalle: '$0.04/img', midjourney: '$10/mo', stable: 'Free*' },
+                { feature: 'Pricing', pictura: geo ? `${geo.currency.symbol}0 Free` : 'Free', dalle: '$0.04/img', midjourney: '$10/mo', stable: 'Free*' },
                 { feature: 'Max Resolution', pictura: '1024px', dalle: '1024px', midjourney: '1024px', stable: '1024px' },
                 { feature: 'Image-to-Image', pictura: true, dalle: false, midjourney: true, stable: true },
                 { feature: 'No Sign-Up', pictura: true, dalle: false, midjourney: false, stable: true },
@@ -661,18 +739,65 @@ export function Landing() {
                 the model and working toward releasing a public API.
               </p>
 
-              <div className="mt-8 grid grid-cols-3 gap-6">
+              {/* Stats cards */}
+              <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
-                  { label: 'Daily Limit', value: '5' },
-                  { label: 'Price', value: 'Free' },
-                  { label: 'Resolution', value: '1024px' },
+                  {
+                    icon: ImageIcon,
+                    value: '5',
+                    label: 'Daily Limit',
+                    sub: 'Free generations',
+                  },
+                  {
+                    icon: Sparkles,
+                    value: geo ? `${geo.currency.symbol}0` : 'Free',
+                    label: 'Price',
+                    sub: geo ? `${geo.currency.code} \u2014 free forever` : 'Always free',
+                  },
+                  {
+                    icon: Zap,
+                    value: '1024',
+                    label: 'Max Resolution',
+                    sub: 'px output size',
+                  },
+                  {
+                    icon: Clock,
+                    value: '<5s',
+                    label: 'Generation',
+                    sub: 'Average latency',
+                  },
                 ].map((stat) => (
-                  <div key={stat.label}>
-                    <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">{stat.label}</div>
+                  <div
+                    key={stat.label}
+                    className="group rounded-xl border border-border/50 bg-card p-4 transition-colors hover:border-primary/20"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8 transition-colors group-hover:bg-primary/15">
+                      <stat.icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="mt-3 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                      {stat.value}
+                    </div>
+                    <div className="mt-0.5 text-xs font-medium text-foreground/70">{stat.label}</div>
+                    <div className="mt-0.5 text-[10px] text-muted-foreground">{stat.sub}</div>
                   </div>
                 ))}
               </div>
+
+              {/* Location badge */}
+              {geo && geo.countryCode && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
+                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/40 bg-secondary/40 px-3.5 py-1.5"
+                >
+                  <MapPin className="h-3 w-3 text-primary" />
+                  <span className="text-[11px] text-muted-foreground">
+                    Detected: <span className="font-medium text-foreground">{geo.city ? `${geo.city}, ` : ''}{geo.country}</span>
+                    {' '}&middot; Currency: <span className="font-medium text-foreground">{geo.currency.symbol} {geo.currency.code}</span>
+                  </span>
+                </motion.div>
+              )}
             </motion.div>
 
             <motion.div
