@@ -7,12 +7,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
+  ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
 import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 
 type Mode = 'text' | 'image'
+type Feedback = 'up' | 'down' | null
 
 /* Custom Send Icon - clean arrow in circle */
 function SendIcon({ className = '' }: { className?: string }) {
@@ -33,6 +35,8 @@ export function Studio() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadPreview, setUploadPreview] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [feedbackMap, setFeedbackMap] = useState<Record<string, Feedback>>({})
+  const [galleryOpen, setGalleryOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -125,6 +129,15 @@ export function Studio() {
     } catch { toast.error('Download failed.') }
   }
 
+  const handleFeedback = (url: string, type: Feedback) => {
+    setFeedbackMap((prev) => ({
+      ...prev,
+      [url]: prev[url] === type ? null : type,
+    }))
+    if (type === 'up') toast.success('Thanks for the feedback!')
+    if (type === 'down') toast('We\'ll use this to improve Pictura.')
+  }
+
   const creditsUsed = rateLimit.used
   const creditsTotal = rateLimit.limit
   const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
@@ -166,6 +179,19 @@ export function Studio() {
             <span className="text-[10px] text-muted-foreground">left today</span>
           </div>
 
+          {images.length > 0 && (
+            <button
+              onClick={() => setGalleryOpen(!galleryOpen)}
+              className="flex items-center gap-1.5 rounded-lg border border-border/40 px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary/60"
+              aria-label="Toggle gallery"
+            >
+              <Grid3X3 className="h-3 w-3" />
+              <span className="hidden sm:inline">Gallery</span>
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary/10 px-1 text-[10px] font-bold text-primary">
+                {images.length}
+              </span>
+            </button>
+          )}
           <Link
             href="/about"
             className="hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary/60 sm:flex"
@@ -291,53 +317,93 @@ export function Studio() {
               )}
             </AnimatePresence>
 
-            <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-              {images.map((img, i) => (
-                <motion.div
-                  key={img.url}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.03 }}
-                  className="group mb-4 break-inside-avoid"
-                >
-                  <div className="relative overflow-hidden rounded-xl border border-border/30 bg-card">
-                    <button onClick={() => setLightbox(img)} className="block w-full text-left">
-                      <Image
-                        src={img.url}
-                        alt={img.prompt}
-                        width={1024}
-                        height={1024}
-                        className="w-full object-cover"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      />
-                    </button>
-                    {/* Hover overlay */}
-                    <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4 transition-transform duration-200 group-hover:translate-y-0">
-                      <p className="line-clamp-2 text-xs text-white/90">{img.prompt}</p>
-                      <div className="mt-2 flex items-center gap-1.5">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDownload(img) }}
-                          className="rounded-lg bg-white/15 p-1.5 backdrop-blur-sm transition-colors hover:bg-white/25"
-                          aria-label="Download image"
-                        >
-                          <Download className="h-3.5 w-3.5 text-white" />
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {images.map((img, i) => {
+                const fb = feedbackMap[img.url] ?? null
+                return (
+                  <motion.div
+                    key={img.url}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: i * 0.04 }}
+                    className="group"
+                  >
+                    <div className="overflow-hidden rounded-2xl border border-border/30 bg-card">
+                      {/* Image */}
+                      <div className="relative aspect-square overflow-hidden">
+                        <button onClick={() => setLightbox(img)} className="block h-full w-full">
+                          <Image
+                            src={img.url}
+                            alt={img.prompt}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
                         </button>
-                        <button
-                          onClick={() => setLightbox(img)}
-                          className="rounded-lg bg-white/15 p-1.5 backdrop-blur-sm transition-colors hover:bg-white/25"
-                          aria-label="View full size"
-                        >
-                          <ZoomIn className="h-3.5 w-3.5 text-white" />
-                        </button>
+                        {/* Watermark logo */}
+                        <div className="absolute top-2.5 right-2.5 rounded-lg bg-black/20 p-1.5 backdrop-blur-sm">
+                          <PicturaIcon size={14} />
+                        </div>
+                        {/* Expand button on hover */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/10">
+                          <div className="scale-0 rounded-full bg-white/20 p-3 backdrop-blur-sm transition-transform duration-200 group-hover:scale-100">
+                            <ZoomIn className="h-5 w-5 text-white" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card info */}
+                      <div className="px-4 pb-4 pt-3">
+                        <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground">{img.prompt}</p>
+                        <div className="mt-2.5 flex items-center gap-1.5">
+                          <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            {img.type === 'text-to-image' ? 'Text' : 'Image'} to Image
+                          </span>
+                          <span className="text-[10px] text-muted-foreground/50 font-mono">1024px</span>
+                        </div>
+
+                        {/* Feedback + actions */}
+                        <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3">
+                          <div className="flex items-center gap-1">
+                            <span className="mr-1 text-[10px] text-muted-foreground/60">Rate</span>
+                            <button
+                              onClick={() => handleFeedback(img.url, 'up')}
+                              className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+                                fb === 'up'
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'text-muted-foreground/40 hover:bg-secondary hover:text-foreground'
+                              }`}
+                              aria-label="Like this image"
+                            >
+                              <ThumbsUp className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleFeedback(img.url, 'down')}
+                              className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+                                fb === 'down'
+                                  ? 'bg-destructive/10 text-destructive'
+                                  : 'text-muted-foreground/40 hover:bg-secondary hover:text-foreground'
+                              }`}
+                              aria-label="Dislike this image"
+                            >
+                              <ThumbsDown className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleDownload(img)}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/40 transition-all hover:bg-secondary hover:text-foreground"
+                              aria-label="Download"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    {/* Logo-only watermark */}
-                    <div className="absolute top-2.5 right-2.5 rounded-md bg-black/20 p-1 backdrop-blur-sm">
-                      <PicturaIcon size={16} />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -466,6 +532,91 @@ export function Studio() {
         </div>
       </div>
 
+      {/* Gallery side panel */}
+      <AnimatePresence>
+        {galleryOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+            onClick={() => setGalleryOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {galleryOpen && (
+          <motion.aside
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-sm flex-col border-l border-border/40 bg-background"
+          >
+            <div className="flex items-center justify-between border-b border-border/40 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Grid3X3 className="h-4 w-4 text-foreground" />
+                <h2 className="text-sm font-semibold text-foreground">Your Creations</h2>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                  {images.length}
+                </span>
+              </div>
+              <button
+                onClick={() => setGalleryOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                aria-label="Close gallery"
+              >
+                <ChevronLeft className="h-4 w-4 rotate-180" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3">
+              {images.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center text-center px-4">
+                  <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                  <p className="mt-3 text-sm text-muted-foreground">No images yet</p>
+                  <p className="mt-1 text-xs text-muted-foreground/60">Your generated images will appear here</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {images.map((img) => (
+                    <button
+                      key={img.url}
+                      onClick={() => { setLightbox(img); setGalleryOpen(false) }}
+                      className="group relative aspect-square overflow-hidden rounded-xl border border-border/30 bg-card"
+                    >
+                      <Image
+                        src={img.url}
+                        alt={img.prompt}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="160px"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                      <div className="absolute inset-x-0 bottom-0 p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <p className="line-clamp-2 text-[10px] leading-snug text-white/90">{img.prompt}</p>
+                      </div>
+                      {/* Feedback indicator */}
+                      {feedbackMap[img.url] === 'up' && (
+                        <div className="absolute top-1.5 right-1.5 rounded-md bg-primary/20 p-0.5 backdrop-blur-sm">
+                          <ThumbsUp className="h-2.5 w-2.5 text-primary" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-border/40 px-4 py-3">
+              <p className="text-center text-[10px] text-muted-foreground/50">
+                {images.length} image{images.length !== 1 ? 's' : ''} generated in this session
+              </p>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
       {/* Lightbox */}
       <AnimatePresence>
         {lightbox && (
@@ -507,13 +658,40 @@ export function Studio() {
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-5">
                 <p className="text-sm text-white/90">{lightbox.prompt}</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <PicturaIcon size={14} />
-                  <span className="text-[10px] text-white/50">
-                    {lightbox.type === 'text' ? 'Text to Image' : 'Image to Image'}
-                  </span>
+                <div className="mt-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <PicturaIcon size={14} />
+                    <span className="text-[10px] text-white/50">
+                      {lightbox.type === 'text-to-image' ? 'Text to Image' : 'Image to Image'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="mr-1 text-[10px] text-white/40">How did we do?</span>
+                    <button
+                      onClick={() => handleFeedback(lightbox.url, 'up')}
+                      className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+                        feedbackMap[lightbox.url] === 'up'
+                          ? 'bg-white/20 text-white'
+                          : 'text-white/40 hover:text-white hover:bg-white/10'
+                      }`}
+                      aria-label="Like"
+                    >
+                      <ThumbsUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleFeedback(lightbox.url, 'down')}
+                      className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+                        feedbackMap[lightbox.url] === 'down'
+                          ? 'bg-white/20 text-white'
+                          : 'text-white/40 hover:text-white hover:bg-white/10'
+                      }`}
+                      aria-label="Dislike"
+                    >
+                      <ThumbsDown className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
