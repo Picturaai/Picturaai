@@ -12,7 +12,7 @@ export function Footer() {
               <span className="text-lg font-bold tracking-tight text-foreground">Pictura</span>
             </span>
             <p className="mt-3 max-w-[240px] text-sm leading-relaxed text-muted-foreground">
-              Non-profit AI image generation. Built with pride in Lagos, Nigeria.
+              Non-profit AI image generation by Imoogle Labs. Free and accessible to everyone.
             </p>
             <div className="mt-4 flex items-center gap-2">
               <span className="flex h-3.5 w-5 overflow-hidden rounded-sm" aria-label="Nigerian flag">
@@ -20,21 +20,21 @@ export function Footer() {
                 <span className="w-1/3 bg-[#FFFFFF] border-y border-border/30" />
                 <span className="w-1/3 bg-[#008751]" />
               </span>
-              <span className="text-xs text-muted-foreground">Made in Nigeria</span>
+              <span className="text-xs text-muted-foreground">Built in Nigeria</span>
             </div>
           </div>
 
           <div className="flex flex-col gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Product</span>
             <Link href="/studio" className="text-sm text-foreground/70 transition-colors hover:text-primary">Studio</Link>
-            <span className="flex items-center gap-2 text-sm text-foreground/40">
+            <Link href="/api-docs" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               API
-              <span className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">SOON</span>
-            </span>
-            <span className="flex items-center gap-2 text-sm text-foreground/70">
+              <span className="rounded bg-blue-500/10 px-1.5 py-0.5 font-mono text-[10px] text-blue-600">SOON</span>
+            </Link>
+            <Link href="/pricing" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               Pricing
               <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] text-emerald-600">FREE</span>
-            </span>
+            </Link>
           </div>
 
           <div className="flex flex-col gap-3">

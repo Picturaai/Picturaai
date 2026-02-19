@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  ArrowRight, Check, Circle, MapPin, Users, Lightbulb, Globe,
+  ArrowRight, Check, Circle, Users, Lightbulb, Globe, Cpu, Shield,
 } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
@@ -31,7 +31,7 @@ const roadmap = [
 const values = [
   { icon: Globe, title: 'Accessibility', description: 'AI creativity should be free and open to everyone, regardless of location or resources.' },
   { icon: Users, title: 'Community', description: 'We build in public and value feedback from every user who touches Pictura.' },
-  { icon: Lightbulb, title: 'Innovation', description: 'We push boundaries from Lagos, proving world-class AI can come from anywhere.' },
+  { icon: Lightbulb, title: 'Innovation', description: 'We push boundaries from Nigeria, proving world-class AI can come from anywhere.' },
 ]
 
 export default function AboutPage() {
@@ -46,9 +46,8 @@ export default function AboutPage() {
               <PicturaIcon size={44} />
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">About Imoogle</h1>
-                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3" />
-                  Lagos, Nigeria
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Non-profit AI Research &middot; Nigeria
                 </p>
               </div>
             </div>
@@ -61,7 +60,7 @@ export default function AboutPage() {
             <h2 className="text-lg font-semibold text-foreground">Who We Are</h2>
             <div className="mt-4 flex flex-col gap-4 text-sm leading-relaxed text-muted-foreground">
               <p>
-                Imoogle Technology is a non-profit Nigerian artificial intelligence company headquartered in Lagos.
+                Imoogle Technology is a non-profit Nigerian artificial intelligence company.
                 Through our research division, <strong className="text-foreground">Imoogle Labs</strong>, we build
                 AI-powered creative tools for Africa and the world.
               </p>
@@ -89,6 +88,25 @@ export default function AboutPage() {
             </div>
           </motion.section>
 
+          {/* Architecture */}
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3} variants={fadeUp} className="mb-14">
+            <h2 className="text-lg font-semibold text-foreground">Technical Architecture</h2>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {[
+                { icon: Cpu, title: 'Multi-Model Pipeline', description: 'Pictura chains specialized models in a pipeline, routing prompts to style-optimized models for the best results.' },
+                { icon: Shield, title: 'Safety Layer', description: 'Every generation passes through content moderation and safety filtering before delivery.' },
+                { icon: Globe, title: 'Edge Delivery', description: 'Generated images are served via a global CDN for instant access anywhere in the world.' },
+                { icon: Lightbulb, title: 'Prompt Intelligence', description: 'NLP-powered prompt analysis enhances your descriptions for better visual output quality.' },
+              ].map((item) => (
+                <div key={item.title} className="rounded-xl border border-border/50 bg-card p-5">
+                  <item.icon className="h-5 w-5 text-primary" />
+                  <h3 className="mt-3 text-sm font-semibold text-foreground">{item.title}</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+
           {/* Nigeria */}
           <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3} variants={fadeUp} className="mb-14">
             <div className="rounded-2xl border border-border/50 bg-card p-6 sm:p-8">
@@ -101,7 +119,7 @@ export default function AboutPage() {
                 <h2 className="text-lg font-semibold text-foreground">Built in Nigeria</h2>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                Lagos is our home and Africa is our launchpad. We are committed to demonstrating that
+                Nigeria is our home and Africa is our launchpad. We are committed to demonstrating that
                 world-class AI innovation can come from anywhere. We are proudly Nigerian, and we are just getting started.
               </p>
             </div>
