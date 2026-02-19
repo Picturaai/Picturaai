@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, Sparkles, Image as ImageIcon, Clock } from 'lucide-react'
+import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock } from 'lucide-react'
 import { PicturaIcon } from './pictura-logo'
 
 const showcaseImages = [
@@ -749,7 +749,7 @@ export function Landing() {
                     sub: 'Free generations',
                   },
                   {
-                    icon: Sparkles,
+                    icon: CircleDollarSign,
                     value: geo ? `${geo.currency.symbol}0` : 'Free',
                     label: 'Price',
                     sub: geo ? `${geo.currency.code} \u2014 free forever` : 'Always free',
