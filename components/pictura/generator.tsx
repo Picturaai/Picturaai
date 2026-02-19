@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useId } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TextToImageForm } from './text-to-image-form'
 import { ImageToImageForm } from './image-to-image-form'
@@ -10,6 +10,8 @@ import { BetaBanner } from './beta-banner'
 import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 
 export function Generator() {
+  const tabsId = useId()
+  const [mounted, setMounted] = useState(false)
   const [images, setImages] = useState<GeneratedImage[]>([])
   const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo>({
     limit: 5,
@@ -31,6 +33,7 @@ export function Generator() {
   }, [])
 
   useEffect(() => {
+    setMounted(true)
     fetchRateLimit()
   }, [fetchRateLimit])
 
@@ -53,7 +56,14 @@ export function Generator() {
           <UsageIndicator used={rateLimitInfo.used} limit={rateLimitInfo.limit} />
 
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
-            <Tabs defaultValue="text-to-image" className="w-full">
+            {!mounted ? (
+              <div className="flex flex-col gap-4 animate-pulse">
+                <div className="h-9 bg-secondary rounded-lg" />
+                <div className="h-32 bg-secondary/50 rounded-lg" />
+                <div className="h-10 bg-secondary rounded-lg" />
+              </div>
+            ) : (
+            <Tabs defaultValue="text-to-image" className="w-full" key={tabsId}>
               <TabsList className="w-full bg-secondary">
                 <TabsTrigger
                   value="text-to-image"
@@ -97,6 +107,7 @@ export function Generator() {
                 />
               </TabsContent>
             </Tabs>
+            )}
           </div>
 
           {/* Model info */}
