@@ -760,25 +760,25 @@ export function Landing() {
             </svg>
           </motion.div>
 
-          {/* Floating dots */}
-          {[...Array(20)].map((_, i) => (
+          {/* Floating dots - deterministic positions to avoid hydration mismatch */}
+          {[
+            { l: 12, t: 8, y: 52, d: 3.2, dl: 0.1 }, { l: 34, t: 72, y: 68, d: 5.1, dl: 1.2 },
+            { l: 56, t: 23, y: 45, d: 4.3, dl: 2.3 }, { l: 78, t: 61, y: 90, d: 6.0, dl: 0.8 },
+            { l: 91, t: 15, y: 55, d: 3.8, dl: 3.5 }, { l: 5, t: 88, y: 70, d: 4.9, dl: 1.7 },
+            { l: 45, t: 45, y: 60, d: 5.5, dl: 0.5 }, { l: 67, t: 33, y: 48, d: 3.5, dl: 2.8 },
+            { l: 23, t: 56, y: 82, d: 6.2, dl: 4.1 }, { l: 82, t: 78, y: 44, d: 4.1, dl: 0.3 },
+            { l: 15, t: 35, y: 75, d: 5.8, dl: 3.2 }, { l: 50, t: 90, y: 58, d: 3.9, dl: 1.5 },
+            { l: 72, t: 10, y: 66, d: 4.7, dl: 2.0 }, { l: 38, t: 65, y: 50, d: 5.3, dl: 4.5 },
+            { l: 88, t: 42, y: 72, d: 3.3, dl: 0.9 }, { l: 8, t: 55, y: 88, d: 6.5, dl: 3.8 },
+            { l: 62, t: 82, y: 42, d: 4.4, dl: 1.1 }, { l: 28, t: 18, y: 62, d: 5.0, dl: 2.6 },
+            { l: 95, t: 50, y: 56, d: 3.6, dl: 4.0 }, { l: 42, t: 3, y: 78, d: 4.8, dl: 0.6 },
+          ].map((dot, i) => (
             <motion.div
               key={`dot-${i}`}
               className="absolute h-1 w-1 rounded-full bg-primary/30"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -40 - Math.random() * 60, 0],
-                opacity: [0, 0.8, 0],
-              }}
-              transition={{
-                duration: 3 + Math.random() * 4,
-                repeat: Infinity,
-                delay: Math.random() * 5,
-                ease: 'easeInOut',
-              }}
+              style={{ left: `${dot.l}%`, top: `${dot.t}%` }}
+              animate={{ y: [0, -dot.y, 0], opacity: [0, 0.8, 0] }}
+              transition={{ duration: dot.d, repeat: Infinity, delay: dot.dl, ease: 'easeInOut' }}
             />
           ))}
 

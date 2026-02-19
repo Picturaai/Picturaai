@@ -612,7 +612,7 @@ export function Studio() {
                     transition={{ duration: 0.35, delay: i * 0.04 }}
                     className="group"
                   >
-                    <div className="overflow-hidden rounded-2xl border border-border/30 bg-card">
+                    <div className="relative overflow-hidden rounded-2xl border border-border/30 bg-card">
                       {/* Image */}
                       <div className="relative aspect-square overflow-hidden">
                         <button onClick={() => setLightbox(img)} className="relative block h-full w-full">
