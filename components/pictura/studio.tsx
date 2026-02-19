@@ -8,6 +8,7 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
+  ChevronDown, Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -16,6 +17,40 @@ import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 
 type Mode = 'text' | 'image'
 type Feedback = 'up' | 'down' | null
+
+const TOUR_STEPS = [
+  {
+    title: 'Welcome to Pictura Studio',
+    description: 'Create stunning AI-generated images in seconds. Let us show you around.',
+    target: 'hero',
+  },
+  {
+    title: 'Choose Your Model',
+    description: 'Select a model from the switcher. Currently pi-1.0 is available, with more coming soon.',
+    target: 'model',
+  },
+  {
+    title: 'Your Daily Credits',
+    description: 'During beta, you get 5 free generations per day. This counter tracks your remaining credits.',
+    target: 'credits',
+  },
+  {
+    title: 'Type Your Prompt',
+    description: 'Describe what you want to see. Be specific for best results. Use "Image to Image" to transform existing photos.',
+    target: 'prompt',
+  },
+  {
+    title: 'View Your Gallery',
+    description: 'All generated images appear in your gallery. Rate them, download, or view full size.',
+    target: 'gallery',
+  },
+]
+
+const MODELS = [
+  { id: 'pi-1.0', name: 'Pictura pi-1.0', status: 'active' as const, description: 'General purpose image generation' },
+  { id: 'pi-1.5-turbo', name: 'Pictura pi-1.5 Turbo', status: 'coming' as const, description: 'Faster, higher quality' },
+  { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture' },
+]
 
 /* Custom Send Icon - clean arrow in circle */
 function SendIcon({ className = '' }: { className?: string }) {
@@ -39,6 +74,9 @@ export function Studio() {
   const [feedbackMap, setFeedbackMap] = useState<Record<string, Feedback>>({})
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [showExhausted, setShowExhausted] = useState(false)
+  const [tourStep, setTourStep] = useState(-1) // -1 = not showing
+  const [selectedModel, setSelectedModel] = useState('pi-1.0')
+  const [modelOpen, setModelOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -50,7 +88,26 @@ export function Studio() {
     } catch { /* silent */ }
   }, [])
 
-  useEffect(() => { setMounted(true); fetchRateLimit() }, [fetchRateLimit])
+  useEffect(() => {
+    setMounted(true)
+    fetchRateLimit()
+    // Show tour on first visit only
+    try {
+      if (!localStorage.getItem('pictura_tour_done')) {
+        setTimeout(() => setTourStep(0), 600)
+      }
+    } catch { /* silent */ }
+  }, [fetchRateLimit])
+
+  // Close model dropdown when clicking outside
+  useEffect(() => {
+    if (!modelOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('[data-tour="model"]')) setModelOpen(false)
+    }
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [modelOpen])
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -153,6 +210,15 @@ export function Studio() {
     if (type === 'down') toast('We\'ll use this to improve Pictura.')
   }
 
+  const dismissTour = () => {
+    setTourStep(-1)
+    try { localStorage.setItem('pictura_tour_done', '1') } catch { /* silent */ }
+  }
+  const nextTourStep = () => {
+    if (tourStep >= TOUR_STEPS.length - 1) { dismissTour(); return }
+    setTourStep((s) => s + 1)
+  }
+
   const creditsUsed = rateLimit.used
   const creditsTotal = rateLimit.limit
   const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
@@ -170,11 +236,68 @@ export function Studio() {
           <span className="rounded-md bg-primary/8 px-2 py-0.5 text-[10px] font-bold tracking-wider text-primary">
             BETA
           </span>
+
+          {/* Model switcher */}
+          <div className="relative" data-tour="model">
+            <button
+              onClick={() => setModelOpen(!modelOpen)}
+              className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-card px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary/60"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="hidden xs:inline">{MODELS.find(m => m.id === selectedModel)?.name ?? selectedModel}</span>
+              <span className="xs:hidden">pi-1.0</span>
+              <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${modelOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            <AnimatePresence>
+              {modelOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 4, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 4, scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute left-0 top-full z-30 mt-1.5 w-64 overflow-hidden rounded-xl border border-border/50 bg-card shadow-lg"
+                >
+                  <div className="px-3 py-2.5 border-b border-border/30">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">Model</p>
+                  </div>
+                  {MODELS.map((model) => (
+                    <button
+                      key={model.id}
+                      disabled={model.status === 'coming'}
+                      onClick={() => { setSelectedModel(model.id); setModelOpen(false) }}
+                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                        model.status === 'coming'
+                          ? 'cursor-not-allowed opacity-50'
+                          : 'hover:bg-secondary/60'
+                      }`}
+                    >
+                      <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${
+                        selectedModel === model.id ? 'bg-primary/10' : 'bg-secondary'
+                      }`}>
+                        <PicturaIcon size={14} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-medium text-foreground">{model.name}</span>
+                          {model.status === 'coming' && (
+                            <span className="rounded bg-muted px-1 py-px text-[9px] font-medium text-muted-foreground">Soon</span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">{model.description}</p>
+                      </div>
+                      {selectedModel === model.id && <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" />}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Credits display */}
-          <div className="flex items-center gap-2 rounded-full border border-border/50 bg-card px-3 py-1.5">
+          <div data-tour="credits" className="flex items-center gap-2 rounded-full border border-border/50 bg-card px-3 py-1.5">
             <div className="relative h-[18px] w-[18px]">
               <svg viewBox="0 0 36 36" className="h-[18px] w-[18px] -rotate-90" aria-hidden="true">
                 <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-secondary" />
@@ -457,7 +580,7 @@ export function Studio() {
           </AnimatePresence>
 
           {/* Prompt bar */}
-          <div className="flex items-end gap-2 rounded-2xl border border-border/50 bg-background p-2 transition-colors focus-within:border-primary/30">
+          <div data-tour="prompt" className="flex items-end gap-2 rounded-2xl border border-border/50 bg-background p-2 transition-colors focus-within:border-primary/30">
             <div className="flex items-center gap-1 pb-0.5">
               <button
                 onClick={() => { if (mode === 'text') { fileInputRef.current?.click() } else { setMode('text'); handleFileChange(null) } }}
@@ -540,12 +663,85 @@ export function Studio() {
                 </span>
               )}
               <span className="text-[10px] text-muted-foreground/40 font-mono">
-                1024 x 1024
+                {selectedModel} &middot; 1024
               </span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Walkthrough Tour */}
+      <AnimatePresence>
+        {tourStep >= 0 && tourStep < TOUR_STEPS.length && (
+          <motion.div
+            key="tour-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={dismissTour}
+          >
+            <motion.div
+              key={`tour-${tourStep}`}
+              initial={{ scale: 0.92, opacity: 0, y: 16 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.92, opacity: 0, y: -16 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+              className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-border/30 bg-background p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Step indicator dots */}
+              <div className="mb-5 flex items-center gap-1.5">
+                {TOUR_STEPS.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      i === tourStep ? 'w-6 bg-primary' : i < tourStep ? 'w-1.5 bg-primary/40' : 'w-1.5 bg-border'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Icon */}
+              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+                {tourStep === 0 && <PicturaIcon size={22} />}
+                {tourStep === 1 && <ChevronDown className="h-5 w-5 text-primary" />}
+                {tourStep === 2 && (
+                  <svg viewBox="0 0 36 36" className="h-5 w-5 text-primary" aria-hidden="true">
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" />
+                  </svg>
+                )}
+                {tourStep === 3 && <ArrowRight className="h-5 w-5 text-primary" />}
+                {tourStep === 4 && <Grid3X3 className="h-5 w-5 text-primary" />}
+              </div>
+
+              <h3 className="text-base font-bold text-foreground">{TOUR_STEPS[tourStep].title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{TOUR_STEPS[tourStep].description}</p>
+
+              <div className="mt-6 flex items-center justify-between">
+                <button
+                  onClick={dismissTour}
+                  className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Skip tour
+                </button>
+                <button
+                  onClick={nextTourStep}
+                  className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.97]"
+                >
+                  {tourStep === TOUR_STEPS.length - 1 ? 'Get started' : 'Next'}
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+
+              {/* Step count */}
+              <p className="mt-4 text-center text-[10px] text-muted-foreground/40">
+                {tourStep + 1} of {TOUR_STEPS.length}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Exhausted overlay */}
       <AnimatePresence>
