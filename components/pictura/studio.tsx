@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
+import { playSuccessSound, playLimitSound } from '@/lib/sounds'
 import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 
 type Mode = 'text' | 'image'
@@ -37,6 +38,7 @@ export function Studio() {
   const [mounted, setMounted] = useState(false)
   const [feedbackMap, setFeedbackMap] = useState<Record<string, Feedback>>({})
   const [galleryOpen, setGalleryOpen] = useState(false)
+  const [showExhausted, setShowExhausted] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -69,7 +71,8 @@ export function Studio() {
   const handleGenerate = async () => {
     if (!prompt.trim()) return
     if (rateLimit.remaining <= 0) {
-      toast.error('Daily limit reached. You have 5 free generations per day during beta.')
+      playLimitSound()
+      setShowExhausted(true)
       return
     }
     if (mode === 'image' && !uploadedFile) {
@@ -103,8 +106,20 @@ export function Studio() {
       setImages((prev) => [data, ...prev])
       if (data.rateLimitInfo) setRateLimit(data.rateLimitInfo)
       setPrompt('')
+      playSuccessSound()
       toast.success('Image generated!')
       setTimeout(() => galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+
+      // Check if this was the last generation
+      const updatedRemaining = data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1
+      if (updatedRemaining <= 0) {
+        setTimeout(() => {
+          playLimitSound()
+          setShowExhausted(true)
+        }, 1500)
+      } else if (updatedRemaining === 1) {
+        setTimeout(() => toast('You have 1 generation left today. Make it count!'), 800)
+      }
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
@@ -531,6 +546,67 @@ export function Studio() {
           </div>
         </div>
       </div>
+
+      {/* Exhausted overlay */}
+      <AnimatePresence>
+        {showExhausted && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-md p-4"
+            onClick={() => setShowExhausted(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border/30 bg-background p-8 text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Decorative ring */}
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center">
+                <div className="relative flex h-full w-full items-center justify-center">
+                  <svg className="absolute inset-0 h-full w-full" viewBox="0 0 80 80" aria-hidden="true">
+                    <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="2" className="text-destructive/20" />
+                    <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="226.19" strokeDashoffset="0" strokeLinecap="round" className="text-destructive/60" />
+                  </svg>
+                  <PicturaIcon size={28} />
+                </div>
+              </div>
+
+              <h3 className="text-xl font-bold text-foreground">
+                {"Oops! You've used all your credits"}
+              </h3>
+              <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                {"You've exhausted your 5 free image generations for today. We're working hard to increase limits as Pictura grows."}
+              </p>
+
+              <div className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-secondary/50 px-4 py-2.5">
+                <svg viewBox="0 0 16 16" className="h-4 w-4 text-primary" fill="none" aria-hidden="true">
+                  <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M8 4v4l2.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                <span className="text-sm font-medium text-foreground">
+                  Resets daily at <strong>12:00 AM</strong>
+                </span>
+              </div>
+
+              <p className="mt-4 text-xs text-muted-foreground/60">
+                Pictura is in beta. More capacity is coming soon.
+              </p>
+
+              <button
+                onClick={() => setShowExhausted(false)}
+                className="mt-6 w-full rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
+              >
+                Got it
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Gallery side panel */}
       <AnimatePresence>
