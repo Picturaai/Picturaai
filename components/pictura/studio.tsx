@@ -206,6 +206,35 @@ function TourOverlay({
   )
 }
 
+const PROMPT_EXAMPLES = [
+  'A serene Japanese garden at dawn with cherry blossoms falling',
+  'Futuristic cyberpunk cityscape with neon lights reflecting on wet streets',
+  'A cozy cabin in a snowy forest with warm light glowing from the windows',
+  'An astronaut floating above Earth during a vibrant aurora borealis',
+  'Watercolor painting of a Venice canal at sunset with gondolas',
+  'A majestic dragon perched on a crystal mountain peak at twilight',
+  'African savanna at golden hour with elephants silhouetted against the sky',
+  'An underwater coral reef teeming with colorful tropical fish',
+  'A steampunk inventor\'s workshop filled with brass gears and gadgets',
+  'Misty mountain temple in ancient China surrounded by bamboo forests',
+  'A whimsical treehouse village connected by rope bridges at sunset',
+  'Portrait of a warrior queen in ornate golden armor, oil painting style',
+  'A bustling Lagos market street with vibrant colors and energy',
+  'Northern lights dancing over a frozen lake in Iceland',
+  'A magical library with floating books and glowing shelves',
+]
+
+const IMG2IMG_EXAMPLES = [
+  'Transform into a watercolor painting style',
+  'Make it look like a Studio Ghibli animation',
+  'Add a dramatic sunset sky in the background',
+  'Convert to a pencil sketch with fine details',
+  'Apply a cyberpunk neon aesthetic',
+  'Transform into an oil painting by Monet',
+  'Make it look like a vintage 1970s photograph',
+  'Add snow and winter atmosphere',
+]
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
@@ -222,9 +251,20 @@ export function Studio() {
   const [tourStep, setTourStep] = useState(-1) // -1 = not showing
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
+  const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
+
+  // Rotate placeholder prompts every 4s when input is empty
+  useEffect(() => {
+    if (prompt) return // stop rotating if user is typing
+    const examples = mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES
+    const interval = setInterval(() => {
+      setPlaceholderIdx((prev) => (prev + 1) % examples.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [prompt, mode])
 
   const fetchRateLimit = useCallback(async () => {
     try {
@@ -752,7 +792,7 @@ export function Studio() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={mode === 'text' ? 'Describe the image you want to create...' : 'Describe how to transform this image...'}
+              placeholder={(mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES)[placeholderIdx % (mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES).length]}
               rows={1}
               disabled={loading}
               className="flex-1 resize-none bg-transparent py-2 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 disabled:opacity-50"
