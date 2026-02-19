@@ -19,6 +19,9 @@ export function Navbar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10)
@@ -37,7 +40,7 @@ export function Navbar() {
     <>
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          scrolled
+          mounted && scrolled
             ? 'bg-background/80 backdrop-blur-xl border-b border-border/50'
             : 'bg-transparent'
         }`}
@@ -71,27 +74,24 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile hamburger */}
+          {/* Mobile hamburger - CSS transitions only (no motion) */}
           <button
             onClick={() => setOpen(!open)}
             className="relative z-50 flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-secondary/60 md:hidden"
             aria-label={open ? 'Close menu' : 'Open menu'}
           >
-            <div className="flex w-[18px] flex-col items-end gap-[5px]">
-              <motion.span
-                animate={open ? { rotate: 45, y: 7, width: 18 } : { rotate: 0, y: 0, width: 18 }}
-                className="block h-[1.5px] rounded-full bg-foreground origin-center"
-                transition={{ duration: 0.25 }}
+            <div className="flex w-[18px] flex-col items-center gap-[5px]">
+              <span
+                className="block h-[1.5px] w-[18px] rounded-full bg-foreground origin-center transition-all duration-300"
+                style={mounted && open ? { transform: 'translateY(3.25px) rotate(45deg)' } : {}}
               />
-              <motion.span
-                animate={open ? { opacity: 0, x: 8 } : { opacity: 1, x: 0 }}
-                className="block h-[1.5px] w-3 rounded-full bg-foreground"
-                transition={{ duration: 0.2 }}
+              <span
+                className="block h-[1.5px] w-3 rounded-full bg-foreground transition-all duration-200"
+                style={mounted && open ? { opacity: 0, transform: 'translateX(8px)' } : {}}
               />
-              <motion.span
-                animate={open ? { rotate: -45, y: -7, width: 18 } : { rotate: 0, y: 0, width: 14 }}
-                className="block h-[1.5px] rounded-full bg-foreground origin-center"
-                transition={{ duration: 0.25 }}
+              <span
+                className="block h-[1.5px] w-[14px] rounded-full bg-foreground origin-center transition-all duration-300"
+                style={mounted && open ? { width: '18px', transform: 'translateY(-3.25px) rotate(-45deg)' } : {}}
               />
             </div>
           </button>

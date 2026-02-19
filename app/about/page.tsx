@@ -43,41 +43,49 @@ const archNodes = [
   { icon: Globe, label: 'CDN Delivery', angle: 300 },
 ]
 
+/* Pre-compute all node positions to avoid floating-point hydration mismatches */
+const R = 110
+const CX = 160
+const CY = 160
+const nodePositions = archNodes.map((node) => {
+  const rad = (node.angle * Math.PI) / 180
+  return {
+    ...node,
+    svgX: Math.round(CX + R * Math.cos(rad)),
+    svgY: Math.round(CY + R * Math.sin(rad)),
+    divLeft: Math.round(CX + R * Math.cos(rad) - 24),
+    divTop: Math.round(CY + R * Math.sin(rad) - 24),
+  }
+})
+
 /* Animated hub-and-spoke wire architecture diagram */
 function ArchDiagram() {
+  const [mounted, setMounted] = useState(false)
   const [pulseIndex, setPulseIndex] = useState(0)
+
   useEffect(() => {
+    setMounted(true)
     const id = setInterval(() => setPulseIndex((p) => (p + 1) % archNodes.length), 1200)
     return () => clearInterval(id)
   }, [])
-
-  const r = 110
-  const cx = 160, cy = 160
 
   return (
     <div className="relative mx-auto flex h-[340px] w-[340px] items-center justify-center">
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 320 320" aria-hidden="true">
         {/* Wires from center to each node */}
-        {archNodes.map((node, i) => {
-          const rad = (node.angle * Math.PI) / 180
-          const nx = cx + r * Math.cos(rad)
-          const ny = cy + r * Math.sin(rad)
-          const isPulsing = i === pulseIndex
-          return (
-            <g key={node.label}>
-              <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="currentColor" strokeWidth="1" className="text-border" />
-              {isPulsing && (
-                <circle r="3" className="text-primary" fill="currentColor" opacity="0.7">
-                  <animate attributeName="cx" from={cx} to={nx} dur="0.8s" fill="freeze" />
-                  <animate attributeName="cy" from={cy} to={ny} dur="0.8s" fill="freeze" />
-                  <animate attributeName="opacity" from="0.8" to="0" dur="0.8s" fill="freeze" />
-                </circle>
-              )}
-            </g>
-          )
-        })}
-        {/* Outer ring connecting nodes */}
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 6" className="text-border/50" />
+        {nodePositions.map((node) => (
+          <line key={node.label} x1={CX} y1={CY} x2={node.svgX} y2={node.svgY} stroke="currentColor" strokeWidth="1" className="text-border" />
+        ))}
+        {/* Animated pulse dot - only on client */}
+        {mounted && nodePositions[pulseIndex] && (
+          <circle r="3" className="text-primary" fill="currentColor" opacity="0.7" key={`pulse-${pulseIndex}`}>
+            <animate attributeName="cx" from={CX} to={nodePositions[pulseIndex].svgX} dur="0.8s" fill="freeze" />
+            <animate attributeName="cy" from={CY} to={nodePositions[pulseIndex].svgY} dur="0.8s" fill="freeze" />
+            <animate attributeName="opacity" from="0.8" to="0" dur="0.8s" fill="freeze" />
+          </circle>
+        )}
+        {/* Outer ring */}
+        <circle cx={CX} cy={CY} r={R} fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 6" className="text-border/50" />
       </svg>
 
       {/* Center hub */}
@@ -85,17 +93,14 @@ function ArchDiagram() {
         <PicturaIcon size={28} />
       </div>
 
-      {/* Nodes */}
-      {archNodes.map((node, i) => {
-        const rad = (node.angle * Math.PI) / 180
-        const x = cx + r * Math.cos(rad) - 24
-        const y = cy + r * Math.sin(rad) - 24
-        const isPulsing = i === pulseIndex
+      {/* Nodes - positions are pre-computed integers so server/client match */}
+      {nodePositions.map((node, i) => {
+        const isPulsing = mounted && i === pulseIndex
         return (
           <div
             key={node.label}
             className="absolute flex flex-col items-center gap-1.5"
-            style={{ left: x, top: y, width: 48 }}
+            style={{ left: `${node.divLeft}px`, top: `${node.divTop}px`, width: '48px' }}
           >
             <div className={`flex h-12 w-12 items-center justify-center rounded-xl border bg-card shadow-sm transition-all duration-500 ${
               isPulsing ? 'border-primary/40 scale-110' : 'border-border/50'
