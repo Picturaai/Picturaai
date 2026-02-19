@@ -82,6 +82,11 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+@keyframes slideWire {
+  0% { transform: translateX(-96px); }
+  100% { transform: translateX(calc(100% + 96px)); }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

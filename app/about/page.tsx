@@ -43,40 +43,64 @@ const archNodes = [
   { icon: Globe, label: 'CDN Delivery', angle: 300 },
 ]
 
-/* Animated orbital architecture diagram */
+/* Animated hub-and-spoke wire architecture diagram */
 function ArchDiagram() {
-  const [rotation, setRotation] = useState(0)
+  const [pulseIndex, setPulseIndex] = useState(0)
   useEffect(() => {
-    const id = setInterval(() => setRotation((r) => r + 0.15), 30)
+    const id = setInterval(() => setPulseIndex((p) => (p + 1) % archNodes.length), 1200)
     return () => clearInterval(id)
   }, [])
 
-  const r = 120 // orbit radius
+  const r = 110
+  const cx = 160, cy = 160
+
   return (
-    <div className="relative mx-auto flex h-[320px] w-[320px] items-center justify-center">
-      {/* Orbit ring */}
+    <div className="relative mx-auto flex h-[340px] w-[340px] items-center justify-center">
       <svg className="absolute inset-0 h-full w-full" viewBox="0 0 320 320" aria-hidden="true">
-        <circle cx="160" cy="160" r={r} fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="text-border" />
+        {/* Wires from center to each node */}
+        {archNodes.map((node, i) => {
+          const rad = (node.angle * Math.PI) / 180
+          const nx = cx + r * Math.cos(rad)
+          const ny = cy + r * Math.sin(rad)
+          const isPulsing = i === pulseIndex
+          return (
+            <g key={node.label}>
+              <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="currentColor" strokeWidth="1" className="text-border" />
+              {isPulsing && (
+                <circle r="3" className="text-primary" fill="currentColor" opacity="0.7">
+                  <animate attributeName="cx" from={cx} to={nx} dur="0.8s" fill="freeze" />
+                  <animate attributeName="cy" from={cy} to={ny} dur="0.8s" fill="freeze" />
+                  <animate attributeName="opacity" from="0.8" to="0" dur="0.8s" fill="freeze" />
+                </circle>
+              )}
+            </g>
+          )
+        })}
+        {/* Outer ring connecting nodes */}
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 6" className="text-border/50" />
       </svg>
 
-      {/* Center logo */}
-      <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border border-border/50 bg-card shadow-sm">
+      {/* Center hub */}
+      <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-card shadow-sm">
         <PicturaIcon size={28} />
       </div>
 
-      {/* Orbiting nodes */}
-      {archNodes.map((node) => {
-        const angleRad = ((node.angle + rotation) * Math.PI) / 180
-        const x = 160 + r * Math.cos(angleRad) - 22
-        const y = 160 + r * Math.sin(angleRad) - 22
+      {/* Nodes */}
+      {archNodes.map((node, i) => {
+        const rad = (node.angle * Math.PI) / 180
+        const x = cx + r * Math.cos(rad) - 24
+        const y = cy + r * Math.sin(rad) - 24
+        const isPulsing = i === pulseIndex
         return (
           <div
             key={node.label}
-            className="absolute flex flex-col items-center gap-1"
-            style={{ left: x, top: y, width: 44, transition: 'left 0.03s linear, top 0.03s linear' }}
+            className="absolute flex flex-col items-center gap-1.5"
+            style={{ left: x, top: y, width: 48 }}
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/50 bg-card shadow-sm">
-              <node.icon className="h-4 w-4 text-primary" />
+            <div className={`flex h-12 w-12 items-center justify-center rounded-xl border bg-card shadow-sm transition-all duration-500 ${
+              isPulsing ? 'border-primary/40 scale-110' : 'border-border/50'
+            }`}>
+              <node.icon className={`h-4 w-4 transition-colors duration-500 ${isPulsing ? 'text-primary' : 'text-muted-foreground'}`} />
             </div>
             <span className="whitespace-nowrap text-[9px] font-medium text-muted-foreground">{node.label}</span>
           </div>

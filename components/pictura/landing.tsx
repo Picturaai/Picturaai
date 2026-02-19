@@ -275,7 +275,7 @@ export function Landing() {
               ))}
             </div>
 
-            {/* Pipeline diagram */}
+            {/* Pipeline wire diagram */}
             <motion.div
               initial="hidden"
               whileInView="visible"
@@ -284,28 +284,65 @@ export function Landing() {
               variants={fadeUp}
               className="mt-10 rounded-2xl border border-border/50 bg-card p-6 md:p-8"
             >
-              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Generation Pipeline</p>
-              <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center">
+              <p className="mb-6 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Generation Pipeline</p>
+
+              {/* Mobile: vertical wire */}
+              <div className="flex flex-col md:hidden">
                 {[
-                  { step: '01', label: 'Prompt Analysis', desc: 'NLP parsing & intent' },
-                  { step: '02', label: 'Model Selection', desc: 'Style-optimized routing' },
-                  { step: '03', label: 'Generation', desc: 'Multi-pass diffusion' },
-                  { step: '04', label: 'Post-Processing', desc: 'Enhancement & safety' },
-                  { step: '05', label: 'Delivery', desc: 'CDN-backed output' },
+                  { icon: Cpu, label: 'Prompt Analysis', desc: 'NLP parsing & intent detection' },
+                  { icon: Layers, label: 'Model Router', desc: 'Style-optimized model selection' },
+                  { icon: Zap, label: 'Diffusion Engine', desc: 'Multi-pass image generation' },
+                  { icon: Shield, label: 'Safety & Enhance', desc: 'Content filter & upscaling' },
+                  { icon: Globe, label: 'Edge Delivery', desc: 'CDN-backed global output' },
                 ].map((s, i, arr) => (
-                  <div key={s.step} className="flex items-center gap-3 md:flex-1 md:flex-col md:gap-2 md:text-center">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 font-mono text-xs font-bold text-primary md:mx-auto">
-                      {s.step}
-                    </div>
-                    <div className="flex-1 md:flex-auto">
-                      <p className="text-sm font-medium text-foreground">{s.label}</p>
-                      <p className="text-[11px] text-muted-foreground">{s.desc}</p>
+                  <div key={s.label} className="flex flex-col items-center">
+                    <div className="flex w-full items-center gap-4 rounded-xl border border-border/40 bg-background px-4 py-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <s.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{s.label}</p>
+                        <p className="text-[11px] text-muted-foreground">{s.desc}</p>
+                      </div>
                     </div>
                     {i < arr.length - 1 && (
-                      <ArrowRight className="hidden h-3.5 w-3.5 flex-shrink-0 text-border md:block" />
+                      <div className="flex flex-col items-center py-1">
+                        <div className="h-4 w-px bg-primary/30" />
+                        <svg width="8" height="5" viewBox="0 0 8 5" className="text-primary/30" aria-hidden="true"><path d="M4 5L0 0h8z" fill="currentColor" /></svg>
+                      </div>
                     )}
                   </div>
                 ))}
+              </div>
+
+              {/* Desktop: horizontal wire */}
+              <div className="hidden md:block">
+                <div className="relative flex items-start justify-between">
+                  {/* Wire connecting all nodes */}
+                  <div className="absolute top-[18px] left-[36px] right-[36px] h-px bg-primary/20" aria-hidden="true" />
+                  {/* Animated pulse on wire */}
+                  <div className="absolute top-[17px] left-[36px] right-[36px] h-[3px] overflow-hidden" aria-hidden="true">
+                    <div className="h-full w-24 rounded-full bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-[slideWire_3s_ease-in-out_infinite]" />
+                  </div>
+
+                  {[
+                    { icon: Cpu, label: 'Prompt Analysis', desc: 'NLP parsing' },
+                    { icon: Layers, label: 'Model Router', desc: 'Style routing' },
+                    { icon: Zap, label: 'Diffusion', desc: 'Generation' },
+                    { icon: Shield, label: 'Safety', desc: 'Filter & enhance' },
+                    { icon: Globe, label: 'Delivery', desc: 'CDN output' },
+                  ].map((s) => (
+                    <div key={s.label} className="relative z-10 flex flex-col items-center gap-2.5 text-center" style={{ width: '18%' }}>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/50 bg-card shadow-sm">
+                        <s.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">{s.label}</p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">{s.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           </div>

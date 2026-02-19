@@ -177,35 +177,47 @@ export default function ApiDocsPage() {
             </div>
           </motion.div>
 
-          {/* Architecture Diagram */}
+          {/* Architecture Wire Diagram */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={5} variants={fadeUp} className="mt-16">
             <h2 className="text-center text-lg font-semibold text-foreground">API Architecture</h2>
             <p className="mt-2 text-center text-sm text-muted-foreground">How requests flow through the Pictura system.</p>
             <div className="mt-6 rounded-2xl border border-border/50 bg-card p-6 sm:p-8">
-              <div className="flex flex-col items-center gap-0">
-                {[
-                  { label: 'Your Application', sub: 'REST API call' },
-                  { label: 'Auth & Rate Limiting', sub: 'API key validation' },
-                  { label: 'Prompt Processing', sub: 'NLP enhancement & safety check' },
-                  { label: 'Model Router', sub: 'Style-optimized model selection' },
-                  { label: 'Generation Engine', sub: 'Multi-pass diffusion pipeline' },
-                  { label: 'CDN Delivery', sub: 'Global edge distribution' },
-                ].map((step, i, arr) => (
-                  <div key={step.label} className="flex w-full max-w-sm flex-col items-center">
-                    <div className="w-full rounded-xl border border-border/40 bg-background px-5 py-3.5 text-center transition-colors hover:border-primary/30">
-                      <p className="text-sm font-medium text-foreground">{step.label}</p>
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">{step.sub}</p>
-                    </div>
-                    {i < arr.length - 1 && (
-                      <div className="flex flex-col items-center py-1.5">
-                        <div className="h-4 w-px bg-border" />
-                        <svg width="8" height="6" viewBox="0 0 8 6" className="text-border" aria-hidden="true">
-                          <path d="M4 6L0 0h8z" fill="currentColor" />
-                        </svg>
+              {/* Vertical wire flow */}
+              <div className="relative mx-auto max-w-md">
+                {/* Continuous vertical wire */}
+                <div className="absolute left-5 top-5 bottom-5 w-px bg-primary/15" aria-hidden="true" />
+
+                <div className="flex flex-col gap-0">
+                  {[
+                    { icon: Code2, label: 'Your Application', sub: 'REST API call with auth header' },
+                    { icon: Lock, label: 'Auth & Rate Limit', sub: 'API key validation & quota check' },
+                    { icon: Terminal, label: 'Prompt Processing', sub: 'NLP enhancement & safety filtering' },
+                    { icon: Webhook, label: 'Model Router', sub: 'Style-optimized model selection' },
+                    { icon: Code2, label: 'Generation Engine', sub: 'Multi-pass diffusion pipeline' },
+                    { icon: Terminal, label: 'CDN Delivery', sub: 'Global edge response' },
+                  ].map((step, i, arr) => (
+                    <div key={step.label}>
+                      <div className="relative flex items-center gap-4">
+                        {/* Node dot on wire */}
+                        <div className="relative z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-border/50 bg-card shadow-sm">
+                          <step.icon className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{step.label}</p>
+                          <p className="text-[11px] text-muted-foreground">{step.sub}</p>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {/* Wire segment with arrow */}
+                      {i < arr.length - 1 && (
+                        <div className="ml-5 flex flex-col items-center py-0.5" aria-hidden="true">
+                          <div className="h-5 w-px bg-primary/20" />
+                          <svg width="6" height="4" viewBox="0 0 6 4" className="text-primary/30"><path d="M3 4L0 0h6z" fill="currentColor" /></svg>
+                          <div className="h-1 w-px bg-primary/20" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.div>
