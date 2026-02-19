@@ -1,31 +1,63 @@
+import Link from 'next/link'
+import { PicturaIcon, PicturaWordmark } from './pictura-logo'
+
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card/50 mt-auto">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="size-7 rounded-lg bg-primary flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-primary-foreground">
-                <path
-                  d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10m0 0l4.5-4.5a2 2 0 0 1 2.83 0L15 15m-3-3l1.5-1.5a2 2 0 0 1 2.83 0L21 15M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4M3 15h18"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+    <footer className="border-t border-border bg-card">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <PicturaIcon size={28} />
+              <PicturaWordmark className="text-lg text-foreground" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-foreground leading-tight">Pictura</span>
-              <span className="text-[10px] font-mono text-muted-foreground">by Imoogle</span>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+              The Imoogle Picture Model. AI-powered image generation built in Nigeria.
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-3 rounded-sm overflow-hidden flex" title="Built in Nigeria">
+                <span className="w-1/3 bg-[#008751]" />
+                <span className="w-1/3 bg-[#ffffff] border-y border-border" />
+                <span className="w-1/3 bg-[#008751]" />
+              </span>
+              <span className="text-xs text-muted-foreground">Built in Nigeria</span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground text-center">
-            Pictura is a beta model. Images are generated using AI and may not always
-            be accurate. Use responsibly.
-          </p>
+          <div>
+            <h4 className="text-sm font-semibold text-foreground mb-4">Product</h4>
+            <div className="flex flex-col gap-2.5">
+              <Link href="/studio" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Studio</Link>
+              <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                API
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">SOON</span>
+              </span>
+              <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                Pricing
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-secondary text-muted-foreground">FREE</span>
+              </span>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-foreground mb-4">Company</h4>
+            <div className="flex flex-col gap-2.5">
+              <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">About Imoogle</Link>
+              <Link href="/report" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Report Bug</Link>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-foreground mb-4">Legal</h4>
+            <div className="flex flex-col gap-2.5">
+              <span className="text-sm text-muted-foreground">Privacy Policy</span>
+              <span className="text-sm text-muted-foreground">Terms of Service</span>
+            </div>
+          </div>
+        </div>
+        <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Imoogle. All rights reserved.
+            {new Date().getFullYear()} Imoogle Technology. All rights reserved.
+          </p>
+          <p className="text-xs text-muted-foreground font-mono tracking-wider">
+            IMOOGLE LABS / LAGOS, NIGERIA
           </p>
         </div>
       </div>
