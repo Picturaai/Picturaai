@@ -48,21 +48,26 @@ export async function POST(request: Request) {
       sourceImageUrl = uploadBlob.url
     }
 
-    // Call ZyLabs Image-to-Image API
+    // Call ZyLabs Image-to-Image API (requires width, height, and image fields)
     const apiUrl = 'https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20189/image+to+image'
     
+    const requestBody = {
+      prompt: prompt.trim(),
+      image_url: sourceImageUrl,
+      url: sourceImageUrl,
+      image: sourceImageUrl,
+      width: 1024,
+      height: 1024,
+    }
+    console.log('[v0] Image-to-image request body:', JSON.stringify(requestBody).slice(0, 500))
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        prompt: prompt.trim(),
-        image_url: sourceImageUrl,
-        url: sourceImageUrl,
-        image: sourceImageUrl,
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     if (!response.ok) {
@@ -75,11 +80,24 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json()
+    console.log('[v0] ZyLabs image-to-image response:', JSON.stringify(data).slice(0, 500))
 
-    // Extract image URL from response
-    const generatedImageUrl = data.image || data.url || data.output || data.result
+    // Extract image URL from response - try all known fields
+    let generatedImageUrl: string | null = null
+
+    if (data.image && typeof data.image === 'string') generatedImageUrl = data.image
+    else if (data.url && typeof data.url === 'string') generatedImageUrl = data.url
+    else if (data.output && typeof data.output === 'string') generatedImageUrl = data.output
+    else if (data.result && typeof data.result === 'string') generatedImageUrl = data.result
+    else if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+      generatedImageUrl = data.images[0].url || data.images[0].src || data.images[0].image
+    }
+    else if (data.data?.image) generatedImageUrl = data.data.image
+    else if (data.data?.url) generatedImageUrl = data.data.url
+    else if (data.data?.images?.[0]?.url) generatedImageUrl = data.data.images[0].url
+
     if (!generatedImageUrl) {
-      console.error('Unexpected API response format:', JSON.stringify(data))
+      console.error('[v0] Unexpected API response format:', JSON.stringify(data))
       return NextResponse.json(
         { error: 'Unexpected response from image generation service' },
         { status: 500 }

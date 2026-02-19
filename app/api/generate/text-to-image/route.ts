@@ -29,8 +29,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
     }
 
-    // Call ZyLabs Text-to-Image API
-    const apiUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20188/text+to+image?prompt=${encodeURIComponent(prompt.trim())}`
+    // Call ZyLabs Text-to-Image API (requires width & height params)
+    const params = new URLSearchParams({
+      prompt: prompt.trim(),
+      width: '1024',
+      height: '1024',
+    })
+    const apiUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20188/text+to+image?${params.toString()}`
     
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -49,11 +54,27 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json()
+    console.log('[v0] ZyLabs text-to-image response:', JSON.stringify(data).slice(0, 500))
 
-    // The API returns an image URL - download and store in Blob
-    const imageUrl = data.image || data.url || data.output || data.result
+    // The API may return the image in various formats - try all known fields
+    let imageUrl: string | null = null
+
+    // Direct URL fields
+    if (data.image && typeof data.image === 'string') imageUrl = data.image
+    else if (data.url && typeof data.url === 'string') imageUrl = data.url
+    else if (data.output && typeof data.output === 'string') imageUrl = data.output
+    else if (data.result && typeof data.result === 'string') imageUrl = data.result
+    // Nested in images array (fal.ai style)
+    else if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+      imageUrl = data.images[0].url || data.images[0].src || data.images[0].image
+    }
+    // Nested in data field
+    else if (data.data?.image) imageUrl = data.data.image
+    else if (data.data?.url) imageUrl = data.data.url
+    else if (data.data?.images?.[0]?.url) imageUrl = data.data.images[0].url
+
     if (!imageUrl) {
-      console.error('Unexpected API response format:', JSON.stringify(data))
+      console.error('[v0] Unexpected API response format:', JSON.stringify(data))
       return NextResponse.json(
         { error: 'Unexpected response from image generation service' },
         { status: 500 }
