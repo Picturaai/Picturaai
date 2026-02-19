@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch } from 'lucide-react'
+import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X } from 'lucide-react'
 import { PicturaIcon } from './pictura-logo'
 
 const showcaseImages = [
@@ -233,205 +233,8 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Architecture */}
+      {/* Models - moved up after Features */}
       <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mx-auto max-w-5xl">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              custom={0}
-              variants={fadeUp}
-              className="mx-auto max-w-2xl text-center"
-            >
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-                <Cpu className="h-3 w-3" />
-                Under the Hood
-              </span>
-              <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
-                Our Architecture
-              </h2>
-              <p className="mt-4 text-base text-muted-foreground">
-                Pictura is built on a multi-stage generation pipeline optimized for quality and speed.
-              </p>
-            </motion.div>
-
-            <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-3">
-              {architecture.map((a, i) => (
-                <motion.div
-                  key={a.title}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: '-30px' }}
-                  custom={i + 1}
-                  variants={fadeUp}
-                  className="rounded-2xl border border-border/50 bg-card p-6"
-                >
-                  <a.icon className="h-5 w-5 text-primary" />
-                  <h3 className="mt-4 text-sm font-semibold text-foreground">{a.title}</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{a.description}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Pipeline wire diagram */}
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              custom={4}
-              variants={fadeUp}
-              className="mt-10 rounded-2xl border border-border/50 bg-card p-6 md:p-8"
-            >
-              <p className="mb-6 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Generation Pipeline</p>
-
-              {/* Mobile: vertical wire */}
-              <div className="flex flex-col md:hidden">
-                {[
-                  { icon: Cpu, label: 'Prompt Analysis', desc: 'NLP parsing & intent detection' },
-                  { icon: Layers, label: 'Model Router', desc: 'Style-optimized model selection' },
-                  { icon: Zap, label: 'Diffusion Engine', desc: 'Multi-pass image generation' },
-                  { icon: Shield, label: 'Safety & Enhance', desc: 'Content filter & upscaling' },
-                  { icon: Globe, label: 'Edge Delivery', desc: 'CDN-backed global output' },
-                ].map((s, i, arr) => (
-                  <div key={s.label} className="flex flex-col items-center">
-                    <div className="flex w-full items-center gap-4 rounded-xl border border-border/40 bg-background px-4 py-3">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                        <s.icon className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{s.label}</p>
-                        <p className="text-[11px] text-muted-foreground">{s.desc}</p>
-                      </div>
-                    </div>
-                    {i < arr.length - 1 && (
-                      <div className="flex flex-col items-center py-1">
-                        <div className="h-4 w-px bg-primary/30" />
-                        <svg width="8" height="5" viewBox="0 0 8 5" className="text-primary/30" aria-hidden="true"><path d="M4 5L0 0h8z" fill="currentColor" /></svg>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Desktop: horizontal wire */}
-              <div className="hidden md:block">
-                <div className="relative flex items-start justify-between">
-                  {/* Wire connecting all nodes */}
-                  <div className="absolute top-[18px] left-[36px] right-[36px] h-px bg-primary/20" aria-hidden="true" />
-                  {/* Animated pulse on wire */}
-                  <div className="absolute top-[17px] left-[36px] right-[36px] h-[3px] overflow-hidden" aria-hidden="true">
-                    <div className="h-full w-24 rounded-full bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-[slideWire_3s_ease-in-out_infinite]" />
-                  </div>
-
-                  {[
-                    { icon: Cpu, label: 'Prompt Analysis', desc: 'NLP parsing' },
-                    { icon: Layers, label: 'Model Router', desc: 'Style routing' },
-                    { icon: Zap, label: 'Diffusion', desc: 'Generation' },
-                    { icon: Shield, label: 'Safety', desc: 'Filter & enhance' },
-                    { icon: Globe, label: 'Delivery', desc: 'CDN output' },
-                  ].map((s) => (
-                    <div key={s.label} className="relative z-10 flex flex-col items-center gap-2.5 text-center" style={{ width: '18%' }}>
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/50 bg-card shadow-sm">
-                        <s.icon className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-foreground">{s.label}</p>
-                        <p className="mt-0.5 text-[10px] text-muted-foreground">{s.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Model Info + Roadmap */}
-      <section className="border-t border-border/40 bg-secondary/20 py-20 md:py-28">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-2 md:items-start">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              custom={0}
-              variants={fadeUp}
-            >
-              <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
-                Built in Nigeria,
-                <br />for the world
-              </h2>
-              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                Pictura is the Imoogle Picture Model &mdash; developed by Imoogle Labs, a non-profit AI
-                research lab. We believe powerful creative AI should be free and accessible to everyone.
-              </p>
-              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                During beta, every user gets 5 free generations per day. We are actively improving
-                the model and working toward releasing a public API.
-              </p>
-
-              <div className="mt-8 grid grid-cols-3 gap-6">
-                {[
-                  { label: 'Daily Limit', value: '5' },
-                  { label: 'Price', value: 'Free' },
-                  { label: 'Resolution', value: '1024px' },
-                ].map((stat) => (
-                  <div key={stat.label}>
-                    <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              custom={2}
-              variants={fadeUp}
-            >
-              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Roadmap</p>
-              <div className="flex flex-col gap-2.5">
-                {[
-                  { label: 'Beta Launch', status: 'Live', active: true },
-                  { label: 'Image-to-Image Support', status: 'Live', active: true },
-                  { label: 'Higher Resolution Output', status: 'In Progress', active: false },
-                  { label: 'Public API Release', status: 'Coming Soon', active: false },
-                  { label: 'Style Controls & Presets', status: 'Planned', active: false },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between rounded-xl border border-border/50 bg-card px-5 py-3.5"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className={`h-2 w-2 rounded-full ${item.active ? 'bg-primary' : 'bg-border'}`} />
-                      <span className="text-sm font-medium text-foreground">{item.label}</span>
-                    </div>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
-                      item.status === 'Live'
-                        ? 'bg-primary/10 text-primary'
-                        : item.status === 'In Progress'
-                        ? 'bg-accent/15 text-accent-foreground'
-                        : item.status === 'Coming Soon'
-                        ? 'bg-muted text-muted-foreground'
-                        : 'bg-secondary text-muted-foreground'
-                    }`}>
-                      {item.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Models */}
-      <section className="border-t border-border/40 py-20 md:py-28">
         <div className="mx-auto max-w-7xl px-6">
           <motion.div
             initial="hidden"
@@ -519,8 +322,98 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Technical Paper / Research Section */}
+      {/* Comparison Table */}
       <section className="border-t border-border/40 bg-secondary/20 py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={0}
+            variants={fadeUp}
+            className="mx-auto max-w-2xl text-center"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              <BarChart3 className="h-3 w-3" />
+              Comparison
+            </span>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+              How Pictura compares
+            </h2>
+            <p className="mt-4 text-base text-muted-foreground">
+              See how we stack up against other popular image generation platforms.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={1}
+            variants={fadeUp}
+            className="mx-auto mt-14 max-w-5xl"
+          >
+            <div className="overflow-hidden rounded-2xl border border-border/50">
+              {/* Table header */}
+              <div className="grid grid-cols-5 border-b border-border/30 bg-card">
+                <div className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">Feature</div>
+                <div className="flex items-center gap-2 px-5 py-4">
+                  <PicturaIcon size={14} />
+                  <span className="text-xs font-bold text-primary">Pictura</span>
+                </div>
+                <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">DALL-E 3</div>
+                <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Midjourney</div>
+                <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Stable Diff.</div>
+              </div>
+
+              {/* Table rows */}
+              {[
+                { feature: 'Pricing', pictura: 'Free', dalle: '$0.04/img', midjourney: '$10/mo', stable: 'Free*' },
+                { feature: 'Max Resolution', pictura: '1024px', dalle: '1024px', midjourney: '1024px', stable: '1024px' },
+                { feature: 'Image-to-Image', pictura: true, dalle: false, midjourney: true, stable: true },
+                { feature: 'No Sign-Up', pictura: true, dalle: false, midjourney: false, stable: true },
+                { feature: 'API Access', pictura: 'Soon', dalle: true, midjourney: false, stable: true },
+                { feature: 'Safety Filter', pictura: true, dalle: true, midjourney: true, stable: 'Optional' },
+                { feature: 'Open Source', pictura: 'Planned', dalle: false, midjourney: false, stable: true },
+                { feature: 'Daily Free Tier', pictura: '5 images', dalle: 'None', midjourney: 'None', stable: 'Unlimited*' },
+              ].map((row, i) => (
+                <div
+                  key={row.feature}
+                  className={`grid grid-cols-5 ${
+                    i % 2 === 0 ? 'bg-background' : 'bg-secondary/20'
+                  } ${i < 7 ? 'border-b border-border/20' : ''}`}
+                >
+                  <div className="px-5 py-3.5 text-xs font-medium text-foreground">{row.feature}</div>
+                  {[row.pictura, row.dalle, row.midjourney, row.stable].map((val, ci) => (
+                    <div key={`${row.feature}-${ci}`} className={`flex items-center px-5 py-3.5 ${ci === 0 ? '' : ''}`}>
+                      {val === true ? (
+                        <div className={`flex h-5 w-5 items-center justify-center rounded-full ${ci === 0 ? 'bg-primary/15' : 'bg-muted'}`}>
+                          <Check className={`h-3 w-3 ${ci === 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                        </div>
+                      ) : val === false ? (
+                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted">
+                          <X className="h-3 w-3 text-muted-foreground/40" />
+                        </div>
+                      ) : (
+                        <span className={`text-xs ${ci === 0 ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
+                          {val}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-3 text-center text-[10px] text-muted-foreground/50">
+              * Stable Diffusion requires self-hosting for unlimited free usage. Comparison as of 2025.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Technical Paper / Research Section */}
+      <section className="border-t border-border/40 py-20 md:py-28">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-4xl">
             <motion.div
@@ -552,7 +445,6 @@ export function Landing() {
               variants={fadeUp}
               className="mt-12 rounded-2xl border border-border/50 bg-card"
             >
-              {/* Paper header */}
               <div className="border-b border-border/30 px-6 py-5 md:px-8">
                 <div className="flex items-start gap-3">
                   <BookOpen className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
@@ -567,7 +459,6 @@ export function Landing() {
                 </div>
               </div>
 
-              {/* Abstract */}
               <div className="px-6 py-6 md:px-8">
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Abstract</p>
                 <p className="text-sm leading-[1.7] text-foreground">
@@ -583,27 +474,14 @@ export function Landing() {
                   post-generation filtering.
                 </p>
 
-                {/* Key contributions */}
                 <div className="mt-6">
                   <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Key Contributions</p>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {[
-                      {
-                        title: 'Cascaded Diffusion Pipeline',
-                        desc: 'A three-stage architecture combining semantic encoding, latent diffusion, and learned upscaling for optimal quality-speed trade-offs.',
-                      },
-                      {
-                        title: 'Adaptive Style Routing',
-                        desc: 'Content-aware model selection that routes generation through specialized sub-networks based on detected visual category.',
-                      },
-                      {
-                        title: 'Latent-Space Safety',
-                        desc: 'An integrated classifier operating on latent representations for efficient real-time content moderation without quality loss.',
-                      },
-                      {
-                        title: 'Edge-Optimized Inference',
-                        desc: 'Quantized model variants and CDN-backed delivery enabling sub-second generation at global scale.',
-                      },
+                      { title: 'Cascaded Diffusion Pipeline', desc: 'A three-stage architecture combining semantic encoding, latent diffusion, and learned upscaling for optimal quality-speed trade-offs.' },
+                      { title: 'Adaptive Style Routing', desc: 'Content-aware model selection that routes generation through specialized sub-networks based on detected visual category.' },
+                      { title: 'Latent-Space Safety', desc: 'An integrated classifier operating on latent representations for efficient real-time content moderation without quality loss.' },
+                      { title: 'Edge-Optimized Inference', desc: 'Quantized model variants and CDN-backed delivery enabling sub-second generation at global scale.' },
                     ].map((c) => (
                       <div key={c.title} className="rounded-xl border border-border/30 bg-background p-4">
                         <h4 className="text-xs font-semibold text-foreground">{c.title}</h4>
@@ -613,7 +491,6 @@ export function Landing() {
                   </div>
                 </div>
 
-                {/* Technical specs table */}
                 <div className="mt-6">
                   <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">System Specifications</p>
                   <div className="overflow-hidden rounded-xl border border-border/30">
@@ -637,7 +514,6 @@ export function Landing() {
                   </div>
                 </div>
 
-                {/* Citation */}
                 <div className="mt-6 rounded-xl bg-secondary/40 px-4 py-3">
                   <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Citation</p>
                   <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">
@@ -650,9 +526,267 @@ export function Landing() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 md:py-28">
-        <div className="mx-auto max-w-7xl px-6 text-center">
+      {/* Architecture / Pipeline */}
+      <section className="border-t border-border/40 bg-secondary/20 py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mx-auto max-w-5xl">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              custom={0}
+              variants={fadeUp}
+              className="mx-auto max-w-2xl text-center"
+            >
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+                <Cpu className="h-3 w-3" />
+                Under the Hood
+              </span>
+              <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+                Our Architecture
+              </h2>
+              <p className="mt-4 text-base text-muted-foreground">
+                Pictura is built on a multi-stage generation pipeline optimized for quality and speed.
+              </p>
+            </motion.div>
+
+            <div className="mx-auto mt-14 grid max-w-4xl gap-6 md:grid-cols-3">
+              {architecture.map((a, i) => (
+                <motion.div
+                  key={a.title}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: '-30px' }}
+                  custom={i + 1}
+                  variants={fadeUp}
+                  className="rounded-2xl border border-border/50 bg-card p-6"
+                >
+                  <a.icon className="h-5 w-5 text-primary" />
+                  <h3 className="mt-4 text-sm font-semibold text-foreground">{a.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{a.description}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Pipeline wire diagram */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              custom={4}
+              variants={fadeUp}
+              className="mt-10 rounded-2xl border border-border/50 bg-card p-6 md:p-8"
+            >
+              <p className="mb-6 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Generation Pipeline</p>
+
+              <div className="flex flex-col md:hidden">
+                {[
+                  { icon: Cpu, label: 'Prompt Analysis', desc: 'NLP parsing & intent detection' },
+                  { icon: Layers, label: 'Model Router', desc: 'Style-optimized model selection' },
+                  { icon: Zap, label: 'Diffusion Engine', desc: 'Multi-pass image generation' },
+                  { icon: Shield, label: 'Safety & Enhance', desc: 'Content filter & upscaling' },
+                  { icon: Globe, label: 'Edge Delivery', desc: 'CDN-backed global output' },
+                ].map((s, i, arr) => (
+                  <div key={s.label} className="flex flex-col items-center">
+                    <div className="flex w-full items-center gap-4 rounded-xl border border-border/40 bg-background px-4 py-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <s.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{s.label}</p>
+                        <p className="text-[11px] text-muted-foreground">{s.desc}</p>
+                      </div>
+                    </div>
+                    {i < arr.length - 1 && (
+                      <div className="flex flex-col items-center py-1">
+                        <div className="h-4 w-px bg-primary/30" />
+                        <svg width="8" height="5" viewBox="0 0 8 5" className="text-primary/30" aria-hidden="true"><path d="M4 5L0 0h8z" fill="currentColor" /></svg>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <div className="relative flex items-start justify-between">
+                  <div className="absolute top-[18px] left-[36px] right-[36px] h-px bg-primary/20" aria-hidden="true" />
+                  <div className="absolute top-[17px] left-[36px] right-[36px] h-[3px] overflow-hidden" aria-hidden="true">
+                    <div className="h-full w-24 rounded-full bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-[slideWire_3s_ease-in-out_infinite]" />
+                  </div>
+                  {[
+                    { icon: Cpu, label: 'Prompt Analysis', desc: 'NLP parsing' },
+                    { icon: Layers, label: 'Model Router', desc: 'Style routing' },
+                    { icon: Zap, label: 'Diffusion', desc: 'Generation' },
+                    { icon: Shield, label: 'Safety', desc: 'Filter & enhance' },
+                    { icon: Globe, label: 'Delivery', desc: 'CDN output' },
+                  ].map((s) => (
+                    <div key={s.label} className="relative z-10 flex flex-col items-center gap-2.5 text-center" style={{ width: '18%' }}>
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/50 bg-card shadow-sm">
+                        <s.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">{s.label}</p>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">{s.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Model Info + Roadmap */}
+      <section className="border-t border-border/40 py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mx-auto grid max-w-5xl gap-12 md:grid-cols-2 md:items-start">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              custom={0}
+              variants={fadeUp}
+            >
+              <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+                Built in Nigeria,
+                <br />for the world
+              </h2>
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                Pictura is the Imoogle Picture Model &mdash; developed by Imoogle Labs, a non-profit AI
+                research lab. We believe powerful creative AI should be free and accessible to everyone.
+              </p>
+              <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+                During beta, every user gets 5 free generations per day. We are actively improving
+                the model and working toward releasing a public API.
+              </p>
+
+              <div className="mt-8 grid grid-cols-3 gap-6">
+                {[
+                  { label: 'Daily Limit', value: '5' },
+                  { label: 'Price', value: 'Free' },
+                  { label: 'Resolution', value: '1024px' },
+                ].map((stat) => (
+                  <div key={stat.label}>
+                    <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-50px' }}
+              custom={2}
+              variants={fadeUp}
+            >
+              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Roadmap</p>
+              <div className="flex flex-col gap-2.5">
+                {[
+                  { label: 'Beta Launch', status: 'Live', active: true },
+                  { label: 'Image-to-Image Support', status: 'Live', active: true },
+                  { label: 'Higher Resolution Output', status: 'In Progress', active: false },
+                  { label: 'Public API Release', status: 'Coming Soon', active: false },
+                  { label: 'Style Controls & Presets', status: 'Planned', active: false },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between rounded-xl border border-border/50 bg-card px-5 py-3.5"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`h-2 w-2 rounded-full ${item.active ? 'bg-primary' : 'bg-border'}`} />
+                      <span className="text-sm font-medium text-foreground">{item.label}</span>
+                    </div>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
+                      item.status === 'Live'
+                        ? 'bg-primary/10 text-primary'
+                        : item.status === 'In Progress'
+                        ? 'bg-accent/15 text-accent-foreground'
+                        : item.status === 'Coming Soon'
+                        ? 'bg-muted text-muted-foreground'
+                        : 'bg-secondary text-muted-foreground'
+                    }`}>
+                      {item.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA with animated background */}
+      <section className="relative overflow-hidden border-t border-border/40 py-24 md:py-32">
+        {/* Animated soul particles */}
+        <div className="absolute inset-0 -z-10" aria-hidden="true">
+          {/* Floating orbs */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={`orb-${i}`}
+              className="absolute rounded-full bg-primary/10 blur-2xl"
+              style={{
+                width: 80 + i * 40,
+                height: 80 + i * 40,
+                left: `${10 + i * 15}%`,
+                top: `${15 + (i % 3) * 25}%`,
+              }}
+              animate={{
+                y: [0, -30, 0, 30, 0],
+                x: [0, 15, -15, 10, 0],
+                scale: [1, 1.1, 0.95, 1.05, 1],
+                opacity: [0.3, 0.5, 0.3, 0.5, 0.3],
+              }}
+              transition={{
+                duration: 8 + i * 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: i * 0.5,
+              }}
+            />
+          ))}
+
+          {/* Rotating ring */}
+          <motion.div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+          >
+            <svg width="500" height="500" viewBox="0 0 500 500" className="opacity-[0.06]">
+              <circle cx="250" cy="250" r="200" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="10 20" className="text-primary" />
+              <circle cx="250" cy="250" r="240" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="5 15" className="text-foreground" />
+            </svg>
+          </motion.div>
+
+          {/* Floating dots */}
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={`dot-${i}`}
+              className="absolute h-1 w-1 rounded-full bg-primary/30"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -40 - Math.random() * 60, 0],
+                opacity: [0, 0.8, 0],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 4,
+                repeat: Infinity,
+                delay: Math.random() * 5,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+
+          {/* Central glow */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[600px] rounded-full bg-primary/5 blur-3xl" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-6 text-center">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -660,7 +794,13 @@ export function Landing() {
             custom={0}
             variants={fadeUp}
           >
-            <PicturaIcon size={48} className="mx-auto" />
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              className="mx-auto w-fit"
+            >
+              <PicturaIcon size={48} className="mx-auto" />
+            </motion.div>
             <h2 className="mx-auto mt-6 max-w-lg text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
               Start creating with Pictura
             </h2>
@@ -670,8 +810,9 @@ export function Landing() {
             <div className="mt-8 flex justify-center">
               <Link
                 href="/studio"
-                className="group inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
+                className="group relative inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
               >
+                <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" style={{ animationDuration: '2s' }} />
                 Open Studio
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>

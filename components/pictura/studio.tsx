@@ -61,7 +61,7 @@ function SendIcon({ className = '' }: { className?: string }) {
   )
 }
 
-/* ---- Tour Overlay: positions tooltip next to real elements ---- */
+/* ---- Tour Overlay: highlights real elements with positioned tooltip ---- */
 function TourOverlay({
   step, steps, onNext, onSkip,
 }: {
@@ -70,73 +70,102 @@ function TourOverlay({
   onNext: () => void
   onSkip: () => void
 }) {
-  const [rect, setRect] = useState<DOMRect | null>(null)
+  const [rect, setRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  const [winSize, setWinSize] = useState({ w: 0, h: 0 })
   const current = steps[step]
 
   useEffect(() => {
-    // Step 0 ("hero") has no specific target element - show centered
+    setWinSize({ w: window.innerWidth, h: window.innerHeight })
+    const onResize = () => setWinSize({ w: window.innerWidth, h: window.innerHeight })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
     if (current.target === 'hero') { setRect(null); return }
-    const el = document.querySelector(`[data-tour="${current.target}"]`)
-    if (!el) { setRect(null); return }
-    const r = el.getBoundingClientRect()
-    setRect(r)
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    // Small delay to let DOM settle after mount animations
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-tour="${current.target}"]`)
+      if (!el) { setRect(null); return }
+      const r = el.getBoundingClientRect()
+      setRect({ x: r.left, y: r.top, w: r.width, h: r.height })
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 150)
+    return () => clearTimeout(timer)
   }, [step, current.target])
 
-  // Compute tooltip position
-  const isBottom = rect ? rect.top < window.innerHeight / 2 : false
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+  const isMobile = winSize.w < 640
+  const pad = 8
+  // Position tooltip below or above target
+  const showBelow = rect ? rect.y < winSize.h / 2 : true
+
+  // Tooltip position
+  let tooltipStyle: React.CSSProperties
+  if (!rect || isMobile) {
+    // Center on screen
+    tooltipStyle = { left: '1rem', right: '1rem', bottom: '2rem' }
+  } else {
+    const tooltipW = 320
+    const left = Math.min(Math.max(rect.x, 12), winSize.w - tooltipW - 12)
+    tooltipStyle = showBelow
+      ? { left, top: rect.y + rect.h + pad + 12 }
+      : { left, bottom: winSize.h - rect.y + pad + 12 }
+  }
 
   return (
     <motion.div
-      key="tour-overlay"
+      key="tour-bg"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[70]"
       onClick={onSkip}
     >
-      {/* Dark backdrop with cutout for highlighted element */}
-      <div className="absolute inset-0 bg-black/50" />
+      {/* SVG backdrop with cutout hole */}
+      <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
+        <defs>
+          <mask id="tour-mask">
+            <rect width="100%" height="100%" fill="white" />
+            {rect && (
+              <rect
+                x={rect.x - pad}
+                y={rect.y - pad}
+                width={rect.w + pad * 2}
+                height={rect.h + pad * 2}
+                rx="12"
+                fill="black"
+              />
+            )}
+          </mask>
+        </defs>
+        <rect width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#tour-mask)" />
+      </svg>
 
-      {/* Highlight cutout around the target element */}
+      {/* Highlight ring around target */}
       {rect && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute rounded-xl ring-2 ring-primary ring-offset-2 ring-offset-transparent"
+          layoutId="tour-ring"
+          className="absolute z-[1] rounded-xl ring-2 ring-primary/80"
           style={{
-            left: rect.left - 6,
-            top: rect.top - 6,
-            width: rect.width + 12,
-            height: rect.height + 12,
-            boxShadow: '0 0 0 9999px rgba(0,0,0,0.50)',
+            left: rect.x - pad,
+            top: rect.y - pad,
+            width: rect.w + pad * 2,
+            height: rect.h + pad * 2,
             pointerEvents: 'none',
           }}
+          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         />
       )}
 
       {/* Tooltip card */}
       <motion.div
-        key={`tour-card-${step}`}
-        initial={{ opacity: 0, y: isBottom ? -8 : 8, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: isBottom ? -8 : 8, scale: 0.96 }}
-        transition={{ type: 'spring', damping: 28, stiffness: 350 }}
-        className="absolute z-10 w-[calc(100%-2rem)] max-w-xs rounded-2xl border border-border/40 bg-background p-5 shadow-xl sm:w-80"
-        style={
-          rect && !isMobile
-            ? {
-                left: Math.min(Math.max(rect.left, 16), window.innerWidth - 336),
-                top: isBottom ? rect.bottom + 14 : undefined,
-                bottom: !isBottom ? window.innerHeight - rect.top + 14 : undefined,
-              }
-            : {
-                left: '50%',
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-              }
-        }
+        key={`tour-${step}`}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 10 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 350, delay: 0.1 }}
+        className="absolute z-10 w-80 max-w-[calc(100%-2rem)] rounded-2xl border border-border/40 bg-background p-5 shadow-xl"
+        style={tooltipStyle}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Progress dots */}
@@ -167,7 +196,7 @@ function TourOverlay({
               onClick={onNext}
               className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.97]"
             >
-              {step === steps.length - 1 ? 'Done' : 'Next'}
+              {step === steps.length - 1 ? 'Get Started' : 'Next'}
               <ArrowRight className="h-3 w-3" />
             </button>
           </div>
@@ -586,7 +615,7 @@ export function Studio() {
                     <div className="overflow-hidden rounded-2xl border border-border/30 bg-card">
                       {/* Image */}
                       <div className="relative aspect-square overflow-hidden">
-                        <button onClick={() => setLightbox(img)} className="block h-full w-full">
+                        <button onClick={() => setLightbox(img)} className="relative block h-full w-full">
                           <Image
                             src={img.url}
                             alt={img.prompt}
