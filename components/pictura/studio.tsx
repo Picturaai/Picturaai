@@ -179,24 +179,43 @@ export function Studio() {
       {/* Main content area */}
       <div ref={galleryRef} className="flex-1 overflow-y-auto">
         {loading && images.length === 0 ? (
-          /* First-time loading state */
+          /* First-time loading state - orbital rings */
           <div className="flex h-full flex-col items-center justify-center px-6">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
               className="flex flex-col items-center"
             >
-              <div className="relative">
-                <div className="h-20 w-20 rounded-2xl bg-primary/10 animate-pulse" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <PicturaIcon size={36} />
+              <div className="relative flex h-32 w-32 items-center justify-center">
+                {/* Outer ring */}
+                <svg className="absolute inset-0 h-full w-full animate-spin" style={{ animationDuration: '4s' }} viewBox="0 0 128 128" aria-hidden="true">
+                  <circle cx="64" cy="64" r="60" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="8 12" className="text-border" />
+                </svg>
+                {/* Middle ring */}
+                <svg className="absolute inset-3 h-[104px] w-[104px] animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }} viewBox="0 0 104 104" aria-hidden="true">
+                  <circle cx="52" cy="52" r="48" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="6 8" className="text-primary/30" />
+                </svg>
+                {/* Inner ring */}
+                <svg className="absolute inset-6 h-20 w-20 animate-spin" style={{ animationDuration: '2.5s' }} viewBox="0 0 80 80" aria-hidden="true">
+                  <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 10" className="text-primary/50" />
+                </svg>
+                {/* Center icon */}
+                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                  <PicturaIcon size={24} />
                 </div>
               </div>
-              <div className="mt-6 flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <p className="text-sm font-medium text-foreground">Generating your image...</p>
+              <p className="mt-8 text-sm font-semibold text-foreground">Creating your image</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">Pictura is generating, this may take a moment</p>
+              {/* Thin progress bar */}
+              <div className="mt-5 h-1 w-48 overflow-hidden rounded-full bg-secondary">
+                <motion.div
+                  className="h-full rounded-full bg-primary"
+                  initial={{ width: '0%' }}
+                  animate={{ width: '90%' }}
+                  transition={{ duration: 15, ease: 'easeOut' }}
+                />
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">This may take a few seconds</p>
             </motion.div>
           </div>
         ) : images.length === 0 && !loading ? (
@@ -245,26 +264,24 @@ export function Studio() {
                   exit={{ opacity: 0, height: 0 }}
                   className="mb-6 overflow-hidden"
                 >
-                  <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6">
+                  <div className="rounded-2xl border border-border/40 bg-card p-5">
                     <div className="flex items-center gap-4">
-                      <div className="relative h-16 w-16 flex-shrink-0">
-                        <div className="absolute inset-0 rounded-xl bg-primary/10 animate-pulse" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <PicturaIcon size={28} />
-                        </div>
+                      <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center">
+                        {/* Mini spinning ring */}
+                        <svg className="absolute inset-0 h-full w-full animate-spin" style={{ animationDuration: '3s' }} viewBox="0 0 56 56" aria-hidden="true">
+                          <circle cx="28" cy="28" r="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="6 10" className="text-primary/40" />
+                        </svg>
+                        <PicturaIcon size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-                          <p className="text-sm font-semibold text-foreground">Generating image...</p>
-                        </div>
-                        <p className="mt-1 truncate text-xs text-muted-foreground">{prompt || 'Processing your request'}</p>
-                        <div className="mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-primary/10">
+                        <p className="text-sm font-semibold text-foreground">Generating image...</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{prompt || 'Processing your request'}</p>
+                        <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
                             className="h-full rounded-full bg-primary"
                             initial={{ width: '0%' }}
-                            animate={{ width: '85%' }}
-                            transition={{ duration: 12, ease: 'easeOut' }}
+                            animate={{ width: '90%' }}
+                            transition={{ duration: 15, ease: 'easeOut' }}
                           />
                         </div>
                       </div>

@@ -105,30 +105,26 @@ export function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-40 bg-background/98 backdrop-blur-md md:hidden"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-background md:hidden"
           >
-            <motion.nav
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              transition={{ duration: 0.3, delay: 0.05 }}
-              className="flex h-full flex-col justify-center px-8"
-            >
-              <div className="flex flex-col gap-1">
+            <nav className="flex h-full flex-col pt-20 pb-8 px-6">
+              {/* Navigation links */}
+              <div className="flex flex-col gap-0.5">
                 {links.map((l, i) => (
                   <motion.div
                     key={l.href}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 + i * 0.05 }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: 0.04 * i }}
                   >
                     <Link
                       href={l.href}
-                      className={`flex items-center rounded-2xl px-5 py-4 text-lg font-medium transition-colors ${
+                      onClick={() => setOpen(false)}
+                      className={`flex items-center rounded-xl px-4 py-3.5 text-[15px] font-medium transition-colors ${
                         pathname === l.href
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-foreground hover:bg-secondary'
+                          ? 'bg-primary/8 text-primary'
+                          : 'text-foreground active:bg-secondary/60'
                       }`}
                     >
                       {l.label}
@@ -137,31 +133,34 @@ export function Navbar() {
                 ))}
               </div>
 
+              {/* CTA button */}
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
-                className="mt-8"
+                transition={{ duration: 0.25, delay: 0.25 }}
+                className="mt-6 px-4"
               >
                 <Link
                   href="/studio"
-                  className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-base font-semibold text-primary-foreground transition-all hover:opacity-90"
+                  onClick={() => setOpen(false)}
+                  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-[15px] font-semibold text-primary-foreground transition-all active:scale-[0.98]"
                 >
                   Open Studio
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </motion.div>
 
+              {/* Footer info - pushed to bottom */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: 0.5 }}
-                className="mt-10 flex items-center gap-2 text-sm text-muted-foreground"
+                transition={{ duration: 0.3, delay: 0.35 }}
+                className="mt-auto flex items-center gap-2 px-4 text-xs text-muted-foreground"
               >
-                <FlaskConical className="h-3.5 w-3.5" />
-                <span>Beta &middot; Built by Imoogle Labs</span>
+                <FlaskConical className="h-3 w-3" />
+                <span>Beta &middot; Built by Imoogle Labs, Nigeria</span>
               </motion.div>
-            </motion.nav>
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>
