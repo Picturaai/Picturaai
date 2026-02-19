@@ -432,7 +432,7 @@ export function Studio() {
 
             <div className="flex items-center gap-3">
               {rateLimit.remaining <= 2 && rateLimit.remaining > 0 && (
-                <span className="text-[11px] font-medium text-amber-600">
+                <span className="text-[11px] font-medium text-accent-foreground">
                   {rateLimit.remaining} left today
                 </span>
               )}

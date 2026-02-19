@@ -44,7 +44,20 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${dmSans.variable} ${spaceMono.variable} font-sans antialiased`}>
         {children}
-        <Toaster position="top-center" richColors />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            unstyled: true,
+            classNames: {
+              toast: 'flex items-center gap-3 w-full rounded-xl border border-border/60 bg-card px-4 py-3.5 shadow-lg backdrop-blur-sm font-sans',
+              title: 'text-sm font-medium text-foreground',
+              description: 'text-xs text-muted-foreground mt-0.5',
+              success: 'border-primary/30 bg-primary/5',
+              error: 'border-destructive/30 bg-destructive/5',
+              actionButton: 'bg-primary text-primary-foreground text-xs font-medium rounded-lg px-3 py-1.5',
+            },
+          }}
+        />
         <Analytics />
       </body>
     </html>

@@ -29,11 +29,11 @@ export function Footer() {
             <Link href="/studio" className="text-sm text-foreground/70 transition-colors hover:text-primary">Studio</Link>
             <Link href="/api-docs" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               API
-              <span className="rounded bg-blue-500/10 px-1.5 py-0.5 font-mono text-[10px] text-blue-600">SOON</span>
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">SOON</span>
             </Link>
             <Link href="/pricing" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               Pricing
-              <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] text-emerald-600">FREE</span>
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">FREE</span>
             </Link>
           </div>
 
@@ -56,7 +56,7 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
               All systems operational
             </span>
             <span className="font-mono text-[10px] tracking-widest text-muted-foreground/50">

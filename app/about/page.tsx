@@ -1,9 +1,10 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  ArrowRight, Check, Circle, Users, Lightbulb, Globe, Cpu, Shield,
+  ArrowRight, Check, Circle, Users, Lightbulb, Globe, Cpu, Shield, Zap, Eye,
 } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
@@ -12,8 +13,7 @@ import { PicturaIcon } from '@/components/pictura/pictura-logo'
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
+    opacity: 1, y: 0,
     transition: { duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] },
   }),
 }
@@ -34,29 +34,77 @@ const values = [
   { icon: Lightbulb, title: 'Innovation', description: 'We push boundaries from Nigeria, proving world-class AI can come from anywhere.' },
 ]
 
+const archNodes = [
+  { icon: Zap, label: 'Prompt Analysis', angle: 0 },
+  { icon: Cpu, label: 'Model Router', angle: 60 },
+  { icon: Eye, label: 'Diffusion Engine', angle: 120 },
+  { icon: Shield, label: 'Safety Filter', angle: 180 },
+  { icon: Lightbulb, label: 'Enhancement', angle: 240 },
+  { icon: Globe, label: 'CDN Delivery', angle: 300 },
+]
+
+/* Animated orbital architecture diagram */
+function ArchDiagram() {
+  const [rotation, setRotation] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setRotation((r) => r + 0.15), 30)
+    return () => clearInterval(id)
+  }, [])
+
+  const r = 120 // orbit radius
+  return (
+    <div className="relative mx-auto flex h-[320px] w-[320px] items-center justify-center">
+      {/* Orbit ring */}
+      <svg className="absolute inset-0 h-full w-full" viewBox="0 0 320 320" aria-hidden="true">
+        <circle cx="160" cy="160" r={r} fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="text-border" />
+      </svg>
+
+      {/* Center logo */}
+      <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border border-border/50 bg-card shadow-sm">
+        <PicturaIcon size={28} />
+      </div>
+
+      {/* Orbiting nodes */}
+      {archNodes.map((node) => {
+        const angleRad = ((node.angle + rotation) * Math.PI) / 180
+        const x = 160 + r * Math.cos(angleRad) - 22
+        const y = 160 + r * Math.sin(angleRad) - 22
+        return (
+          <div
+            key={node.label}
+            className="absolute flex flex-col items-center gap-1"
+            style={{ left: x, top: y, width: 44, transition: 'left 0.03s linear, top 0.03s linear' }}
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border/50 bg-card shadow-sm">
+              <node.icon className="h-4 w-4 text-primary" />
+            </div>
+            <span className="whitespace-nowrap text-[9px] font-medium text-muted-foreground">{node.label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function AboutPage() {
   return (
     <>
       <Navbar />
       <main className="pt-32 pb-20">
-        {/* Header */}
-        <section className="mx-auto max-w-3xl px-6">
-          <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
-            <div className="flex items-center gap-3">
-              <PicturaIcon size={44} />
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">About Imoogle</h1>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  Non-profit AI Research &middot; Nigeria
-                </p>
-              </div>
-            </div>
+        <div className="mx-auto max-w-2xl px-6">
+          {/* Header - centered */}
+          <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp} className="text-center">
+            <PicturaIcon size={48} className="mx-auto" />
+            <h1 className="mt-5 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">About Imoogle</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Non-profit AI Research &middot; Nigeria
+            </p>
           </motion.div>
 
-          <div className="my-10 h-px bg-border/50" />
+          <div className="my-12 h-px bg-border/50" />
 
           {/* Company */}
-          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fadeUp} className="mb-14">
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fadeUp} className="mb-16">
             <h2 className="text-lg font-semibold text-foreground">Who We Are</h2>
             <div className="mt-4 flex flex-col gap-4 text-sm leading-relaxed text-muted-foreground">
               <p>
@@ -73,7 +121,7 @@ export default function AboutPage() {
           </motion.section>
 
           {/* Pictura */}
-          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={2} variants={fadeUp} className="mb-14">
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={2} variants={fadeUp} className="mb-16">
             <h2 className="text-lg font-semibold text-foreground">About Pictura</h2>
             <div className="mt-4 flex flex-col gap-4 text-sm leading-relaxed text-muted-foreground">
               <p>
@@ -87,28 +135,44 @@ export default function AboutPage() {
               </p>
             </div>
           </motion.section>
+        </div>
 
-          {/* Architecture */}
-          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3} variants={fadeUp} className="mb-14">
-            <h2 className="text-lg font-semibold text-foreground">Technical Architecture</h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        {/* Architecture - wider section for the diagram */}
+        <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3} variants={fadeUp} className="mb-16">
+          <div className="mx-auto max-w-3xl px-6">
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-foreground">Model Architecture</h2>
+              <p className="mt-2 text-sm text-muted-foreground">How Pictura processes your prompts into images.</p>
+            </div>
+
+            {/* Animated orbital diagram */}
+            <div className="mt-8">
+              <ArchDiagram />
+            </div>
+
+            {/* Architecture cards */}
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
               {[
-                { icon: Cpu, title: 'Multi-Model Pipeline', description: 'Pictura chains specialized models in a pipeline, routing prompts to style-optimized models for the best results.' },
-                { icon: Shield, title: 'Safety Layer', description: 'Every generation passes through content moderation and safety filtering before delivery.' },
+                { icon: Cpu, title: 'Multi-Model Pipeline', description: 'Chains specialized models together, routing prompts to style-optimized pathways for the best visual quality.' },
+                { icon: Shield, title: 'Safety Layer', description: 'Every generation passes through content moderation and safety filtering before delivery to users.' },
                 { icon: Globe, title: 'Edge Delivery', description: 'Generated images are served via a global CDN for instant access anywhere in the world.' },
-                { icon: Lightbulb, title: 'Prompt Intelligence', description: 'NLP-powered prompt analysis enhances your descriptions for better visual output quality.' },
+                { icon: Lightbulb, title: 'Prompt Intelligence', description: 'NLP-powered prompt analysis enhances your descriptions for significantly better visual output.' },
               ].map((item) => (
-                <div key={item.title} className="rounded-xl border border-border/50 bg-card p-5">
-                  <item.icon className="h-5 w-5 text-primary" />
-                  <h3 className="mt-3 text-sm font-semibold text-foreground">{item.title}</h3>
+                <div key={item.title} className="rounded-xl border border-border/50 bg-card p-5 transition-colors hover:border-primary/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                    <item.icon className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="mt-3.5 text-sm font-semibold text-foreground">{item.title}</h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{item.description}</p>
                 </div>
               ))}
             </div>
-          </motion.section>
+          </div>
+        </motion.section>
 
+        <div className="mx-auto max-w-2xl px-6">
           {/* Nigeria */}
-          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3} variants={fadeUp} className="mb-14">
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={4} variants={fadeUp} className="mb-16">
             <div className="rounded-2xl border border-border/50 bg-card p-6 sm:p-8">
               <div className="flex items-center gap-3">
                 <span className="flex h-4 w-6 overflow-hidden rounded-sm" aria-label="Nigerian flag">
@@ -126,11 +190,11 @@ export default function AboutPage() {
           </motion.section>
 
           {/* Values */}
-          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={4} variants={fadeUp} className="mb-14">
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={5} variants={fadeUp} className="mb-16">
             <h2 className="text-lg font-semibold text-foreground">Our Values</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
               {values.map((v) => (
-                <div key={v.title} className="rounded-xl border border-border/50 bg-card p-5">
+                <div key={v.title} className="rounded-xl border border-border/50 bg-card p-5 transition-colors hover:border-primary/20">
                   <v.icon className="h-5 w-5 text-primary" />
                   <h3 className="mt-3 text-sm font-semibold text-foreground">{v.title}</h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{v.description}</p>
@@ -140,7 +204,7 @@ export default function AboutPage() {
           </motion.section>
 
           {/* Roadmap */}
-          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={5} variants={fadeUp} className="mb-14">
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={6} variants={fadeUp} className="mb-16">
             <h2 className="text-lg font-semibold text-foreground">Roadmap</h2>
             <div className="mt-5 flex flex-col gap-2.5">
               {roadmap.map((item) => {
@@ -165,11 +229,11 @@ export default function AboutPage() {
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
                         item.status === 'Live'
-                          ? 'bg-emerald-500/10 text-emerald-600'
+                          ? 'bg-primary/10 text-primary'
                           : item.status === 'In Progress'
-                            ? 'bg-amber-500/10 text-amber-600'
+                            ? 'bg-accent/15 text-accent-foreground'
                             : item.status === 'Coming Soon'
-                              ? 'bg-blue-500/10 text-blue-600'
+                              ? 'bg-muted text-muted-foreground'
                               : 'bg-secondary text-muted-foreground'
                       }`}
                     >
@@ -182,7 +246,7 @@ export default function AboutPage() {
           </motion.section>
 
           {/* CTA */}
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={6} variants={fadeUp} className="text-center">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={7} variants={fadeUp} className="text-center">
             <Link
               href="/studio"
               className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
@@ -191,7 +255,7 @@ export default function AboutPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </motion.div>
-        </section>
+        </div>
       </main>
       <Footer />
     </>

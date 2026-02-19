@@ -371,16 +371,16 @@ export function Landing() {
                     className="flex items-center justify-between rounded-xl border border-border/50 bg-card px-5 py-3.5"
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`h-2 w-2 rounded-full ${item.active ? 'bg-emerald-500' : 'bg-border'}`} />
+                      <span className={`h-2 w-2 rounded-full ${item.active ? 'bg-primary' : 'bg-border'}`} />
                       <span className="text-sm font-medium text-foreground">{item.label}</span>
                     </div>
                     <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
                       item.status === 'Live'
-                        ? 'bg-emerald-500/10 text-emerald-600'
+                        ? 'bg-primary/10 text-primary'
                         : item.status === 'In Progress'
-                        ? 'bg-amber-500/10 text-amber-600'
+                        ? 'bg-accent/15 text-accent-foreground'
                         : item.status === 'Coming Soon'
-                        ? 'bg-blue-500/10 text-blue-600'
+                        ? 'bg-muted text-muted-foreground'
                         : 'bg-secondary text-muted-foreground'
                     }`}>
                       {item.status}
