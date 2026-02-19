@@ -8,7 +8,7 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
-  ChevronDown, Check,
+  ChevronDown, Check, Wand2, RefreshCw,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -252,19 +252,43 @@ export function Studio() {
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
+  const [improving, setImproving] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
 
-  // Rotate placeholder prompts every 4s when input is empty
+  // Rotate prompt suggestions every 4s when input is empty
   useEffect(() => {
-    if (prompt) return // stop rotating if user is typing
+    if (prompt) return
     const examples = mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES
     const interval = setInterval(() => {
       setPlaceholderIdx((prev) => (prev + 1) % examples.length)
     }, 4000)
     return () => clearInterval(interval)
   }, [prompt, mode])
+
+  // Improve prompt using AI
+  const handleImprovePrompt = async () => {
+    if (!prompt.trim() || improving) return
+    setImproving(true)
+    try {
+      const res = await fetch('/api/improve-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt.trim(), mode }),
+      })
+      if (!res.ok) throw new Error('Failed')
+      const { improved } = await res.json()
+      if (improved) {
+        setPrompt(improved)
+        toast.success('Prompt improved')
+      }
+    } catch {
+      toast.error('Could not improve prompt')
+    } finally {
+      setImproving(false)
+    }
+  }
 
   const fetchRateLimit = useCallback(async () => {
     try {
@@ -792,7 +816,7 @@ export function Studio() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={(mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES)[placeholderIdx % (mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES).length]}
+              placeholder={mode === 'text' ? 'Describe the image you want to create...' : 'Describe how to transform this image...'}
               rows={1}
               disabled={loading}
               className="flex-1 resize-none bg-transparent py-2 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 disabled:opacity-50"
@@ -809,6 +833,46 @@ export function Studio() {
               ) : (
                 <SendIcon className="h-4 w-4" />
               )}
+            </button>
+          </div>
+
+          {/* Rotating suggestion + improve button */}
+          <div className="mt-2 flex items-center gap-2 px-1">
+            {/* Clickable rotating suggestion */}
+            <AnimatePresence mode="wait">
+              <motion.button
+                key={placeholderIdx}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25 }}
+                onClick={() => {
+                  const examples = mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES
+                  setPrompt(examples[placeholderIdx % examples.length])
+                  textareaRef.current?.focus()
+                }}
+                className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-dashed border-border/50 px-3 py-1.5 text-left transition-colors hover:border-primary/30 hover:bg-primary/5"
+              >
+                <RefreshCw className="h-3 w-3 flex-shrink-0 text-muted-foreground/50" />
+                <span className="truncate text-[11px] text-muted-foreground/70">
+                  {(mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES)[placeholderIdx % (mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES).length]}
+                </span>
+              </motion.button>
+            </AnimatePresence>
+
+            {/* Improve prompt button */}
+            <button
+              onClick={handleImprovePrompt}
+              disabled={!prompt.trim() || improving || loading}
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border/50 bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:border-primary/30 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+              title="Improve your prompt with AI"
+            >
+              {improving ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Wand2 className="h-3 w-3" />
+              )}
+              <span className="hidden sm:inline">{improving ? 'Improving...' : 'Improve'}</span>
             </button>
           </div>
 
