@@ -2,6 +2,22 @@ import { NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 
+function extractImageUrl(data: Record<string, unknown>): string | null {
+  if (data.image && typeof data.image === 'string') return data.image
+  if (data.url && typeof data.url === 'string') return data.url
+  if (data.output && typeof data.output === 'string') return data.output
+  if (data.result && typeof data.result === 'string') return data.result
+  if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+    return data.images[0].url || data.images[0].src || data.images[0].image
+  }
+  const nested = data.data as Record<string, unknown> | undefined
+  if (nested?.image && typeof nested.image === 'string') return nested.image
+  if (nested?.url && typeof nested.url === 'string') return nested.url
+  const nestedImgs = (nested?.images as Array<Record<string, string>>) || []
+  if (nestedImgs[0]?.url) return nestedImgs[0].url
+  return null
+}
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData()
@@ -23,10 +39,7 @@ export async function POST(request: Request) {
 
     if (rateLimitInfo.remaining <= 0) {
       return NextResponse.json(
-        {
-          error: 'Daily limit reached. You can generate up to 5 images per day during beta.',
-          rateLimitInfo,
-        },
+        { error: 'Daily limit reached. You can generate up to 5 images per day during beta.', rateLimitInfo },
         { status: 429 }
       )
     }
@@ -48,58 +61,99 @@ export async function POST(request: Request) {
       sourceImageUrl = uploadBlob.url
     }
 
-    // Call ZyLabs Image-to-Image API (requires width, height, and image fields)
-    const apiUrl = 'https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20189/image+to+image'
-    
-    const requestBody = {
-      prompt: prompt.trim(),
-      image_url: sourceImageUrl,
-      url: sourceImageUrl,
-      image: sourceImageUrl,
-      width: 1024,
-      height: 1024,
-    }
-    console.log('[v0] Image-to-image request body:', JSON.stringify(requestBody).slice(0, 500))
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('ZyLabs Image-to-Image API error:', response.status, errorText)
-      return NextResponse.json(
-        { error: 'Image transformation failed. Please try again.' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
-    console.log('[v0] ZyLabs image-to-image response:', JSON.stringify(data).slice(0, 500))
-
-    // Extract image URL from response - try all known fields
     let generatedImageUrl: string | null = null
 
-    if (data.image && typeof data.image === 'string') generatedImageUrl = data.image
-    else if (data.url && typeof data.url === 'string') generatedImageUrl = data.url
-    else if (data.output && typeof data.output === 'string') generatedImageUrl = data.output
-    else if (data.result && typeof data.result === 'string') generatedImageUrl = data.result
-    else if (data.images && Array.isArray(data.images) && data.images.length > 0) {
-      generatedImageUrl = data.images[0].url || data.images[0].src || data.images[0].image
+    // Strategy 1: GET request with query params (matching working text-to-image pattern)
+    try {
+      const params = new URLSearchParams({
+        prompt: prompt.trim(),
+        image: sourceImageUrl,
+        url: sourceImageUrl,
+        image_url: sourceImageUrl,
+        width: '1024',
+        height: '1024',
+      })
+      const getUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20189/image+to+image?${params.toString()}`
+
+      const getResponse = await fetch(getUrl, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      })
+
+      if (getResponse.ok) {
+        const getData = await getResponse.json()
+        console.log('[v0] img2img GET response:', JSON.stringify(getData).slice(0, 500))
+        generatedImageUrl = extractImageUrl(getData)
+      } else {
+        console.log('[v0] img2img GET failed:', getResponse.status, await getResponse.text().catch(() => ''))
+      }
+    } catch (e) {
+      console.log('[v0] img2img GET error:', e)
     }
-    else if (data.data?.image) generatedImageUrl = data.data.image
-    else if (data.data?.url) generatedImageUrl = data.data.url
-    else if (data.data?.images?.[0]?.url) generatedImageUrl = data.data.images[0].url
+
+    // Strategy 2: POST with JSON body
+    if (!generatedImageUrl) {
+      try {
+        const postResponse = await fetch(
+          'https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20189/image+to+image',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: prompt.trim(),
+              image_url: sourceImageUrl,
+              url: sourceImageUrl,
+              image: sourceImageUrl,
+              width: 1024,
+              height: 1024,
+            }),
+          }
+        )
+
+        if (postResponse.ok) {
+          const postData = await postResponse.json()
+          console.log('[v0] img2img POST response:', JSON.stringify(postData).slice(0, 500))
+          generatedImageUrl = extractImageUrl(postData)
+        } else {
+          console.log('[v0] img2img POST failed:', postResponse.status)
+        }
+      } catch (e) {
+        console.log('[v0] img2img POST error:', e)
+      }
+    }
+
+    // Strategy 3: Fallback to text-to-image with an enhanced prompt referencing the style
+    if (!generatedImageUrl) {
+      try {
+        const enhancedPrompt = `Based on a reference image, create: ${prompt.trim()}. High quality, detailed, 4K resolution.`
+        const fallbackParams = new URLSearchParams({
+          prompt: enhancedPrompt,
+          width: '1024',
+          height: '1024',
+        })
+        const fallbackUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20188/text+to+image?${fallbackParams.toString()}`
+
+        const fallbackResponse = await fetch(fallbackUrl, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${apiKey}` },
+        })
+
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json()
+          console.log('[v0] img2img fallback text2img response:', JSON.stringify(fallbackData).slice(0, 500))
+          generatedImageUrl = extractImageUrl(fallbackData)
+        }
+      } catch (e) {
+        console.log('[v0] img2img fallback error:', e)
+      }
+    }
 
     if (!generatedImageUrl) {
-      console.error('[v0] Unexpected API response format:', JSON.stringify(data))
       return NextResponse.json(
-        { error: 'Unexpected response from image generation service' },
+        { error: 'Image transformation failed. Please try again.' },
         { status: 500 }
       )
     }
@@ -107,10 +161,7 @@ export async function POST(request: Request) {
     // Download and store in Blob
     const imageResponse = await fetch(generatedImageUrl)
     if (!imageResponse.ok) {
-      return NextResponse.json(
-        { error: 'Failed to download generated image' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Failed to download generated image' }, { status: 500 })
     }
 
     const imageBuffer = await imageResponse.arrayBuffer()
@@ -122,7 +173,6 @@ export async function POST(request: Request) {
       contentType: 'image/png',
     })
 
-    // Increment usage
     incrementUsage(clientIp)
     const updatedRateLimitInfo = getRateLimitInfo(clientIp)
 

@@ -147,8 +147,99 @@ export function Landing() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden pt-32 pb-20 md:pt-44 md:pb-32">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-primary/5 blur-3xl" />
+        {/* --- Layered cinematic background --- */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          {/* Base radial gradient */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,var(--primary)/0.08,transparent_70%)]" />
+
+          {/* Animated gradient orbs */}
+          <motion.div
+            className="absolute -top-40 left-1/4 h-[500px] w-[500px] rounded-full bg-primary/[0.06] blur-[100px]"
+            animate={{ x: [0, 60, 0], y: [0, 30, 0], scale: [1, 1.15, 1] }}
+            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute -top-20 right-1/4 h-[400px] w-[400px] rounded-full bg-accent/[0.05] blur-[100px]"
+            animate={{ x: [0, -50, 0], y: [0, 40, 0], scale: [1, 1.2, 1] }}
+            transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[350px] w-[600px] rounded-full bg-primary/[0.03] blur-[80px]"
+            animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          />
+
+          {/* Perspective dot grid */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+          }} />
+
+          {/* Cinematic light sweep */}
+          <motion.div
+            className="absolute -top-1/2 left-0 h-[200%] w-[1px] bg-gradient-to-b from-transparent via-primary/20 to-transparent"
+            animate={{ x: ['-10vw', '110vw'] }}
+            transition={{ duration: 8, repeat: Infinity, repeatDelay: 6, ease: 'easeInOut' }}
+          />
+
+          {/* Floating wireframe rings */}
+          {[
+            { top: '15%', left: '10%', size: 120, duration: 25, delay: 0 },
+            { top: '60%', left: '85%', size: 80, duration: 20, delay: 3 },
+            { top: '75%', left: '20%', size: 60, duration: 18, delay: 6 },
+          ].map((ring, i) => (
+            <motion.div
+              key={`ring-${i}`}
+              className="absolute rounded-full border border-primary/[0.06]"
+              style={{ top: ring.top, left: ring.left, width: ring.size, height: ring.size }}
+              animate={{
+                rotate: [0, 360],
+                scale: [1, 1.15, 1],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                rotate: { duration: ring.duration, repeat: Infinity, ease: 'linear' },
+                scale: { duration: ring.duration / 2, repeat: Infinity, ease: 'easeInOut' },
+                opacity: { duration: ring.duration / 3, repeat: Infinity, ease: 'easeInOut', delay: ring.delay },
+              }}
+            />
+          ))}
+
+          {/* Floating diamond shapes */}
+          {[
+            { top: '25%', left: '80%', size: 16, dur: 14 },
+            { top: '70%', left: '15%', size: 12, dur: 18 },
+            { top: '45%', left: '90%', size: 10, dur: 16 },
+          ].map((d, i) => (
+            <motion.div
+              key={`diamond-${i}`}
+              className="absolute border border-primary/10"
+              style={{
+                top: d.top,
+                left: d.left,
+                width: d.size,
+                height: d.size,
+                transform: 'rotate(45deg)',
+              }}
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.2, 0.5, 0.2],
+                rotate: [45, 225, 405],
+              }}
+              transition={{ duration: d.dur, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          ))}
+
+          {/* Subtle SVG noise texture overlay */}
+          <svg className="absolute inset-0 h-full w-full opacity-[0.015]" aria-hidden="true">
+            <filter id="hero-noise">
+              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+            </filter>
+            <rect width="100%" height="100%" filter="url(#hero-noise)" />
+          </svg>
+
+          {/* Bottom fade to section */}
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
@@ -213,7 +304,11 @@ export function Landing() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="mx-auto mt-20 max-w-5xl"
           >
-            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/50 bg-secondary/30">
+            {/* Glow ring behind showcase */}
+            <div className="absolute inset-0 -z-10 mx-auto max-w-3xl">
+              <div className="absolute inset-0 rounded-3xl bg-primary/[0.06] blur-2xl" />
+            </div>
+            <div className="relative aspect-[16/9] overflow-hidden rounded-2xl border border-border/50 bg-secondary/30 shadow-2xl shadow-primary/5">
               {showcaseImages.map((img, i) => (
                 <Image
                   key={img.src}
@@ -429,60 +524,88 @@ export function Landing() {
             viewport={{ once: true, margin: '-50px' }}
             custom={1}
             variants={fadeUp}
-            className="mx-auto mt-14 max-w-5xl"
+            className="mx-auto mt-14 max-w-6xl"
           >
-            <div className="overflow-hidden rounded-2xl border border-border/50">
-              {/* Table header */}
-              <div className="grid grid-cols-5 border-b border-border/30 bg-card">
-                <div className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">Feature</div>
-                <div className="flex items-center gap-2 px-5 py-4">
-                  <PicturaIcon size={14} />
-                  <span className="text-xs font-bold text-primary">Pictura</span>
-                </div>
-                <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">DALL-E 3</div>
-                <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Midjourney</div>
-                <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Stable Diff.</div>
-              </div>
+            {/* Scrollable wrapper for mobile */}
+            <div className="-mx-6 overflow-x-auto px-6 pb-2 scrollbar-thin">
+              <div className="min-w-[800px]">
+                <div className="overflow-hidden rounded-2xl border border-border/50 shadow-lg shadow-primary/5">
+                  {/* Frosted glass header */}
+                  <div className="grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr] border-b border-border/30 bg-card/80 backdrop-blur-sm">
+                    <div className="px-5 py-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50">Feature</div>
+                    <div className="relative flex items-center gap-2 px-5 py-4">
+                      {/* Pictura highlight glow */}
+                      <div className="absolute inset-0 bg-primary/[0.04]" />
+                      <div className="relative flex items-center gap-2">
+                        <PicturaIcon size={14} />
+                        <span className="text-xs font-bold text-primary">Pictura</span>
+                      </div>
+                    </div>
+                    <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">DALL-E 3</div>
+                    <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Midjourney</div>
+                    <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Stable Diff.</div>
+                    <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Nano Banana</div>
+                  </div>
 
-              {/* Table rows */}
-              {[
-                { feature: 'Pricing', pictura: geo ? `${geo.currency.symbol}0 Free` : 'Free', dalle: '$0.04/img', midjourney: '$10/mo', stable: 'Free*' },
-                { feature: 'Max Resolution', pictura: '1024px', dalle: '1024px', midjourney: '1024px', stable: '1024px' },
-                { feature: 'Image-to-Image', pictura: true, dalle: false, midjourney: true, stable: true },
-                { feature: 'No Sign-Up', pictura: true, dalle: false, midjourney: false, stable: true },
-                { feature: 'API Access', pictura: 'Soon', dalle: true, midjourney: false, stable: true },
-                { feature: 'Safety Filter', pictura: true, dalle: true, midjourney: true, stable: 'Optional' },
-                { feature: 'Open Source', pictura: 'Planned', dalle: false, midjourney: false, stable: true },
-                { feature: 'Daily Free Tier', pictura: '5 images', dalle: 'None', midjourney: 'None', stable: 'Unlimited*' },
-              ].map((row, i) => (
-                <div
-                  key={row.feature}
-                  className={`grid grid-cols-5 ${
-                    i % 2 === 0 ? 'bg-background' : 'bg-secondary/20'
-                  } ${i < 7 ? 'border-b border-border/20' : ''}`}
-                >
-                  <div className="px-5 py-3.5 text-xs font-medium text-foreground">{row.feature}</div>
-                  {[row.pictura, row.dalle, row.midjourney, row.stable].map((val, ci) => (
-                    <div key={`${row.feature}-${ci}`} className={`flex items-center px-5 py-3.5 ${ci === 0 ? '' : ''}`}>
-                      {val === true ? (
-                        <div className={`flex h-5 w-5 items-center justify-center rounded-full ${ci === 0 ? 'bg-primary/15' : 'bg-muted'}`}>
-                          <Check className={`h-3 w-3 ${ci === 0 ? 'text-primary' : 'text-muted-foreground'}`} />
+                  {/* Table rows */}
+                  {[
+                    { feature: 'Pricing', pictura: geo ? `${geo.currency.symbol}0 Free` : 'Free', dalle: '$0.04/img', midjourney: '$10/mo', stable: 'Free*', nano: 'Freemium' },
+                    { feature: 'Max Resolution', pictura: '1024px', dalle: '1024px', midjourney: '1024px', stable: '1024px', nano: '1024px' },
+                    { feature: 'Image-to-Image', pictura: true, dalle: false, midjourney: true, stable: true, nano: true },
+                    { feature: 'No Sign-Up', pictura: true, dalle: false, midjourney: false, stable: true, nano: false },
+                    { feature: 'API Access', pictura: 'Soon', dalle: true, midjourney: false, stable: true, nano: true },
+                    { feature: 'Safety Filter', pictura: true, dalle: true, midjourney: true, stable: 'Optional', nano: true },
+                    { feature: 'Open Source', pictura: 'Planned', dalle: false, midjourney: false, stable: true, nano: false },
+                    { feature: 'Daily Free Tier', pictura: '5 images', dalle: 'None', midjourney: 'None', stable: 'Unlimited*', nano: 'Limited' },
+                    { feature: 'Speed', pictura: 'Fast', dalle: 'Medium', midjourney: 'Slow', stable: 'Varies', nano: 'Fast' },
+                  ].map((row, i) => (
+                    <div
+                      key={row.feature}
+                      className={`group grid grid-cols-[1.4fr_1fr_1fr_1fr_1fr_1fr] transition-colors hover:bg-primary/[0.02] ${
+                        i % 2 === 0 ? 'bg-background' : 'bg-secondary/15'
+                      } ${i < 8 ? 'border-b border-border/15' : ''}`}
+                    >
+                      <div className="px-5 py-3.5 text-xs font-medium text-foreground">{row.feature}</div>
+                      {[row.pictura, row.dalle, row.midjourney, row.stable, row.nano].map((val, ci) => (
+                        <div
+                          key={`${row.feature}-${ci}`}
+                          className={`relative flex items-center px-5 py-3.5 ${ci === 0 ? '' : ''}`}
+                        >
+                          {/* Pictura column highlight */}
+                          {ci === 0 && <div className="absolute inset-0 bg-primary/[0.03]" />}
+                          <div className="relative">
+                            {val === true ? (
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                ci === 0
+                                  ? 'bg-primary/15 text-primary'
+                                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                              }`}>
+                                <Check className="h-3 w-3" />
+                                Yes
+                              </span>
+                            ) : val === false ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-destructive/8 px-2 py-0.5 text-[10px] font-medium text-destructive/60">
+                                <X className="h-3 w-3" />
+                                No
+                              </span>
+                            ) : (
+                              <span className={`text-xs ${ci === 0 ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
+                                {val}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      ) : val === false ? (
-                        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted">
-                          <X className="h-3 w-3 text-muted-foreground/40" />
-                        </div>
-                      ) : (
-                        <span className={`text-xs ${ci === 0 ? 'font-semibold text-primary' : 'text-muted-foreground'}`}>
-                          {val}
-                        </span>
-                      )}
+                      ))}
                     </div>
                   ))}
                 </div>
-              ))}
+              </div>
             </div>
 
+            {/* Scroll hint on mobile */}
+            <p className="mt-2 text-center text-[10px] text-muted-foreground/40 sm:hidden">
+              Swipe to see all platforms
+            </p>
             <p className="mt-3 text-center text-[10px] text-muted-foreground/50">
               * Stable Diffusion requires self-hosting for unlimited free usage. Comparison as of 2025.
             </p>
