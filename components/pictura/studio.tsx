@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
+import { DownloadModal } from './download-modal'
 import { playSuccessSound, playLimitSound } from '@/lib/sounds'
 import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 
@@ -253,6 +254,8 @@ export function Studio() {
   const [modelOpen, setModelOpen] = useState(false)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [improving, setImproving] = useState(false)
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false)
+  const [downloadImage, setDownloadImage] = useState<GeneratedImage | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -397,17 +400,9 @@ export function Studio() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate() }
   }
 
-  const handleDownload = async (img: GeneratedImage) => {
-    try {
-      const res = await fetch(img.url)
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `pictura-${Date.now()}.png`
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch { toast.error('Download failed.') }
+  const handleDownload = (img: GeneratedImage) => {
+    setDownloadImage(img)
+    setDownloadModalOpen(true)
   }
 
   const handleFeedback = (url: string, type: Feedback) => {
@@ -1158,7 +1153,17 @@ export function Studio() {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </div>
+
+      {/* Download modal */}
+      {downloadImage && (
+        <DownloadModal
+          open={downloadModalOpen}
+          onOpenChange={setDownloadModalOpen}
+          imageUrl={downloadImage.url}
+          imageName={`pictura-${Date.now()}`}
+        />
+      )}
     </div>
   )
 }

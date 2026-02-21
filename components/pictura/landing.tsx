@@ -181,12 +181,22 @@ export function Landing() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden pt-32 pb-20 md:pt-44 md:pb-32">
-        {/* --- Animated flowing gradient background --- */}
+        {/* --- Smooth gradient background --- */}
         <div className="absolute inset-0 -z-10 overflow-hidden bg-background">
           {/* Base radial glow */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,var(--primary)/0.08,transparent_70%)]" />
 
-          {/* Flowing animated gradient orbs */}
+          {/* Subtle pulsing radial glow */}
+          <motion.div
+            className="absolute inset-0"
+            style={{
+              background: 'radial-gradient(ellipse_100%_80%_at_50%_-20%,var(--primary)/0.04,transparent_70%)',
+            }}
+            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          />
+
+          {/* Slow flowing gradient orbs (minimal movement) */}
           <motion.div
             className="absolute -top-1/3 left-1/4 h-[800px] w-[800px] rounded-full opacity-20"
             style={{
@@ -194,11 +204,11 @@ export function Landing() {
               filter: 'blur(80px)',
             }}
             animate={{
-              x: [0, 100, -50, 0],
-              y: [0, -50, 100, 0],
-              scale: [1, 1.3, 0.9, 1],
+              x: [0, 40, -20, 0],
+              y: [0, -30, 20, 0],
+              scale: [1, 1.1, 0.95, 1],
             }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 35, repeat: Infinity, ease: 'easeInOut' }}
           />
 
           <motion.div
@@ -208,11 +218,11 @@ export function Landing() {
               filter: 'blur(100px)',
             }}
             animate={{
-              x: [-50, -100, 50, -50],
-              y: [0, 60, -80, 0],
-              scale: [0.9, 1.2, 1, 0.9],
+              x: [-30, -60, 30, -30],
+              y: [0, 40, -50, 0],
+              scale: [0.95, 1.1, 1, 0.95],
             }}
-            transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            transition={{ duration: 38, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
           />
 
           <motion.div
@@ -222,53 +232,11 @@ export function Landing() {
               filter: 'blur(120px)',
             }}
             animate={{
-              x: [0, -80, 80, 0],
-              y: [0, 40, -60, 0],
-              scale: [1.1, 0.95, 1.15, 1.1],
+              x: [0, -50, 50, 0],
+              y: [0, 25, -35, 0],
+              scale: [1, 1.05, 0.98, 1],
             }}
-            transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          />
-
-          {/* Floating particles */}
-          {[
-            { x: '15%', y: '20%', size: 3, dur: 12 },
-            { x: '80%', y: '30%', size: 2, dur: 15 },
-            { x: '30%', y: '70%', size: 2.5, dur: 18 },
-            { x: '85%', y: '80%', size: 2, dur: 14 },
-            { x: '50%', y: '15%', size: 3, dur: 16 },
-            { x: '20%', y: '85%', size: 2, dur: 20 },
-            { x: '70%', y: '50%', size: 2.5, dur: 17 },
-            { x: '10%', y: '50%', size: 2, dur: 19 },
-          ].map((particle, i) => (
-            <motion.div
-              key={`particle-${i}`}
-              className="absolute rounded-full"
-              style={{
-                left: particle.x,
-                top: particle.y,
-                width: particle.size,
-                height: particle.size,
-                background: 'var(--primary)',
-              }}
-              animate={{
-                y: [0, -40, 0],
-                opacity: [0.1, 0.4, 0.1],
-                scale: [1, 1.5, 1],
-              }}
-              transition={{
-                duration: particle.dur,
-                repeat: Infinity,
-                ease: 'easeInOut',
-                delay: i * 0.3,
-              }}
-            />
-          ))}
-
-          {/* Subtle shimmer overlay lines */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"
-            animate={{ x: ['-100%', '100%'] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'linear', repeatDelay: 5 }}
+            transition={{ duration: 40, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
           />
 
           {/* Bottom fade to background */}
