@@ -181,83 +181,98 @@ export function Landing() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden pt-32 pb-20 md:pt-44 md:pb-32">
-        {/* --- Clean structural background --- */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          {/* Soft top radial wash */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-10%,var(--primary)/0.06,transparent_65%)]" />
+        {/* --- Animated flowing gradient background --- */}
+        <div className="absolute inset-0 -z-10 overflow-hidden bg-background">
+          {/* Base radial glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,var(--primary)/0.08,transparent_70%)]" />
 
-          {/* Fine grid lines */}
-          <svg className="absolute inset-0 h-full w-full text-foreground/[0.03]" aria-hidden="true">
-            <defs>
-              <pattern id="hero-grid" width="64" height="64" patternUnits="userSpaceOnUse">
-                <path d="M64 0V64M0 64H64" fill="none" stroke="currentColor" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#hero-grid)" />
-          </svg>
-
-          {/* Cross markers at grid intersections */}
-          {[
-            { x: '20%', y: '18%' }, { x: '75%', y: '25%' },
-            { x: '12%', y: '65%' }, { x: '85%', y: '55%' },
-            { x: '50%', y: '12%' }, { x: '35%', y: '78%' },
-            { x: '65%', y: '70%' }, { x: '90%', y: '35%' },
-          ].map((pos, i) => (
-            <motion.svg
-              key={`cross-${i}`}
-              className="absolute h-3 w-3 text-primary/15"
-              style={{ left: pos.x, top: pos.y }}
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: [0.3, 0.7, 0.3], scale: 1 }}
-              transition={{ opacity: { duration: 4, repeat: Infinity, delay: i * 0.6 }, scale: { duration: 0.4, delay: i * 0.15 } }}
-              viewBox="0 0 12 12"
-              aria-hidden="true"
-            >
-              <line x1="6" y1="0" x2="6" y2="12" stroke="currentColor" strokeWidth="1" />
-              <line x1="0" y1="6" x2="12" y2="6" stroke="currentColor" strokeWidth="1" />
-            </motion.svg>
-          ))}
-
-          {/* Thin diagonal accent lines */}
-          <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
-            <motion.line
-              x1="0%" y1="30%" x2="40%" y2="0%"
-              stroke="var(--primary)" strokeWidth="0.5" opacity="0.06"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 2, delay: 0.5 }}
-            />
-            <motion.line
-              x1="60%" y1="100%" x2="100%" y2="50%"
-              stroke="var(--primary)" strokeWidth="0.5" opacity="0.06"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 2, delay: 0.8 }}
-            />
-            <motion.line
-              x1="100%" y1="20%" x2="70%" y2="100%"
-              stroke="var(--primary)" strokeWidth="0.5" opacity="0.04"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 2.5, delay: 1.2 }}
-            />
-          </svg>
-
-          {/* Corner frame brackets */}
-          <div className="absolute top-8 left-8 h-12 w-12 border-t border-l border-primary/10 rounded-tl-sm" />
-          <div className="absolute top-8 right-8 h-12 w-12 border-t border-r border-primary/10 rounded-tr-sm" />
-          <div className="absolute bottom-8 left-8 h-12 w-12 border-b border-l border-primary/10 rounded-bl-sm" />
-          <div className="absolute bottom-8 right-8 h-12 w-12 border-b border-r border-primary/10 rounded-br-sm" />
-
-          {/* Horizontal scan line */}
+          {/* Flowing animated gradient orbs */}
           <motion.div
-            className="absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-primary/10 to-transparent"
-            animate={{ top: ['0%', '100%'] }}
-            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+            className="absolute -top-1/3 left-1/4 h-[800px] w-[800px] rounded-full opacity-20"
+            style={{
+              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
+              filter: 'blur(80px)',
+            }}
+            animate={{
+              x: [0, 100, -50, 0],
+              y: [0, -50, 100, 0],
+              scale: [1, 1.3, 0.9, 1],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
           />
 
-          {/* Bottom fade */}
-          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+          <motion.div
+            className="absolute -right-1/4 top-1/4 h-[600px] w-[600px] rounded-full opacity-15"
+            style={{
+              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
+              filter: 'blur(100px)',
+            }}
+            animate={{
+              x: [-50, -100, 50, -50],
+              y: [0, 60, -80, 0],
+              scale: [0.9, 1.2, 1, 0.9],
+            }}
+            transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          />
+
+          <motion.div
+            className="absolute -bottom-1/4 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full opacity-10"
+            style={{
+              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
+              filter: 'blur(120px)',
+            }}
+            animate={{
+              x: [0, -80, 80, 0],
+              y: [0, 40, -60, 0],
+              scale: [1.1, 0.95, 1.15, 1.1],
+            }}
+            transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          />
+
+          {/* Floating particles */}
+          {[
+            { x: '15%', y: '20%', size: 3, dur: 12 },
+            { x: '80%', y: '30%', size: 2, dur: 15 },
+            { x: '30%', y: '70%', size: 2.5, dur: 18 },
+            { x: '85%', y: '80%', size: 2, dur: 14 },
+            { x: '50%', y: '15%', size: 3, dur: 16 },
+            { x: '20%', y: '85%', size: 2, dur: 20 },
+            { x: '70%', y: '50%', size: 2.5, dur: 17 },
+            { x: '10%', y: '50%', size: 2, dur: 19 },
+          ].map((particle, i) => (
+            <motion.div
+              key={`particle-${i}`}
+              className="absolute rounded-full"
+              style={{
+                left: particle.x,
+                top: particle.y,
+                width: particle.size,
+                height: particle.size,
+                background: 'var(--primary)',
+              }}
+              animate={{
+                y: [0, -40, 0],
+                opacity: [0.1, 0.4, 0.1],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: particle.dur,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: i * 0.3,
+              }}
+            />
+          ))}
+
+          {/* Subtle shimmer overlay lines */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent"
+            animate={{ x: ['-100%', '100%'] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'linear', repeatDelay: 5 }}
+          />
+
+          {/* Bottom fade to background */}
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/50 to-transparent" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
