@@ -1153,7 +1153,7 @@ export function Studio() {
             </motion.div>
           </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
       {/* Download modal */}
       {downloadImage && (
