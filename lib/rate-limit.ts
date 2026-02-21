@@ -2,6 +2,7 @@ const DAILY_LIMIT = 5
 
 // In-memory rate limiting store (resets on server restart)
 // For production, use Redis or a database
+// Uses session IDs as identifiers to prevent manipulation
 const usageStore = new Map<string, { count: number; resetAt: number }>()
 
 function getResetTime(): number {

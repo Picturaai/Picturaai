@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
+import { getOrCreateSessionId } from '@/lib/session'
 
 function extractImageUrl(data: Record<string, unknown>): string | null {
   if (data.image && typeof data.image === 'string') return data.image
@@ -33,9 +34,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'An image file or URL is required' }, { status: 400 })
     }
 
-    // Check rate limit
-    const clientIp = request.headers.get('x-forwarded-for') || 'anonymous'
-    const rateLimitInfo = getRateLimitInfo(clientIp)
+    // Check rate limit using session ID
+    const sessionId = await getOrCreateSessionId()
+    const rateLimitInfo = getRateLimitInfo(sessionId)
 
     if (rateLimitInfo.remaining <= 0) {
       return NextResponse.json(
@@ -173,8 +174,8 @@ export async function POST(request: Request) {
       contentType: 'image/png',
     })
 
-    incrementUsage(clientIp)
-    const updatedRateLimitInfo = getRateLimitInfo(clientIp)
+    incrementUsage(sessionId)
+    const updatedRateLimitInfo = getRateLimitInfo(sessionId)
 
     return NextResponse.json({
       url: blob.url,

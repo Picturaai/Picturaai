@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getRateLimitInfo } from '@/lib/rate-limit'
+import { getOrCreateSessionId } from '@/lib/session'
 
 export async function GET(request: Request) {
-  const clientIp = request.headers.get('x-forwarded-for') || 'anonymous'
-  const rateLimitInfo = getRateLimitInfo(clientIp)
+  const sessionId = await getOrCreateSessionId()
+  const rateLimitInfo = getRateLimitInfo(sessionId)
   return NextResponse.json(rateLimitInfo)
 }
