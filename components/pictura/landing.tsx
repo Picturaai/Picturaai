@@ -181,98 +181,82 @@ export function Landing() {
     <>
       {/* Hero */}
       <section className="relative overflow-hidden pt-32 pb-20 md:pt-44 md:pb-32">
-        {/* --- Layered cinematic background --- */}
+        {/* --- Clean structural background --- */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          {/* Base radial gradient */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,var(--primary)/0.08,transparent_70%)]" />
+          {/* Soft top radial wash */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_-10%,var(--primary)/0.06,transparent_65%)]" />
 
-          {/* Animated gradient orbs */}
-          <motion.div
-            className="absolute -top-40 left-1/4 h-[500px] w-[500px] rounded-full bg-primary/[0.06] blur-[100px]"
-            animate={{ x: [0, 60, 0], y: [0, 30, 0], scale: [1, 1.15, 1] }}
-            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <motion.div
-            className="absolute -top-20 right-1/4 h-[400px] w-[400px] rounded-full bg-accent/[0.05] blur-[100px]"
-            animate={{ x: [0, -50, 0], y: [0, 40, 0], scale: [1, 1.2, 1] }}
-            transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <motion.div
-            className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[350px] w-[600px] rounded-full bg-primary/[0.03] blur-[80px]"
-            animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
-            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-          />
-
-          {/* Perspective dot grid */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }} />
-
-          {/* Cinematic light sweep */}
-          <motion.div
-            className="absolute -top-1/2 left-0 h-[200%] w-[1px] bg-gradient-to-b from-transparent via-primary/20 to-transparent"
-            animate={{ x: ['-10vw', '110vw'] }}
-            transition={{ duration: 8, repeat: Infinity, repeatDelay: 6, ease: 'easeInOut' }}
-          />
-
-          {/* Floating wireframe rings */}
-          {[
-            { top: '15%', left: '10%', size: 120, duration: 25, delay: 0 },
-            { top: '60%', left: '85%', size: 80, duration: 20, delay: 3 },
-            { top: '75%', left: '20%', size: 60, duration: 18, delay: 6 },
-          ].map((ring, i) => (
-            <motion.div
-              key={`ring-${i}`}
-              className="absolute rounded-full border border-primary/[0.06]"
-              style={{ top: ring.top, left: ring.left, width: ring.size, height: ring.size }}
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.15, 1],
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                rotate: { duration: ring.duration, repeat: Infinity, ease: 'linear' },
-                scale: { duration: ring.duration / 2, repeat: Infinity, ease: 'easeInOut' },
-                opacity: { duration: ring.duration / 3, repeat: Infinity, ease: 'easeInOut', delay: ring.delay },
-              }}
-            />
-          ))}
-
-          {/* Floating diamond shapes */}
-          {[
-            { top: '25%', left: '80%', size: 16, dur: 14 },
-            { top: '70%', left: '15%', size: 12, dur: 18 },
-            { top: '45%', left: '90%', size: 10, dur: 16 },
-          ].map((d, i) => (
-            <motion.div
-              key={`diamond-${i}`}
-              className="absolute border border-primary/10"
-              style={{
-                top: d.top,
-                left: d.left,
-                width: d.size,
-                height: d.size,
-                transform: 'rotate(45deg)',
-              }}
-              animate={{
-                y: [0, -20, 0],
-                opacity: [0.2, 0.5, 0.2],
-                rotate: [45, 225, 405],
-              }}
-              transition={{ duration: d.dur, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          ))}
-
-          {/* Subtle SVG noise texture overlay */}
-          <svg className="absolute inset-0 h-full w-full opacity-[0.015]" aria-hidden="true">
-            <filter id="hero-noise">
-              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-            </filter>
-            <rect width="100%" height="100%" filter="url(#hero-noise)" />
+          {/* Fine grid lines */}
+          <svg className="absolute inset-0 h-full w-full text-foreground/[0.03]" aria-hidden="true">
+            <defs>
+              <pattern id="hero-grid" width="64" height="64" patternUnits="userSpaceOnUse">
+                <path d="M64 0V64M0 64H64" fill="none" stroke="currentColor" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#hero-grid)" />
           </svg>
 
-          {/* Bottom fade to section */}
+          {/* Cross markers at grid intersections */}
+          {[
+            { x: '20%', y: '18%' }, { x: '75%', y: '25%' },
+            { x: '12%', y: '65%' }, { x: '85%', y: '55%' },
+            { x: '50%', y: '12%' }, { x: '35%', y: '78%' },
+            { x: '65%', y: '70%' }, { x: '90%', y: '35%' },
+          ].map((pos, i) => (
+            <motion.svg
+              key={`cross-${i}`}
+              className="absolute h-3 w-3 text-primary/15"
+              style={{ left: pos.x, top: pos.y }}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: [0.3, 0.7, 0.3], scale: 1 }}
+              transition={{ opacity: { duration: 4, repeat: Infinity, delay: i * 0.6 }, scale: { duration: 0.4, delay: i * 0.15 } }}
+              viewBox="0 0 12 12"
+              aria-hidden="true"
+            >
+              <line x1="6" y1="0" x2="6" y2="12" stroke="currentColor" strokeWidth="1" />
+              <line x1="0" y1="6" x2="12" y2="6" stroke="currentColor" strokeWidth="1" />
+            </motion.svg>
+          ))}
+
+          {/* Thin diagonal accent lines */}
+          <svg className="absolute inset-0 h-full w-full" aria-hidden="true">
+            <motion.line
+              x1="0%" y1="30%" x2="40%" y2="0%"
+              stroke="var(--primary)" strokeWidth="0.5" opacity="0.06"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 2, delay: 0.5 }}
+            />
+            <motion.line
+              x1="60%" y1="100%" x2="100%" y2="50%"
+              stroke="var(--primary)" strokeWidth="0.5" opacity="0.06"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 2, delay: 0.8 }}
+            />
+            <motion.line
+              x1="100%" y1="20%" x2="70%" y2="100%"
+              stroke="var(--primary)" strokeWidth="0.5" opacity="0.04"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 2.5, delay: 1.2 }}
+            />
+          </svg>
+
+          {/* Corner frame brackets */}
+          <div className="absolute top-8 left-8 h-12 w-12 border-t border-l border-primary/10 rounded-tl-sm" />
+          <div className="absolute top-8 right-8 h-12 w-12 border-t border-r border-primary/10 rounded-tr-sm" />
+          <div className="absolute bottom-8 left-8 h-12 w-12 border-b border-l border-primary/10 rounded-bl-sm" />
+          <div className="absolute bottom-8 right-8 h-12 w-12 border-b border-r border-primary/10 rounded-br-sm" />
+
+          {/* Horizontal scan line */}
+          <motion.div
+            className="absolute left-0 h-px w-full bg-gradient-to-r from-transparent via-primary/10 to-transparent"
+            animate={{ top: ['0%', '100%'] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+          />
+
+          {/* Bottom fade */}
           <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
         </div>
 
