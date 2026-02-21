@@ -112,6 +112,40 @@ export function Landing() {
   const [activeImage, setActiveImage] = useState(0)
   const [geo, setGeo] = useState<GeoInfo | null>(null)
 
+  // Typewriter phrases
+  const heroPhrases = [
+    'stunning visuals',
+    'beautiful logos',
+    'concept art',
+    'product photos',
+    'anime characters',
+  ]
+  const [phraseIdx, setPhraseIdx] = useState(0)
+  const [charIdx, setCharIdx] = useState(heroPhrases[0].length)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const currentPhrase = heroPhrases[phraseIdx]
+  const displayText = currentPhrase.slice(0, charIdx)
+
+  useEffect(() => {
+    const typeSpeed = isDeleting ? 40 : 80
+    const pauseDelay = !isDeleting && charIdx === currentPhrase.length ? 2200 : isDeleting && charIdx === 0 ? 400 : typeSpeed
+
+    const timeout = setTimeout(() => {
+      if (!isDeleting && charIdx === currentPhrase.length) {
+        // Start deleting after pause
+        setIsDeleting(true)
+      } else if (isDeleting && charIdx === 0) {
+        // Move to next phrase
+        setIsDeleting(false)
+        setPhraseIdx((prev) => (prev + 1) % heroPhrases.length)
+      } else {
+        setCharIdx((prev) => prev + (isDeleting ? -1 : 1))
+      }
+    }, pauseDelay)
+
+    return () => clearTimeout(timeout)
+  }, [charIdx, isDeleting, currentPhrase, heroPhrases.length])
+
   useEffect(() => {
     const interval = setInterval(() => setActiveImage((prev) => (prev + 1) % showcaseImages.length), 5000)
     return () => clearInterval(interval)
@@ -258,11 +292,14 @@ export function Landing() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl font-bold leading-[1.08] tracking-tight text-foreground text-balance md:text-6xl lg:text-7xl"
+              className="text-4xl font-bold leading-[1.08] tracking-tight text-foreground md:text-6xl lg:text-7xl"
             >
               Turn words into
               <br />
-              <span className="text-primary">stunning visuals</span>
+              <span className="text-primary">
+                {displayText}
+                <span className="ml-0.5 inline-block w-[3px] align-middle animate-pulse bg-primary" style={{ height: '0.85em' }} />
+              </span>
             </motion.h1>
 
             <motion.p
