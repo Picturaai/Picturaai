@@ -300,16 +300,28 @@ export function Studio() {
     } catch { /* silent */ }
   }, [])
 
+  // Load saved gallery on mount
+  const loadGallery = useCallback(async () => {
+    try {
+      const res = await fetch('/api/gallery')
+      if (res.ok) {
+        const { images: saved } = await res.json()
+        if (saved && saved.length > 0) setImages(saved)
+      }
+    } catch { /* silent */ }
+  }, [])
+
   useEffect(() => {
     setMounted(true)
     fetchRateLimit()
+    loadGallery()
     // Show tour on first visit only
     try {
       if (!localStorage.getItem('pictura_tour_done')) {
         setTimeout(() => setTourStep(0), 600)
       }
     } catch { /* silent */ }
-  }, [fetchRateLimit])
+  }, [fetchRateLimit, loadGallery])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -377,6 +389,13 @@ export function Studio() {
       setPrompt('')
       playSuccessSound()
       toast.success('Image generated!')
+
+      // Persist to gallery
+      fetch('/api/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).catch(() => { /* silent */ })
       setTimeout(() => galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100)
 
       // Check if this was the last generation
@@ -574,8 +593,8 @@ export function Studio() {
                   <PicturaIcon size={24} />
                 </div>
               </div>
-              <p className="mt-8 text-sm font-semibold text-foreground">Creating your image</p>
-              <p className="mt-1.5 text-xs text-muted-foreground">Pictura is generating, this may take a moment</p>
+<p className="mt-8 text-sm font-semibold text-foreground">{mode === 'image' ? 'Transforming your image' : 'Creating your image'}</p>
+  <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
               {/* Thin progress bar */}
               <div className="mt-5 h-1 w-48 overflow-hidden rounded-full bg-secondary">
                 <motion.div
@@ -643,8 +662,8 @@ export function Studio() {
                         <PicturaIcon size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground">Generating image...</p>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{prompt || 'Processing your request'}</p>
+<p className="text-sm font-semibold text-foreground">{mode === 'image' ? 'Transforming image...' : 'Generating image...'}</p>
+  <p className="mt-0.5 truncate text-xs text-muted-foreground">{prompt || (mode === 'image' ? 'Transforming your image' : 'Processing your request')}</p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
                             className="h-full rounded-full bg-primary"

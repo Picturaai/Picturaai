@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock, Download } from 'lucide-react'
+import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock } from 'lucide-react'
 import { PicturaIcon } from './pictura-logo'
-import { LogoDownloadModal } from './logo-download-modal'
 
 const showcaseImages = [
   { src: '/images/showcase-1.jpg', label: 'Portrait', prompt: '"Golden skin portrait with African beadwork jewelry"' },
@@ -124,7 +123,6 @@ export function Landing() {
   const [phraseIdx, setPhraseIdx] = useState(0)
   const [charIdx, setCharIdx] = useState(heroPhrases[0].length)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [logoModalOpen, setLogoModalOpen] = useState(false)
   const currentPhrase = heroPhrases[phraseIdx]
   const displayText = currentPhrase.slice(0, charIdx)
 
@@ -1206,70 +1204,7 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Brand Assets Section */}
-      <section className="relative py-20 md:py-32">
-        <div className="mx-auto max-w-4xl px-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
-            className="rounded-2xl border border-border/50 bg-card/40 backdrop-blur-sm p-8 md:p-12"
-          >
-            <div className="flex flex-col gap-6">
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                  <ImageIcon className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Brand Assets</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Download the Pictura logo in multiple formats</p>
-                </div>
-              </div>
 
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Use the official Pictura logo and brand assets. Available in SVG, PNG, JPEG, and WebP formats at multiple sizes. Perfect for websites, presentations, and marketing materials.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={() => setLogoModalOpen(true)}
-                  className="group relative inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 active:scale-95"
-                >
-                  <Download className="h-4 w-4" />
-                  Download Assets
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </button>
-                <Link
-                  href="/studio"
-                  className="group inline-flex items-center justify-center gap-2 rounded-lg border border-border/50 bg-background px-6 py-3 font-medium text-foreground transition-colors hover:bg-card/50"
-                >
-                  Try Studio
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border/20">
-                <div className="text-center">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Formats</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">5+</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sizes</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">Multiple</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">License</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">Free</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Logo Download Modal */}
-      <LogoDownloadModal open={logoModalOpen} onOpenChange={setLogoModalOpen} />
     </>
   )
 }
