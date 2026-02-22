@@ -54,8 +54,8 @@ export async function POST(request: Request) {
       }
     } catch { /* start fresh */ }
 
-    // Add new image to the front, cap at 50
-    images = [image, ...images].slice(0, 50)
+    // Add new image to the front (no cap - stored forever)
+    images = [image, ...images]
 
     // Save updated gallery
     await put(galleryPath, JSON.stringify(images), {

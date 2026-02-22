@@ -306,7 +306,16 @@ export function Studio() {
       const res = await fetch('/api/gallery')
       if (res.ok) {
         const { images: saved } = await res.json()
-        if (saved && saved.length > 0) setImages(saved)
+        if (saved && saved.length > 0) {
+          // Merge: keep any in-session images + all saved, deduplicate by URL
+          setImages((prev) => {
+            const urlSet = new Set(prev.map((img) => img.url))
+            const merged = [...prev, ...saved.filter((img: GeneratedImage) => !urlSet.has(img.url))]
+            // Sort newest first by createdAt
+            merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            return merged
+          })
+        }
       }
     } catch { /* silent */ }
   }, [])
@@ -1049,35 +1058,41 @@ export function Studio() {
               {images.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center px-4">
                   <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
-                  <p className="mt-3 text-sm text-muted-foreground">No images yet</p>
-                  <p className="mt-1 text-xs text-muted-foreground/60">Your generated images will appear here</p>
+                  <p className="mt-3 text-sm text-muted-foreground">No creations yet</p>
+                  <p className="mt-1 text-xs text-muted-foreground/60">Your creations are saved permanently and accessible anytime</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   {images.map((img) => (
-                    <button
-                      key={img.url}
-                      onClick={() => { setLightbox(img); setGalleryOpen(false) }}
-                      className="group relative aspect-square overflow-hidden rounded-xl border border-border/30 bg-card"
-                    >
-                      <Image
-                        src={img.url}
-                        alt={img.prompt}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="160px"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-                      <div className="absolute inset-x-0 bottom-0 p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                        <p className="line-clamp-2 text-[10px] leading-snug text-white/90">{img.prompt}</p>
-                      </div>
-                      {/* Feedback indicator */}
-                      {feedbackMap[img.url] === 'up' && (
-                        <div className="absolute top-1.5 right-1.5 rounded-md bg-primary/20 p-0.5 backdrop-blur-sm">
-                          <ThumbsUp className="h-2.5 w-2.5 text-primary" />
+                    <div key={img.url} className="flex flex-col gap-1">
+                      <button
+                        onClick={() => { setLightbox(img); setGalleryOpen(false) }}
+                        className="group relative aspect-square overflow-hidden rounded-xl border border-border/30 bg-card"
+                      >
+                        <Image
+                          src={img.url}
+                          alt={img.prompt}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="160px"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                        <div className="absolute inset-x-0 bottom-0 p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                          <p className="line-clamp-2 text-[10px] leading-snug text-white/90">{img.prompt}</p>
                         </div>
+                        {/* Feedback indicator */}
+                        {feedbackMap[img.url] === 'up' && (
+                          <div className="absolute top-1.5 right-1.5 rounded-md bg-primary/20 p-0.5 backdrop-blur-sm">
+                            <ThumbsUp className="h-2.5 w-2.5 text-primary" />
+                          </div>
+                        )}
+                      </button>
+                      {img.createdAt && (
+                        <p className="text-center text-[9px] text-muted-foreground/50 font-mono">
+                          {new Date(img.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
                       )}
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
@@ -1085,7 +1100,7 @@ export function Studio() {
 
             <div className="border-t border-border/40 px-4 py-3">
               <p className="text-center text-[10px] text-muted-foreground/50">
-                {images.length} image{images.length !== 1 ? 's' : ''} generated in this session
+                {images.length} image{images.length !== 1 ? 's' : ''} saved to your collection
               </p>
             </div>
           </motion.aside>
