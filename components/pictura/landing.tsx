@@ -1185,25 +1185,103 @@ export function Landing() {
               <PicturaIcon size={48} className="mx-auto" />
             </motion.div>
             <h2 className="mx-auto mt-6 max-w-lg text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
-              Start creating with Pictura
+              Ready to create amazing visuals?
             </h2>
             <p className="mx-auto mt-4 max-w-md text-base text-muted-foreground">
               No sign-up required. Open the studio and start generating for free.
             </p>
-            <div className="mt-8 flex justify-center">
+            <div className="mt-8 flex justify-center gap-4">
               <Link
                 href="/studio"
                 className="group relative inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
               >
-                <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" style={{ animationDuration: '2s' }} />
                 Open Studio
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href="/ramadan"
+                className="group inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-8 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-primary/10"
+              >
+                Try Ramadan Cards
               </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
+      {/* Ramadan Card Generator Promo */}
+      <section className="relative py-20 md:py-32 overflow-hidden px-6">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,var(--primary)/0.06,transparent_70%)]" />
+          <motion.div
+            className="absolute top-20 right-1/4 h-64 w-64 rounded-full opacity-15"
+            style={{ background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)', filter: 'blur(80px)' }}
+            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </div>
+
+        <div className="mx-auto max-w-6xl">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.6 }}
+              className="space-y-6"
+            >
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+                ✨ NEW
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground">
+                Create Beautiful Ramadan Cards
+              </h2>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                Design stunning Ramadan greeting cards with world-class Islamic design templates. Add Quran verses and heartfelt messages powered by AI.
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-3 text-sm">
+                  <Check className="w-4 h-4 text-primary" />
+                  <span>4 stunning templates with Islamic art</span>
+                </li>
+                <li className="flex items-center gap-3 text-sm">
+                  <Check className="w-4 h-4 text-primary" />
+                  <span>AI-powered verses and duas</span>
+                </li>
+                <li className="flex items-center gap-3 text-sm">
+                  <Check className="w-4 h-4 text-primary" />
+                  <span>Download as high-resolution PNG</span>
+                </li>
+              </ul>
+              <Link
+                href="/ramadan"
+                className="group inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-all hover:opacity-90 active:scale-95 w-fit"
+              >
+                Create Your Card
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.6 }}
+              className="relative h-80 md:h-96"
+            >
+              <motion.div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 aspect-[5/7] rounded-lg border border-border/50 shadow-xl bg-gradient-to-br from-[#1a0f00] via-[#2d1a07] to-[#0d0700] flex items-center justify-center" animate={{ rotateZ: -15 }} transition={{ duration: 4, repeat: Infinity, repeatType: 'reverse' }}>
+                <div className="text-center px-4"><p className="text-4xl font-bold text-[#FFD700]">Ramadan</p></div>
+              </motion.div>
+              <motion.div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 aspect-[5/7] rounded-lg border border-border/50 shadow-xl bg-gradient-to-br from-[#0a1f0a] via-[#0f2f14] to-[#050f05] flex items-center justify-center" animate={{ rotateZ: 0 }} transition={{ duration: 4, repeat: Infinity, repeatType: 'reverse' }}>
+                <div className="text-center px-4"><p className="text-4xl font-bold text-[#90EE90]">رمضان</p></div>
+              </motion.div>
+              <motion.div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 aspect-[5/7] rounded-lg border border-border/50 shadow-xl bg-gradient-to-br from-[#1a0a2e] via-[#2d1657] to-[#0f0519] flex items-center justify-center" animate={{ rotateZ: 15 }} transition={{ duration: 4, repeat: Infinity, repeatType: 'reverse' }}>
+                <div className="text-center px-4"><p className="text-3xl mb-2">🌙</p></div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
     </>
   )
