@@ -27,6 +27,7 @@ export function Footer() {
           <div className="flex flex-col gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Product</span>
             <Link href="/studio" className="text-sm text-foreground/70 transition-colors hover:text-primary">Studio</Link>
+            <Link href="/features" className="text-sm text-foreground/70 transition-colors hover:text-primary">Features</Link>
             <Link href="/api-docs" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               API
               <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">SOON</span>
@@ -40,6 +41,7 @@ export function Footer() {
           <div className="flex flex-col gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Company</span>
             <Link href="/about" className="text-sm text-foreground/70 transition-colors hover:text-primary">About Imoogle</Link>
+            <Link href="/support" className="text-sm text-foreground/70 transition-colors hover:text-primary">Support Us</Link>
             <Link href="/report" className="text-sm text-foreground/70 transition-colors hover:text-primary">Report a Bug</Link>
           </div>
 

@@ -6,7 +6,7 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: process.env.ZOHO_EMAIL || 'info@imoogleai.xyz',
+    user: process.env.ZOHO_EMAIL || 'info@sidihost.sbs',
     pass: process.env.ZOHO_PASSWORD || '',
   },
 })
@@ -165,8 +165,8 @@ export async function POST(request: NextRequest) {
 
     // Send admin notification email
     await transporter.sendMail({
-      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@imoogleai.xyz'}>`,
-      to: 'info@imoogleai.xyz',
+      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@sidihost.sbs'}>`,
+      to: 'info@sidihost.sbs',
       subject: `[${body.type.toUpperCase()}] ${body.subject} - ${ticketId}`,
       html: generateAdminEmailHtml(body, ticketId),
     })
