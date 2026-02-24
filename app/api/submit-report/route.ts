@@ -1,11 +1,13 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
+import nodemailer from 'nodemailer'
 import { NextRequest, NextResponse } from 'next/server'
 
-const sesClient = new SESClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+const transporter = nodemailer.createTransport({
+  host: 'smtp.zoho.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.ZOHO_EMAIL || 'info@imoogleai.xyz',
+    pass: process.env.ZOHO_PASSWORD || '',
   },
 })
 
@@ -154,34 +156,20 @@ export async function POST(request: NextRequest) {
     const ticketId = generateTicketId()
 
     // Send user confirmation email
-    const userEmailParams = {
-      Source: 'Pictura <info@imoogleai.xyz>',
-      Destination: { ToAddresses: [body.email] },
-      Message: {
-        Subject: { Data: `Ticket Confirmed: ${ticketId}` },
-        Body: {
-          Html: { Data: generateUserEmailHtml(ticketId, body.name, body.type) },
-        },
-      },
-    }
+    await transporter.sendMail({
+      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@imoogleai.xyz'}>`,
+      to: body.email,
+      subject: `Ticket Confirmed: ${ticketId}`,
+      html: generateUserEmailHtml(ticketId, body.name, body.type),
+    })
 
     // Send admin notification email
-    const adminEmailParams = {
-      Source: 'Pictura <info@imoogleai.xyz>',
-      Destination: { ToAddresses: ['info@imoogleai.xyz'] },
-      Message: {
-        Subject: { Data: `[${body.type.toUpperCase()}] ${body.subject} - ${ticketId}` },
-        Body: {
-          Html: { Data: generateAdminEmailHtml(body, ticketId) },
-        },
-      },
-    }
-
-    // Send both emails
-    await Promise.all([
-      sesClient.send(new SendEmailCommand(userEmailParams)),
-      sesClient.send(new SendEmailCommand(adminEmailParams)),
-    ])
+    await transporter.sendMail({
+      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@imoogleai.xyz'}>`,
+      to: 'info@imoogleai.xyz',
+      subject: `[${body.type.toUpperCase()}] ${body.subject} - ${ticketId}`,
+      html: generateAdminEmailHtml(body, ticketId),
+    })
 
     return NextResponse.json(
       {

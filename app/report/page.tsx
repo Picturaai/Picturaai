@@ -2,15 +2,15 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Send, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react'
+import { Send, CheckCircle2, AlertCircle, ThumbsDown, Lightbulb } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 
 const reportTypes = [
   { id: 'bug', label: 'Bug Report', icon: AlertCircle, desc: 'Something is not working' },
-  { id: 'complaint', label: 'Complaint', icon: MessageSquare, desc: 'Issue or problem' },
-  { id: 'feedback', label: 'Feedback', icon: MessageSquare, desc: 'Suggestions or ideas' },
+  { id: 'complaint', label: 'Complaint', icon: ThumbsDown, desc: 'Issue or problem' },
+  { id: 'feedback', label: 'Feedback', icon: Lightbulb, desc: 'Suggestions or ideas' },
 ]
 
 const fadeUp = {
