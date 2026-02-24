@@ -35,10 +35,6 @@ export function Footer() {
               Pricing
               <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">FREE</span>
             </Link>
-            <Link href="/ramadan" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
-              Ramadan Cards
-              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">NEW</span>
-            </Link>
           </div>
 
           <div className="flex flex-col gap-3">
