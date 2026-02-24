@@ -2,18 +2,15 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Send, CheckCircle2 } from 'lucide-react'
+import { Send, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 
-const categories = [
-  'Image generation failure',
-  'Image quality issue',
-  'Upload not working',
-  'Rate limit problem',
-  'UI / design issue',
-  'Other',
+const reportTypes = [
+  { id: 'bug', label: 'Bug Report', icon: AlertCircle, desc: 'Something is not working' },
+  { id: 'complaint', label: 'Complaint', icon: MessageSquare, desc: 'Issue or problem' },
+  { id: 'feedback', label: 'Feedback', icon: MessageSquare, desc: 'Suggestions or ideas' },
 ]
 
 const fadeUp = {
@@ -26,32 +23,74 @@ const fadeUp = {
 }
 
 export default function ReportPage() {
-  const [category, setCategory] = useState('')
-  const [description, setDescription] = useState('')
+  const [reportType, setReportType] = useState<'bug' | 'complaint' | 'feedback'>('bug')
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [subject, setSubject] = useState('')
+  const [description, setDescription] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [ticketId, setTicketId] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!category || !description.trim()) {
-      toast.error('Please select a category and describe the issue.')
+    
+    if (!name.trim() || !email.trim() || !subject.trim() || !description.trim()) {
+      toast.error('Please fill in all fields.')
       return
     }
-    setSubmitted(true)
-    toast.success('Bug report submitted. Thank you!')
+
+    setLoading(true)
+    try {
+      const response = await fetch('/api/submit-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          type: reportType,
+          subject,
+          description,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setTicketId(data.ticketId)
+        setSubmitted(true)
+        toast.success('Report submitted! Check your email for confirmation.')
+      } else {
+        toast.error(data.error || 'Failed to submit report. Please try again.')
+      }
+    } catch (error) {
+      console.error('Submission error:', error)
+      toast.error('Failed to submit report. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReset = () => {
+    setSubmitted(false)
+    setTicketId('')
+    setReportType('bug')
+    setName('')
+    setEmail('')
+    setSubject('')
+    setDescription('')
   }
 
   return (
     <>
       <Navbar />
       <main className="pt-32 pb-20">
-        <div className="mx-auto max-w-xl px-6">
+        <div className="mx-auto max-w-2xl px-6">
           <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
-            <span className="text-xs font-semibold uppercase tracking-widest text-primary">Feedback</span>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Report a Bug</h1>
+            <span className="text-xs font-semibold uppercase tracking-widest text-primary">Support</span>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Send us your feedback</h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              Pictura is in beta and we rely on your feedback to improve. If you have encountered a bug,
-              unexpected behavior, or have a suggestion, please let us know.
+              Help us improve Pictura by reporting bugs, sharing complaints, or suggesting features. We read every message and will get back to you via email.
             </p>
           </motion.div>
 
@@ -66,12 +105,19 @@ export default function ReportPage() {
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
                 <CheckCircle2 className="h-7 w-7 text-primary" />
               </div>
-              <h2 className="mt-5 text-lg font-semibold text-foreground">Thank you!</h2>
-              <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-                Your report has been received. Our team will review it and work on a fix.
+              <h2 className="mt-5 text-lg font-semibold text-foreground">Report Submitted!</h2>
+              <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                We received your {reportType === 'bug' ? 'bug report' : reportType === 'complaint' ? 'complaint' : 'feedback'}. A confirmation email has been sent to <strong>{email}</strong>.
+              </p>
+              <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 w-full max-w-xs">
+                <p className="text-xs text-muted-foreground mb-1">Ticket Number</p>
+                <p className="font-mono text-sm font-semibold text-primary">{ticketId}</p>
+              </div>
+              <p className="mt-4 text-xs text-muted-foreground">
+                Keep this for reference when following up.
               </p>
               <button
-                onClick={() => { setSubmitted(false); setCategory(''); setDescription(''); setEmail('') }}
+                onClick={handleReset}
                 className="mt-6 text-sm font-medium text-primary transition-colors hover:text-primary/80"
               >
                 Submit another report
@@ -86,46 +132,47 @@ export default function ReportPage() {
               variants={fadeUp}
               className="flex flex-col gap-6"
             >
-              {/* Category */}
+              {/* Report Type */}
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-foreground">Category</label>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((c) => (
+                <label className="mb-3 block text-sm font-semibold text-foreground">Report Type</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {reportTypes.map((type) => (
                     <button
-                      key={c}
+                      key={type.id}
                       type="button"
-                      onClick={() => setCategory(c)}
-                      className={`rounded-full border px-4 py-2 text-xs font-medium transition-all ${
-                        category === c
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border/60 bg-card text-muted-foreground hover:border-border hover:text-foreground'
+                      onClick={() => setReportType(type.id as 'bug' | 'complaint' | 'feedback')}
+                      className={`group flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                        reportType === type.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border/60 bg-card hover:border-border'
                       }`}
                     >
-                      {c}
+                      <type.icon className={`h-5 w-5 ${reportType === type.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`text-xs font-semibold ${reportType === type.id ? 'text-primary' : 'text-muted-foreground'}`}>{type.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Description */}
+              {/* Name */}
               <div>
-                <label htmlFor="description" className="mb-2.5 block text-sm font-medium text-foreground">
-                  Describe the issue
+                <label htmlFor="name" className="mb-2.5 block text-sm font-semibold text-foreground">
+                  Your Name
                 </label>
-                <textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What happened? What did you expect to happen?"
-                  rows={5}
-                  className="w-full resize-none rounded-xl border border-border/60 bg-card px-4 py-3 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40"
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full rounded-lg border border-border/60 bg-card px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40 focus:bg-card/50"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="mb-2.5 block text-sm font-medium text-foreground">
-                  Email <span className="text-muted-foreground/60">(optional)</span>
+                <label htmlFor="email" className="mb-2.5 block text-sm font-semibold text-foreground">
+                  Email Address
                 </label>
                 <input
                   id="email"
@@ -133,19 +180,50 @@ export default function ReportPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full rounded-xl border border-border/60 bg-card px-4 py-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40"
+                  className="w-full rounded-lg border border-border/60 bg-card px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40 focus:bg-card/50"
                 />
                 <p className="mt-1.5 text-[11px] text-muted-foreground/60">
-                  If you would like us to follow up with you.
+                  We'll send you a confirmation and updates about your report.
                 </p>
+              </div>
+
+              {/* Subject */}
+              <div>
+                <label htmlFor="subject" className="mb-2.5 block text-sm font-semibold text-foreground">
+                  Subject
+                </label>
+                <input
+                  id="subject"
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Brief summary of your issue"
+                  className="w-full rounded-lg border border-border/60 bg-card px-4 py-2.5 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40 focus:bg-card/50"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label htmlFor="description" className="mb-2.5 block text-sm font-semibold text-foreground">
+                  Details
+                </label>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Tell us more about what happened or what you'd like to suggest..."
+                  rows={5}
+                  className="w-full resize-none rounded-lg border border-border/60 bg-card px-4 py-2.5 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 transition-colors focus:border-primary/40 focus:bg-card/50"
+                />
               </div>
 
               <button
                 type="submit"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] sm:w-auto"
+                disabled={loading}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="h-3.5 w-3.5" />
-                Submit Report
+                <Send className="h-4 w-4" />
+                {loading ? 'Submitting...' : 'Submit Report'}
               </button>
             </motion.form>
           )}
