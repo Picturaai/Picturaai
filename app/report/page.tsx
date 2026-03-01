@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Send, CheckCircle2, AlertCircle, ThumbsDown, Lightbulb, ShieldCheck } from 'lucide-react'
+import { Send, CheckCircle2, AlertCircle, ThumbsDown, Lightbulb } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
@@ -235,11 +235,7 @@ export default function ReportPage() {
               </div>
 
               {/* Turnstile Captcha */}
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>Protected by Cloudflare Turnstile</span>
-                </div>
+              <div className="flex justify-center">
                 <Turnstile 
                   onVerify={handleTurnstileVerify} 
                   onError={handleTurnstileError}
