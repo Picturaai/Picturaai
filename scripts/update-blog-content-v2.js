@@ -295,10 +295,10 @@ async function updateBlogContent() {
 <p class="text-base text-muted-foreground leading-7 mt-8">Ready to create? Head to the Studio and bring your imagination to life with Pictura AI.</p>
 </div>`
 
-  await sql\`UPDATE blog_posts SET content = \${promptGuide} WHERE slug = 'mastering-ai-prompts'\`
+  await sql`UPDATE blog_posts SET content = ${promptGuide} WHERE slug = 'mastering-ai-prompts'`
   console.log('Updated mastering-ai-prompts')
 
-  await sql\`UPDATE blog_posts SET content = \${gettingStarted} WHERE slug = 'getting-started-with-pictura'\`
+  await sql`UPDATE blog_posts SET content = ${gettingStarted} WHERE slug = 'getting-started-with-pictura'`
   console.log('Updated getting-started-with-pictura')
 
   console.log('Done!')
