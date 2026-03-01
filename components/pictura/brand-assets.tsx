@@ -56,55 +56,89 @@ const createIconOnlySvg = (size: number) => `<svg width="${size}" height="${size
   <circle cx="44" cy="20" r="3" fill="#FFD700"/>
 </svg>`
 
-// Clean social media background - Primary color with white logo
+// Clean social media background - beautifully designed
 const createSocialBgSvg = (width: number, height: number, variant: 'brand' | 'dark' | 'minimal') => {
-  // Brand: Primary color background with white logo - clean and professional
-  // Dark: Dark background with colored logo  
-  // Minimal: White background with colored logo
-  
   const isBrand = variant === 'brand'
   const isDark = variant === 'dark'
   
-  // Compute dimensions
-  const logoSize = Math.min(width, height) * 0.15
-  const logoX = width / 2 - logoSize / 2
-  const logoY = height / 2 - logoSize * 0.8
-  const textY = height / 2 + logoSize * 0.6
-  const subtextY = textY + logoSize * 0.4
-  const fontSize = Math.min(width, height) * 0.08
-  const subFontSize = fontSize * 0.38
+  // Centered, well-proportioned layout
+  const centerX = width / 2
+  const centerY = height / 2
   
-  const bgGradient = isBrand 
-    ? `<defs><linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D4894D"/><stop offset="100%" stop-color="#A0522D"/></linearGradient></defs><rect width="${width}" height="${height}" fill="url(#bg-grad)"/>`
-    : isDark 
-    ? `<rect width="${width}" height="${height}" fill="#0f0f0f"/>`
-    : `<rect width="${width}" height="${height}" fill="#FFFFFF"/>`
-    
-  const logoRect = isBrand
-    ? `<rect x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}" rx="${logoSize * 0.25}" fill="rgba(255,255,255,0.15)"/>`
-    : `<defs><linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C87941"/><stop offset="100%" stop-color="#A0522D"/></linearGradient></defs><rect x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}" rx="${logoSize * 0.25}" fill="url(#logo-grad)"/>`
+  // Logo size - 12% of the smaller dimension for perfect proportion
+  const baseSize = Math.min(width, height)
+  const logoSize = baseSize * 0.12
+  const logoRadius = logoSize * 0.22
   
-  const strokeColor = '#FFFFFF'
+  // Vertical positioning - logo above center, text below
+  const logoY = centerY - baseSize * 0.06
+  const logoX = centerX - logoSize / 2
+  
+  // Typography sizing
+  const nameSize = baseSize * 0.055
+  const taglineSize = baseSize * 0.022
+  const nameY = logoY + logoSize + baseSize * 0.06
+  const taglineY = nameY + baseSize * 0.04
+  
+  // Colors
+  const bgColor = isBrand ? '#C87941' : isDark ? '#0a0a0a' : '#FAFAFA'
+  const logoFill = isBrand ? 'rgba(255,255,255,0.12)' : '#C87941'
+  const strokeColor = isBrand ? '#FFFFFF' : '#FFFFFF'
   const accentColor = isBrand ? '#FFE4B5' : '#FFD700'
-  const textColor = isBrand || isDark ? '#FFFFFF' : '#1a1a1a'
-  const subtextColor = isBrand ? 'rgba(255,255,255,0.8)' : isDark ? 'rgba(255,255,255,0.6)' : '#666666'
+  const textColor = isBrand || isDark ? '#FFFFFF' : '#18181B'
+  const subtextColor = isBrand ? 'rgba(255,255,255,0.7)' : isDark ? 'rgba(255,255,255,0.5)' : '#71717A'
   
-  // Logo P path coordinates relative to logo position
-  const pX = logoX + logoSize * 0.34
-  const pY1 = logoY + logoSize * 0.72
-  const pY2 = logoY + logoSize * 0.28
-  const dotX = logoX + logoSize * 0.69
-  const dotY = logoY + logoSize * 0.31
-  const strokeW = logoSize * 0.07
-  const dotR = logoSize * 0.047
+  // P letter path inside logo
+  const pLeft = logoX + logoSize * 0.32
+  const pTop = logoY + logoSize * 0.26
+  const pBottom = logoY + logoSize * 0.74
+  const pWidth = logoSize * 0.36
+  const strokeW = logoSize * 0.065
+  
+  // Accent dot position
+  const dotX = logoX + logoSize * 0.72
+  const dotY = logoY + logoSize * 0.28
+  const dotR = logoSize * 0.04
   
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
-  ${bgGradient}
-  ${logoRect}
-  <path d="M${pX} ${pY1}V${pY2}h${logoSize * 0.156}c${logoSize * 0.055} 0 ${logoSize * 0.098} ${logoSize * 0.019} ${logoSize * 0.131} ${logoSize * 0.055} ${logoSize * 0.033} ${logoSize * 0.036} ${logoSize * 0.048} ${logoSize * 0.081} ${logoSize * 0.048} ${logoSize * 0.133}s-${logoSize * 0.016} ${logoSize * 0.097}-${logoSize * 0.048} ${logoSize * 0.133}c-${logoSize * 0.033} ${logoSize * 0.036}-${logoSize * 0.076} ${logoSize * 0.055}-${logoSize * 0.131} ${logoSize * 0.055}h-${logoSize * 0.0625}" stroke="${strokeColor}" stroke-width="${strokeW}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Background -->
+  <rect width="${width}" height="${height}" fill="${bgColor}"/>
+  ${isBrand ? `<rect width="${width}" height="${height}" fill="url(#brand-bg)"/>
+  <defs><linearGradient id="brand-bg" x1="0" y1="0" x2="${width}" y2="${height}"><stop stop-color="#D4894D"/><stop offset="1" stop-color="#A0522D"/></linearGradient></defs>` : ''}
+  
+  <!-- Logo Container -->
+  <rect x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}" rx="${logoRadius}" fill="${logoFill}"/>
+  ${!isBrand ? `<rect x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}" rx="${logoRadius}" fill="url(#logo-fill)"/>
+  <defs><linearGradient id="logo-fill" x1="${logoX}" y1="${logoY}" x2="${logoX + logoSize}" y2="${logoY + logoSize}"><stop stop-color="#C87941"/><stop offset="1" stop-color="#A0522D"/></linearGradient></defs>` : ''}
+  
+  <!-- P Letter -->
+  <path d="M${pLeft} ${pBottom} V${pTop} h${pWidth * 0.5} c${pWidth * 0.28} 0 ${pWidth * 0.5} ${logoSize * 0.12} ${pWidth * 0.5} ${logoSize * 0.24} s-${pWidth * 0.22} ${logoSize * 0.24} -${pWidth * 0.5} ${logoSize * 0.24} h-${pWidth * 0.25}" 
+    stroke="${strokeColor}" 
+    stroke-width="${strokeW}" 
+    stroke-linecap="round" 
+    stroke-linejoin="round" 
+    fill="none"/>
+  
+  <!-- Accent Dot -->
   <circle cx="${dotX}" cy="${dotY}" r="${dotR}" fill="${accentColor}"/>
-  <text x="${width/2}" y="${textY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" font-size="${fontSize}" font-weight="600" fill="${textColor}" text-anchor="middle" letter-spacing="-0.02em">Pictura</text>
-  <text x="${width/2}" y="${subtextY}" font-family="system-ui, -apple-system, sans-serif" font-size="${subFontSize}" font-weight="500" fill="${subtextColor}" text-anchor="middle">AI Image Generation</text>
+  
+  <!-- Brand Name -->
+  <text x="${centerX}" y="${nameY}" 
+    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" 
+    font-size="${nameSize}" 
+    font-weight="600" 
+    fill="${textColor}" 
+    text-anchor="middle" 
+    letter-spacing="-0.02em">Pictura</text>
+  
+  <!-- Tagline -->
+  <text x="${centerX}" y="${taglineY}" 
+    font-family="system-ui, -apple-system, sans-serif" 
+    font-size="${taglineSize}" 
+    font-weight="500" 
+    fill="${subtextColor}" 
+    text-anchor="middle" 
+    letter-spacing="0.02em">AI Image Generation</text>
 </svg>`
 }
 
