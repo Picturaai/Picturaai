@@ -339,6 +339,11 @@ export function Landing() {
                       <svg className="h-3.5 w-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </button>
                   </div>
+                  {/* Logo watermark */}
+                  <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-sm">
+                    <PicturaIcon size={12} className="text-white" />
+                    <span className="text-[10px] font-medium text-white/90">Pictura</span>
+                  </div>
                 </div>
 
                 {/* Thumbnails - always 5 columns, evenly spaced */}
