@@ -179,122 +179,90 @@ export function Landing() {
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden pt-32 pb-20 md:pt-44 md:pb-32">
-        {/* --- Smooth gradient background --- */}
-        <div className="absolute inset-0 -z-10 overflow-hidden bg-background">
-          {/* Base radial glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,var(--primary)/0.08,transparent_70%)]" />
-
-          {/* Subtle pulsing radial glow */}
+      {/* Hero - Apple-inspired clean design */}
+      <section className="relative overflow-hidden pt-32 pb-24 md:pt-48 md:pb-36">
+        {/* Ultra-clean gradient background */}
+        <div className="absolute inset-0 -z-10 bg-background">
+          {/* Single subtle top glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,var(--primary)/0.12,transparent_60%)]" />
+          
+          {/* Soft ambient light */}
           <motion.div
-            className="absolute inset-0"
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] rounded-full"
             style={{
-              background: 'radial-gradient(ellipse_100%_80%_at_50%_-20%,var(--primary)/0.04,transparent_70%)',
-            }}
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-          />
-
-          {/* Slow flowing gradient orbs (minimal movement) */}
-          <motion.div
-            className="absolute -top-1/3 left-1/4 h-[800px] w-[800px] rounded-full opacity-20"
-            style={{
-              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
-              filter: 'blur(80px)',
-            }}
-            animate={{
-              x: [0, 40, -20, 0],
-              y: [0, -30, 20, 0],
-              scale: [1, 1.1, 0.95, 1],
-            }}
-            transition={{ duration: 35, repeat: Infinity, ease: 'easeInOut' }}
-          />
-
-          <motion.div
-            className="absolute -right-1/4 top-1/4 h-[600px] w-[600px] rounded-full opacity-15"
-            style={{
-              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
-              filter: 'blur(100px)',
-            }}
-            animate={{
-              x: [-30, -60, 30, -30],
-              y: [0, 40, -50, 0],
-              scale: [0.95, 1.1, 1, 0.95],
-            }}
-            transition={{ duration: 38, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          />
-
-          <motion.div
-            className="absolute -bottom-1/4 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full opacity-10"
-            style={{
-              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
+              background: 'radial-gradient(ellipse, var(--primary) 0%, transparent 70%)',
               filter: 'blur(120px)',
+              opacity: 0.08,
             }}
-            animate={{
-              x: [0, -50, 50, 0],
-              y: [0, 25, -35, 0],
-              scale: [1, 1.05, 0.98, 1],
-            }}
-            transition={{ duration: 40, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+            animate={{ opacity: [0.06, 0.1, 0.06] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
           />
-
-          {/* Bottom fade to background */}
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/50 to-transparent" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
-          <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto max-w-4xl text-center">
+            {/* Refined badge */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary"
+              transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium tracking-wide text-primary uppercase"
             >
-              <FlaskConical className="h-3.5 w-3.5" />
-              Beta &middot; Imoogle Picture Model
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+              </span>
+              Now in Beta
             </motion.div>
 
+            {/* Large, clean headline */}
             <motion.h1
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl font-bold leading-[1.08] tracking-tight text-foreground md:text-6xl lg:text-7xl"
+              transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="text-[2.75rem] font-semibold leading-[1.1] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[5.5rem]"
             >
               Turn words into
               <br />
               <span className="text-primary">
                 {displayText}
-                <span className="ml-0.5 inline-block w-[3px] align-middle animate-pulse bg-primary" style={{ height: '0.85em' }} />
+                <motion.span 
+                  className="ml-0.5 inline-block w-[3px] rounded-sm bg-primary align-baseline"
+                  style={{ height: '0.75em' }}
+                  animate={{ opacity: [1, 0] }}
+                  transition={{ duration: 0.6, repeat: Infinity, repeatType: 'reverse' }}
+                />
               </span>
             </motion.h1>
 
+            {/* Refined subheadline */}
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg"
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl"
             >
-              Pictura is a free AI image generation model by Imoogle Labs.
-              Create beautiful images from text or transform existing ones.
+              Pictura is a free AI image generation model by Imoogle Labs. 
+              Create stunning images from text or transform existing ones.
             </motion.p>
 
+            {/* Clean CTA buttons */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
+              transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
             >
               <Link
                 href="/studio"
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] sm:w-auto"
+                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
               >
-                Open Studio
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                Start Creating
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/about"
-                className="inline-flex w-full items-center justify-center rounded-full border border-border px-8 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary sm:w-auto"
+                className="inline-flex w-full items-center justify-center rounded-full border border-border/60 bg-background/50 backdrop-blur-sm px-8 py-4 text-[15px] font-semibold text-foreground transition-all duration-300 hover:bg-secondary/80 hover:border-border sm:w-auto"
               >
                 Learn More
               </Link>

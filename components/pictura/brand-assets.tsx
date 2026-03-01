@@ -56,48 +56,55 @@ const createIconOnlySvg = (size: number) => `<svg width="${size}" height="${size
   <circle cx="44" cy="20" r="3" fill="#FFD700"/>
 </svg>`
 
-// Social media background templates
-const createSocialBgSvg = (width: number, height: number, variant: 'dark' | 'light' | 'gradient') => {
-  const bgColor = variant === 'dark' ? '#1a1a1a' : variant === 'light' ? '#FAF8F5' : '#1a1a1a'
-  const textColor = variant === 'dark' || variant === 'gradient' ? '#FFFFFF' : '#1a1a1a'
+// Clean social media background - Primary color with white logo
+const createSocialBgSvg = (width: number, height: number, variant: 'brand' | 'dark' | 'minimal') => {
+  // Brand: Primary color background with white logo - clean and professional
+  // Dark: Dark background with colored logo  
+  // Minimal: White background with colored logo
+  
+  const isBrand = variant === 'brand'
+  const isDark = variant === 'dark'
+  
+  // Compute dimensions
+  const logoSize = Math.min(width, height) * 0.15
+  const logoX = width / 2 - logoSize / 2
+  const logoY = height / 2 - logoSize * 0.8
+  const textY = height / 2 + logoSize * 0.6
+  const subtextY = textY + logoSize * 0.4
+  const fontSize = Math.min(width, height) * 0.08
+  const subFontSize = fontSize * 0.38
+  
+  const bgGradient = isBrand 
+    ? `<defs><linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D4894D"/><stop offset="100%" stop-color="#A0522D"/></linearGradient></defs><rect width="${width}" height="${height}" fill="url(#bg-grad)"/>`
+    : isDark 
+    ? `<rect width="${width}" height="${height}" fill="#0f0f0f"/>`
+    : `<rect width="${width}" height="${height}" fill="#FFFFFF"/>`
+    
+  const logoRect = isBrand
+    ? `<rect x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}" rx="${logoSize * 0.25}" fill="rgba(255,255,255,0.15)"/>`
+    : `<defs><linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#C87941"/><stop offset="100%" stop-color="#A0522D"/></linearGradient></defs><rect x="${logoX}" y="${logoY}" width="${logoSize}" height="${logoSize}" rx="${logoSize * 0.25}" fill="url(#logo-grad)"/>`
+  
+  const strokeColor = '#FFFFFF'
+  const accentColor = isBrand ? '#FFE4B5' : '#FFD700'
+  const textColor = isBrand || isDark ? '#FFFFFF' : '#1a1a1a'
+  const subtextColor = isBrand ? 'rgba(255,255,255,0.8)' : isDark ? 'rgba(255,255,255,0.6)' : '#666666'
+  
+  // Logo P path coordinates relative to logo position
+  const pX = logoX + logoSize * 0.34
+  const pY1 = logoY + logoSize * 0.72
+  const pY2 = logoY + logoSize * 0.28
+  const dotX = logoX + logoSize * 0.69
+  const dotY = logoY + logoSize * 0.31
+  const strokeW = logoSize * 0.07
+  const dotR = logoSize * 0.047
   
   return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="${width}" height="${height}" fill="${bgColor}"/>
-  ${variant === 'gradient' ? `
-  <defs>
-    <radialGradient id="glow1" cx="30%" cy="30%" r="50%">
-      <stop offset="0%" stop-color="#C87941" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="transparent"/>
-    </radialGradient>
-    <radialGradient id="glow2" cx="70%" cy="70%" r="40%">
-      <stop offset="0%" stop-color="#C87941" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="transparent"/>
-    </radialGradient>
-  </defs>
-  <rect width="${width}" height="${height}" fill="url(#glow1)"/>
-  <rect width="${width}" height="${height}" fill="url(#glow2)"/>
-  ` : ''}
-  <g transform="translate(${width/2 - 32}, ${height/2 - 60})">
-    <rect width="64" height="64" rx="16" fill="url(#pictura-bg-social)"/>
-    <path d="M22 46V18h10c3.5 0 6.3 1.2 8.4 3.5 2.1 2.3 3.1 5.2 3.1 8.5s-1 6.2-3.1 8.5C38.3 40.8 35.5 42 32 42h-4" stroke="url(#pictura-stroke-social)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    <circle cx="44" cy="20" r="3" fill="url(#pictura-accent-social)"/>
-  </g>
-  <text x="${width/2}" y="${height/2 + 50}" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" font-size="32" font-weight="700" fill="${textColor}" text-anchor="middle">Pictura</text>
-  <text x="${width/2}" y="${height/2 + 80}" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="${variant === 'light' ? '#666' : '#999'}" text-anchor="middle">AI Image Generation</text>
-  <defs>
-    <linearGradient id="pictura-bg-social" x1="0" y1="0" x2="64" y2="64">
-      <stop stop-color="#C87941"/>
-      <stop offset="1" stop-color="#A0522D"/>
-    </linearGradient>
-    <linearGradient id="pictura-stroke-social" x1="22" y1="18" x2="44" y2="46">
-      <stop stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#F5E6D3"/>
-    </linearGradient>
-    <linearGradient id="pictura-accent-social" x1="41" y1="17" x2="47" y2="23">
-      <stop stop-color="#FFD700"/>
-      <stop offset="1" stop-color="#FFA500"/>
-    </linearGradient>
-  </defs>
+  ${bgGradient}
+  ${logoRect}
+  <path d="M${pX} ${pY1}V${pY2}h${logoSize * 0.156}c${logoSize * 0.055} 0 ${logoSize * 0.098} ${logoSize * 0.019} ${logoSize * 0.131} ${logoSize * 0.055} ${logoSize * 0.033} ${logoSize * 0.036} ${logoSize * 0.048} ${logoSize * 0.081} ${logoSize * 0.048} ${logoSize * 0.133}s-${logoSize * 0.016} ${logoSize * 0.097}-${logoSize * 0.048} ${logoSize * 0.133}c-${logoSize * 0.033} ${logoSize * 0.036}-${logoSize * 0.076} ${logoSize * 0.055}-${logoSize * 0.131} ${logoSize * 0.055}h-${logoSize * 0.0625}" stroke="${strokeColor}" stroke-width="${strokeW}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="${dotX}" cy="${dotY}" r="${dotR}" fill="${accentColor}"/>
+  <text x="${width/2}" y="${textY}" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" font-size="${fontSize}" font-weight="600" fill="${textColor}" text-anchor="middle" letter-spacing="-0.02em">Pictura</text>
+  <text x="${width/2}" y="${subtextY}" font-family="system-ui, -apple-system, sans-serif" font-size="${subFontSize}" font-weight="500" fill="${subtextColor}" text-anchor="middle">AI Image Generation</text>
 </svg>`
 }
 
@@ -325,22 +332,22 @@ export function BrandAssets() {
                   </div>
                   <div className="flex gap-2">
                     <button
+                      onClick={() => handleDownloadPng(createSocialBgSvg(width, height, 'brand'), `pictura-${name.toLowerCase().replace(/\s/g, '-')}-brand.png`, width, height)}
+                      className="flex-1 py-2 rounded-lg bg-gradient-to-r from-primary/90 to-primary text-white font-medium text-xs transition-all hover:opacity-90"
+                    >
+                      Brand
+                    </button>
+                    <button
                       onClick={() => handleDownloadPng(createSocialBgSvg(width, height, 'dark'), `pictura-${name.toLowerCase().replace(/\s/g, '-')}-dark.png`, width, height)}
                       className="flex-1 py-2 rounded-lg bg-zinc-900 text-white font-medium text-xs transition-all hover:bg-zinc-800"
                     >
                       Dark
                     </button>
                     <button
-                      onClick={() => handleDownloadPng(createSocialBgSvg(width, height, 'light'), `pictura-${name.toLowerCase().replace(/\s/g, '-')}-light.png`, width, height)}
-                      className="flex-1 py-2 rounded-lg bg-zinc-100 text-zinc-900 font-medium text-xs transition-all hover:bg-zinc-200"
+                      onClick={() => handleDownloadPng(createSocialBgSvg(width, height, 'minimal'), `pictura-${name.toLowerCase().replace(/\s/g, '-')}-minimal.png`, width, height)}
+                      className="flex-1 py-2 rounded-lg bg-white border border-border text-zinc-900 font-medium text-xs transition-all hover:bg-zinc-50"
                     >
-                      Light
-                    </button>
-                    <button
-                      onClick={() => handleDownloadPng(createSocialBgSvg(width, height, 'gradient'), `pictura-${name.toLowerCase().replace(/\s/g, '-')}-gradient.png`, width, height)}
-                      className="flex-1 py-2 rounded-lg bg-gradient-to-r from-primary/80 to-primary text-white font-medium text-xs transition-all hover:opacity-90"
-                    >
-                      Gradient
+                      Minimal
                     </button>
                   </div>
                 </div>
