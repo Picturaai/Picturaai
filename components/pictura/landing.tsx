@@ -261,7 +261,7 @@ export function Landing() {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mx-auto mt-12 sm:mt-16 max-w-5xl px-2 sm:px-4"
+            className="mt-12 sm:mt-16 w-full"
           >
             {/* App Window */}
             <div className="relative rounded-xl sm:rounded-2xl border border-border/40 bg-card overflow-hidden">
@@ -406,35 +406,33 @@ export function Landing() {
               </div>
             </div>
 
-            {/* Stats with icons */}
-            <div className="mt-8 sm:mt-10 flex items-center justify-center gap-4 sm:gap-8 md:gap-12">
-              <div className="flex flex-col items-center gap-2">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            {/* Stats with icons - full width grid */}
+            <div className="mt-10 sm:mt-14 grid grid-cols-3 gap-2 w-full">
+              <div className="flex flex-col items-center gap-2.5 py-4 sm:py-6 rounded-xl bg-secondary/30 border border-border/30">
+                <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <CircleDollarSign className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                 </div>
                 <div className="text-center">
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">Free</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Forever</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">Free</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">Forever</p>
                 </div>
               </div>
-              <div className="h-12 sm:h-16 w-px bg-border/50" />
-              <div className="flex flex-col items-center gap-2">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <div className="flex flex-col items-center gap-2.5 py-4 sm:py-6 rounded-xl bg-secondary/30 border border-border/30">
+                <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                 </div>
                 <div className="text-center">
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">10s</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Generation</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">10s</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">Generation</p>
                 </div>
               </div>
-              <div className="h-12 sm:h-16 w-px bg-border/50" />
-              <div className="flex flex-col items-center gap-2">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <div className="flex flex-col items-center gap-2.5 py-4 sm:py-6 rounded-xl bg-secondary/30 border border-border/30">
+                <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <ImageIcon className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                 </div>
                 <div className="text-center">
-                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">HD</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground">Quality</p>
+                  <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">HD</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">Quality</p>
                 </div>
               </div>
             </div>
