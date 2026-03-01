@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -112,14 +112,15 @@ export function Landing() {
   const [activeImage, setActiveImage] = useState(0)
   const [geo, setGeo] = useState<GeoInfo | null>(null)
 
-  // Typewriter phrases
-  const heroPhrases = [
+  // Typewriter phrases - memoized to prevent re-renders
+  const heroPhrases = useMemo(() => [
     'stunning visuals',
     'beautiful logos',
     'concept art',
     'product photos',
     'anime characters',
-  ]
+  ], [])
+  
   const [phraseIdx, setPhraseIdx] = useState(0)
   const [charIdx, setCharIdx] = useState(heroPhrases[0].length)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -127,15 +128,13 @@ export function Landing() {
   const displayText = currentPhrase.slice(0, charIdx)
 
   useEffect(() => {
-    const typeSpeed = isDeleting ? 40 : 80
-    const pauseDelay = !isDeleting && charIdx === currentPhrase.length ? 2200 : isDeleting && charIdx === 0 ? 400 : typeSpeed
+    const typeSpeed = isDeleting ? 30 : 60
+    const pauseDelay = !isDeleting && charIdx === currentPhrase.length ? 1800 : isDeleting && charIdx === 0 ? 300 : typeSpeed
 
     const timeout = setTimeout(() => {
       if (!isDeleting && charIdx === currentPhrase.length) {
-        // Start deleting after pause
         setIsDeleting(true)
       } else if (isDeleting && charIdx === 0) {
-        // Move to next phrase
         setIsDeleting(false)
         setPhraseIdx((prev) => (prev + 1) % heroPhrases.length)
       } else {
@@ -144,7 +143,7 @@ export function Landing() {
     }, pauseDelay)
 
     return () => clearTimeout(timeout)
-  }, [charIdx, isDeleting, currentPhrase, heroPhrases.length])
+  }, [charIdx, isDeleting, currentPhrase.length, heroPhrases, phraseIdx])
 
   useEffect(() => {
     const interval = setInterval(() => setActiveImage((prev) => (prev + 1) % showcaseImages.length), 5000)
