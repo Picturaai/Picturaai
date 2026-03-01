@@ -192,25 +192,27 @@ export function Landing() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-3xl text-center">
             {/* Announcement banner */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5"
-            >
-              <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+            <Link href="/blog/pi-1-5-turbo">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors"
+              >
+                <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                  </span>
+                  NEW
                 </span>
-                NEW
-              </span>
-              <span className="h-4 w-px bg-border" />
-              <span className="text-xs text-foreground">
-                <span className="font-semibold">pi-1.5-turbo</span> is now available
-              </span>
-              <ArrowRight className="h-3 w-3 text-muted-foreground" />
-            </motion.div>
+                <span className="h-4 w-px bg-border" />
+                <span className="text-xs text-foreground">
+                  <span className="font-semibold">pi-1.5-turbo</span> is now available
+                </span>
+                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              </motion.div>
+            </Link>
 
             {/* Headline */}
             <motion.h1
