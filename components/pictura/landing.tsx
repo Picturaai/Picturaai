@@ -181,9 +181,13 @@ export function Landing() {
     <>
       {/* Hero - Clean, minimal design */}
       <section className="relative overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24">
-        {/* Subtle background */}
+        {/* Brand color background glow */}
         <div className="absolute inset-0 -z-10 bg-background">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,var(--primary)/0.08,transparent_50%)]" />
+          {/* Top glow */}
+          <div className="absolute inset-x-0 top-0 h-[500px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,var(--primary)/0.15,transparent_70%)]" />
+          {/* Side accents */}
+          <div className="absolute -left-40 top-20 h-80 w-80 rounded-full bg-primary/10 blur-[100px]" />
+          <div className="absolute -right-40 top-40 h-80 w-80 rounded-full bg-primary/8 blur-[100px]" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
@@ -366,19 +370,25 @@ export function Landing() {
                     </div>
                   </div>
 
-                  {/* Thumbnails */}
-                  <div className="flex gap-1.5 sm:gap-2 mt-2 sm:mt-3 overflow-x-auto pb-1 scrollbar-hide">
-                    {showcaseImages.map((img, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setActiveImage(i)}
-                        className={`relative h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 rounded-md sm:rounded-lg overflow-hidden flex-shrink-0 transition-all ${
-                          i === activeImage ? 'ring-2 ring-primary' : 'opacity-60 hover:opacity-100'
-                        }`}
-                      >
-                        <Image src={img.src} alt="" fill className="object-cover" sizes="64px" />
-                      </button>
-                    ))}
+                  {/* Thumbnails - scrollable container */}
+                  <div className="relative mt-2 sm:mt-3">
+                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 px-0.5 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+                      {showcaseImages.map((img, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setActiveImage(i)}
+                          className={`relative h-11 w-11 sm:h-14 sm:w-14 rounded-lg overflow-hidden flex-shrink-0 snap-start transition-all ${
+                            i === activeImage ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : 'opacity-50 hover:opacity-100'
+                          }`}
+                        >
+                          <Image src={img.src} alt="" fill className="object-cover" sizes="56px" />
+                        </button>
+                      ))}
+                      {/* Extra space at end for scroll */}
+                      <div className="w-1 flex-shrink-0" />
+                    </div>
+                    {/* Scroll fade indicator */}
+                    <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-card to-transparent pointer-events-none" />
                   </div>
 
                   {/* Settings Bar */}
@@ -402,21 +412,36 @@ export function Landing() {
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="mt-8 sm:mt-10 flex items-center justify-center gap-6 sm:gap-10 md:gap-16">
-              <div className="text-center">
-                <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">Free</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Forever</p>
+            {/* Stats with icons */}
+            <div className="mt-8 sm:mt-10 flex items-center justify-center gap-4 sm:gap-8 md:gap-12">
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                </div>
+                <div className="text-center">
+                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">Free</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Forever</p>
+                </div>
               </div>
-              <div className="h-6 sm:h-8 w-px bg-border" />
-              <div className="text-center">
-                <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">10s</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Generation</p>
+              <div className="h-12 sm:h-16 w-px bg-border/50" />
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                </div>
+                <div className="text-center">
+                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">10s</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Generation</p>
+                </div>
               </div>
-              <div className="h-6 sm:h-8 w-px bg-border" />
-              <div className="text-center">
-                <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">HD</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">Quality</p>
+              <div className="h-12 sm:h-16 w-px bg-border/50" />
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                </div>
+                <div className="text-center">
+                  <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">HD</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Quality</p>
+                </div>
               </div>
             </div>
           </motion.div>
