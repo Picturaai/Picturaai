@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
+import { parseMarkdown } from '@/lib/markdown'
 
 interface BlogPost {
   id: number
@@ -140,8 +141,8 @@ export default function BlogPostPage() {
 
           {/* Content */}
           <div 
-            className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-semibold prose-a:text-primary prose-img:rounded-xl"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            className="max-w-none"
+            dangerouslySetInnerHTML={{ __html: parseMarkdown(post.content) }}
           />
 
           {/* CTA */}

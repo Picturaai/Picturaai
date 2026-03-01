@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, Clock, ImageIcon, Cpu, Star, ChevronRight, Hourglass, Rocket } from 'lucide-react'
+import { ArrowRight, Check, Clock, ImageIcon, Cpu, Award, ChevronRight, Hourglass, Rocket } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
@@ -99,10 +99,10 @@ export default function ModelsPage() {
               <Cpu className="h-4 w-4" />
               AI Models
             </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 text-balance">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-5 text-balance">
               Powerful Models for Every Need
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               Choose the perfect AI model for your creative vision. From fast iterations to ultra-high quality output.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
@@ -156,25 +156,25 @@ export default function ModelsPage() {
 
                 <div className="grid lg:grid-cols-2 gap-0">
                   {/* Info Section */}
-                  <div className="p-6 sm:p-8 lg:p-10">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${
+                  <div className="p-5 sm:p-6 lg:p-8">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
                         model.status === 'coming' ? 'bg-secondary' : 'bg-primary/10'
                       }`}>
-                        <PicturaIcon size={24} className={model.status === 'coming' ? 'text-muted-foreground' : 'text-primary'} />
+                        <PicturaIcon size={20} className={model.status === 'coming' ? 'text-muted-foreground' : 'text-primary'} />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold text-foreground">{model.name}</h2>
-                        <p className="text-sm text-muted-foreground">{model.tagline}</p>
+                        <h2 className="text-xl font-bold text-foreground">{model.name}</h2>
+                        <p className="text-xs text-muted-foreground">{model.tagline}</p>
                       </div>
                     </div>
 
-                    <p className="text-muted-foreground mb-6 leading-relaxed">
+                    <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
                       {model.description}
                     </p>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-3 gap-3 mb-5">
                       <div className="text-center p-3 rounded-xl bg-secondary/50">
                         <Clock className="h-4 w-4 text-primary mx-auto mb-1" />
                         <p className="text-sm font-semibold text-foreground">{model.speed}</p>
@@ -186,18 +186,18 @@ export default function ModelsPage() {
                         <p className="text-[10px] text-muted-foreground">Resolution</p>
                       </div>
                       <div className="text-center p-3 rounded-xl bg-secondary/50">
-                        <Star className="h-4 w-4 text-primary mx-auto mb-1" />
+                        <Award className="h-4 w-4 text-primary mx-auto mb-1" />
                         <p className="text-sm font-semibold text-foreground">{model.quality}</p>
                         <p className="text-[10px] text-muted-foreground">Quality</p>
                       </div>
                     </div>
 
                     {/* Features */}
-                    <div className="space-y-2 mb-6">
-                      {model.features.map((feature, j) => (
+                    <div className="space-y-1.5 mb-5">
+                      {model.features.slice(0, 4).map((feature, j) => (
                         <div key={j} className="flex items-center gap-2">
-                          <Check className={`h-4 w-4 ${model.status === 'coming' ? 'text-muted-foreground' : 'text-primary'}`} />
-                          <span className="text-sm text-foreground">{feature}</span>
+                          <Check className={`h-3.5 w-3.5 ${model.status === 'coming' ? 'text-muted-foreground' : 'text-primary'}`} />
+                          <span className="text-xs text-foreground">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -205,7 +205,7 @@ export default function ModelsPage() {
                     {model.status === 'active' && (
                       <Link
                         href="/studio"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
                       >
                         Use {model.name}
                         <ChevronRight className="h-4 w-4" />
@@ -214,7 +214,7 @@ export default function ModelsPage() {
                     {model.status === 'coming' && (
                       <button
                         disabled
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-secondary text-muted-foreground text-sm font-semibold cursor-not-allowed"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-muted-foreground text-sm font-semibold cursor-not-allowed"
                       >
                         Coming Soon
                       </button>
@@ -222,7 +222,7 @@ export default function ModelsPage() {
                   </div>
 
                   {/* Sample Image */}
-                  <div className="relative min-h-[300px] lg:min-h-full">
+                  <div className="relative min-h-[250px] lg:min-h-full">
                     {model.sample ? (
                       <>
                         <Image
@@ -232,17 +232,17 @@ export default function ModelsPage() {
                           className="object-cover"
                           sizes="(max-width: 1024px) 100vw, 50vw"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <p className="text-xs text-white/70 mb-1">Sample prompt:</p>
-                          <p className="text-sm text-white font-medium line-clamp-2">{model.samplePrompt}</p>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-[10px] text-white/70 mb-0.5">Sample prompt:</p>
+                          <p className="text-xs text-white font-medium line-clamp-2">{model.samplePrompt}</p>
                         </div>
                       </>
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-secondary/30">
                         <div className="text-center">
-                          <Hourglass className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-                          <p className="text-muted-foreground">Sample coming soon</p>
+                          <Hourglass className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">Sample coming soon</p>
                         </div>
                       </div>
                     )}

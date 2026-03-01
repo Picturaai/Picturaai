@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowRight, Calendar, Clock, Search, BookOpen, Megaphone, GraduationCap, Compass, Mail, Loader2, Star } from 'lucide-react'
+import { ArrowRight, Calendar, Clock, Search, BookOpen, Megaphone, GraduationCap, Compass, Mail, Loader2, TrendingUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
@@ -184,7 +184,7 @@ export default function BlogPage() {
                 transition={{ delay: 0.1 }}
               >
                 <div className="flex items-center gap-2 mb-6">
-                  <Star className="h-5 w-5 text-primary fill-primary" />
+                  <TrendingUp className="h-5 w-5 text-primary" />
                   <h2 className="text-lg font-semibold text-foreground">Featured</h2>
                 </div>
                 <Link href={`/blog/${featuredPost.slug}`}>
