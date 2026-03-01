@@ -267,10 +267,11 @@ export function Landing() {
             <div className="relative rounded-xl sm:rounded-2xl border border-border/40 bg-card overflow-hidden">
               {/* Window Chrome */}
               <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border/40 bg-secondary/30">
-                <div className="flex gap-1.5">
-                  <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#FF5F57]" />
-                  <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#FFBD2E]" />
-                  <div className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-[#28C840]" />
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-md bg-primary/15 flex items-center justify-center">
+                    <PicturaIcon size={12} className="text-primary" />
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-medium text-foreground hidden sm:inline">Pictura</span>
                 </div>
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-background/60 border border-border/30">
                   <svg className="h-3 w-3 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
@@ -298,7 +299,7 @@ export function Landing() {
                     </AnimatePresence>
                   </div>
                   <button className="px-3 sm:px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 flex-shrink-0">
-                    <Sparkles className="h-3.5 w-3.5" />
+                    <ArrowRight className="h-3.5 w-3.5" />
                     <span className="hidden xs:inline sm:inline">Generate</span>
                   </button>
                 </div>
@@ -360,10 +361,11 @@ export function Landing() {
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
                   <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted-foreground">
                     <span><span className="font-medium text-foreground">Model:</span> pi-1.0</span>
+                    <span className="hidden sm:inline"><span className="font-medium text-foreground">Size:</span> 1024 x 1024</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">Ready</span>
+                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-primary">
+                    <PicturaIcon size={10} className="text-primary" />
+                    <span className="font-medium">Pictura AI</span>
                   </div>
                 </div>
               </div>
