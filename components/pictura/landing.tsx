@@ -326,7 +326,7 @@ export function Landing() {
                   </AnimatePresence>
                   {/* Badge */}
                   <div className="absolute top-2.5 left-2.5">
-                    <span className="px-2 py-1 rounded-lg bg-black/50 backdrop-blur-sm text-[10px] font-medium text-white">
+                    <span className="px-2.5 py-1 rounded-lg bg-primary/90 backdrop-blur-sm text-[10px] font-medium text-primary-foreground">
                       {showcaseImages[activeImage].label}
                     </span>
                   </div>
