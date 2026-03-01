@@ -6,7 +6,7 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: process.env.ZOHO_EMAIL || 'info@sidihost.sbs',
+    user: process.env.ZOHO_EMAIL || 'info@picturaai.sbs',
     pass: process.env.ZOHO_PASSWORD || '',
   },
 })
@@ -76,7 +76,7 @@ function generateUserEmailHtml(ticketId: string, name: string, type: string): st
       <p>If you have additional information to share, please reply to this email with your ticket number.</p>
       <p>
         <strong>Pictura Team</strong><br>
-        <a href="mailto:info@imoogleai.xyz" class="footer-link">info@imoogleai.xyz</a>
+        <a href="mailto:info@picturaai.sbs" class="footer-link">info@picturaai.sbs</a>
       </p>
     </div>
   </div>
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
 
     // Send user confirmation email
     await transporter.sendMail({
-      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@sidihost.sbs'}>`,
+      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@picturaai.sbs'}>`,
       to: body.email,
       subject: `Ticket Confirmed: ${ticketId}`,
       html: generateUserEmailHtml(ticketId, body.name, body.type),
@@ -165,8 +165,8 @@ export async function POST(request: NextRequest) {
 
     // Send admin notification email
     await transporter.sendMail({
-      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@sidihost.sbs'}>`,
-      to: 'info@sidihost.sbs',
+      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@picturaai.sbs'}>`,
+      to: 'info@picturaai.sbs',
       subject: `[${body.type.toUpperCase()}] ${body.subject} - ${ticketId}`,
       html: generateAdminEmailHtml(body, ticketId),
     })
