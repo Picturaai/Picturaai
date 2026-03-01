@@ -48,10 +48,9 @@ const TOUR_STEPS = [
 ]
 
 const MODELS = [
-  { id: 'pi-1.0', name: 'Pictura pi-1.0', status: 'active' as const, description: 'General purpose image generation', provider: 'fal' },
-  { id: 'stability-sd3', name: 'Stability SD3', status: 'active' as const, description: 'Stable Diffusion 3 - High quality', provider: 'stability' },
-  { id: 'leonardo-phoenix', name: 'Leonardo Phoenix', status: 'active' as const, description: 'Leonardo AI - Creative & artistic', provider: 'leonardo' },
-  { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture', provider: 'fal' },
+  { id: 'pi-1.0', name: 'Pictura pi-1.0', status: 'active' as const, description: 'General purpose image generation' },
+  { id: 'pi-1.5-turbo', name: 'Pictura pi-1.5 Turbo', status: 'active' as const, description: 'Faster, higher quality output' },
+  { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture' },
 ]
 
 /* Custom Send Icon - clean arrow in circle */

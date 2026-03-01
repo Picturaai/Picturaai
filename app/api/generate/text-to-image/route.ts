@@ -161,11 +161,14 @@ export async function POST(request: Request) {
     let imageUrl: string
     try {
       switch (model) {
-        case 'stability-sd3':
-          imageUrl = await generateWithStability(prompt)
-          break
-        case 'leonardo-phoenix':
-          imageUrl = await generateWithLeonardo(prompt)
+        case 'pi-1.5-turbo':
+          // pi-1.5-turbo uses Stability AI with Leonardo AI as fallback
+          try {
+            imageUrl = await generateWithStability(prompt)
+          } catch (stabilityError) {
+            console.log('[v0] Stability AI failed, falling back to Leonardo AI:', stabilityError)
+            imageUrl = await generateWithLeonardo(prompt)
+          }
           break
         case 'pi-1.0':
         default:
@@ -175,7 +178,7 @@ export async function POST(request: Request) {
     } catch (genError) {
       console.error('Generation error:', genError)
       return NextResponse.json(
-        { error: 'Image generation failed. Please try again or select a different model.' },
+        { error: 'Image generation failed. Please try again.' },
         { status: 500 }
       )
     }

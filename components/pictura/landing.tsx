@@ -359,7 +359,7 @@ export function Landing() {
                 {/* Settings Bar */}
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
                   <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted-foreground">
-                    <span><span className="font-medium text-foreground">Model:</span> pi-1.0</span>
+                    <span><span className="font-medium text-foreground">Model:</span> pi-1.5-turbo</span>
                     <span className="hidden sm:inline"><span className="font-medium text-foreground">Size:</span> 1024 x 1024</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-primary">
@@ -585,9 +585,9 @@ export function Landing() {
               {
                 name: 'pi-1.5-turbo',
                 label: 'Pictura pi-1.5 Turbo',
-                status: 'Coming Soon',
-                statusColor: 'bg-muted text-muted-foreground',
-                desc: 'Our next iteration with 2x faster inference, higher fidelity details, and improved prompt adherence. Built on an optimized diffusion backbone.',
+                status: 'Active',
+                statusColor: 'bg-primary/10 text-primary',
+                desc: 'Our latest model with 2x faster inference, higher fidelity details, and improved prompt adherence. Powered by state-of-the-art diffusion technology.',
                 specs: ['Up to 2048px', '2x Faster', 'Enhanced Detail'],
               },
               {
