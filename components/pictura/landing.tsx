@@ -370,25 +370,19 @@ export function Landing() {
                     </div>
                   </div>
 
-                  {/* Thumbnails - scrollable container */}
-                  <div className="relative mt-2 sm:mt-3">
-                    <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 px-0.5 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
-                      {showcaseImages.map((img, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setActiveImage(i)}
-                          className={`relative h-11 w-11 sm:h-14 sm:w-14 rounded-lg overflow-hidden flex-shrink-0 snap-start transition-all ${
-                            i === activeImage ? 'ring-2 ring-primary ring-offset-1 ring-offset-card' : 'opacity-50 hover:opacity-100'
-                          }`}
-                        >
-                          <Image src={img.src} alt="" fill className="object-cover" sizes="56px" />
-                        </button>
-                      ))}
-                      {/* Extra space at end for scroll */}
-                      <div className="w-1 flex-shrink-0" />
-                    </div>
-                    {/* Scroll fade indicator */}
-                    <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-card to-transparent pointer-events-none" />
+                  {/* Thumbnails - grid layout */}
+                  <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mt-2 sm:mt-3">
+                    {showcaseImages.map((img, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveImage(i)}
+                        className={`relative aspect-square rounded-md sm:rounded-lg overflow-hidden transition-all ${
+                          i === activeImage ? 'ring-2 ring-primary' : 'opacity-50 hover:opacity-100'
+                        }`}
+                      >
+                        <Image src={img.src} alt="" fill className="object-cover" sizes="(max-width: 640px) 14vw, 60px" />
+                      </button>
+                    ))}
                   </div>
 
                   {/* Settings Bar */}
@@ -436,7 +430,7 @@ export function Landing() {
               <div className="h-12 sm:h-16 w-px bg-border/50" />
               <div className="flex flex-col items-center gap-2">
                 <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div className="text-center">
                   <p className="text-lg sm:text-xl md:text-2xl font-semibold text-foreground">HD</p>
