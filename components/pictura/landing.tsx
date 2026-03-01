@@ -370,17 +370,29 @@ export function Landing() {
                     </div>
                   </div>
 
-                  {/* Thumbnails - grid layout */}
-                  <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mt-2 sm:mt-3">
-                    {showcaseImages.map((img, i) => (
+                  {/* Thumbnails - responsive grid */}
+                  <div className="grid grid-cols-5 sm:grid-cols-7 gap-2 mt-3">
+                    {showcaseImages.slice(0, 5).map((img, i) => (
                       <button
                         key={i}
                         onClick={() => setActiveImage(i)}
-                        className={`relative aspect-square rounded-md sm:rounded-lg overflow-hidden transition-all ${
-                          i === activeImage ? 'ring-2 ring-primary' : 'opacity-50 hover:opacity-100'
+                        className={`relative aspect-square rounded-lg overflow-hidden transition-all ${
+                          i === activeImage ? 'ring-2 ring-primary ring-offset-2 ring-offset-card' : 'opacity-60 hover:opacity-100'
                         }`}
                       >
-                        <Image src={img.src} alt="" fill className="object-cover" sizes="(max-width: 640px) 14vw, 60px" />
+                        <Image src={img.src} alt="" fill className="object-cover" sizes="80px" />
+                      </button>
+                    ))}
+                    {/* Show remaining on larger screens */}
+                    {showcaseImages.slice(5).map((img, i) => (
+                      <button
+                        key={i + 5}
+                        onClick={() => setActiveImage(i + 5)}
+                        className={`relative aspect-square rounded-lg overflow-hidden transition-all hidden sm:block ${
+                          i + 5 === activeImage ? 'ring-2 ring-primary ring-offset-2 ring-offset-card' : 'opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <Image src={img.src} alt="" fill className="object-cover" sizes="80px" />
                       </button>
                     ))}
                   </div>
@@ -406,33 +418,44 @@ export function Landing() {
               </div>
             </div>
 
-            {/* Stats with icons - full width grid */}
-            <div className="mt-10 sm:mt-14 grid grid-cols-3 gap-2 w-full">
-              <div className="flex flex-col items-center gap-2.5 py-4 sm:py-6 rounded-xl bg-secondary/30 border border-border/30">
-                <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <CircleDollarSign className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
+            {/* Stats with icons and dividers */}
+            <div className="mt-10 sm:mt-14 flex items-stretch justify-between w-full rounded-2xl bg-secondary/30 border border-border/30 overflow-hidden">
+              {/* Free */}
+              <div className="flex-1 flex flex-col items-center gap-2 py-5 sm:py-8">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div className="text-center">
-                  <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">Free</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">Forever</p>
+                  <p className="text-lg sm:text-2xl font-semibold text-foreground">Free</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Forever</p>
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-2.5 py-4 sm:py-6 rounded-xl bg-secondary/30 border border-border/30">
-                <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Zap className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
+              
+              {/* Divider */}
+              <div className="w-px bg-border/50 my-4" />
+              
+              {/* 10s */}
+              <div className="flex-1 flex flex-col items-center gap-2 py-5 sm:py-8">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div className="text-center">
-                  <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">10s</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">Generation</p>
+                  <p className="text-lg sm:text-2xl font-semibold text-foreground">10s</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Generation</p>
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-2.5 py-4 sm:py-6 rounded-xl bg-secondary/30 border border-border/30">
-                <div className="h-11 w-11 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <ImageIcon className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
+              
+              {/* Divider */}
+              <div className="w-px bg-border/50 my-4" />
+              
+              {/* HD */}
+              <div className="flex-1 flex flex-col items-center gap-2 py-5 sm:py-8">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div className="text-center">
-                  <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground">HD</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">Quality</p>
+                  <p className="text-lg sm:text-2xl font-semibold text-foreground">HD</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Quality</p>
                 </div>
               </div>
             </div>
