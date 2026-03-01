@@ -8,25 +8,59 @@ const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
 const spaceMono = Space_Mono({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-space-mono' })
 
 export const metadata: Metadata = {
-  title: 'Pictura by Imoogle - AI Image Generation',
-  description: 'Create stunning images with Pictura, an AI-powered image generation model by Imoogle. Text-to-image and image-to-image capabilities.',
-  generator: 'Imoogle',
-  icons: {
-    icon: [
+  title: {
+    default: 'Pictura - AI Image Generation | Create Stunning Images Free',
+    template: '%s | Pictura by Imoogle',
+  },
+  description: 'Create stunning AI-generated images for free with Pictura by Imoogle. Transform text into beautiful artwork or remix existing images. No sign-up required.',
+  keywords: ['AI image generation', 'text to image', 'image to image', 'AI art', 'free AI image generator', 'Pictura', 'Imoogle', 'AI artwork'],
+  authors: [{ name: 'Imoogle', url: 'https://imoogle.com' }],
+  creator: 'Imoogle',
+  publisher: 'Imoogle',
+  metadataBase: new URL('https://pictura.imoogle.com'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://pictura.imoogle.com',
+    siteName: 'Pictura',
+    title: 'Pictura - AI Image Generation | Create Stunning Images Free',
+    description: 'Create stunning AI-generated images for free with Pictura by Imoogle. Transform text into beautiful artwork or remix existing images. No sign-up required.',
+    images: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Pictura - AI-Powered Image Generation',
       },
     ],
-    apple: '/apple-icon.png',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pictura - AI Image Generation | Create Stunning Images Free',
+    description: 'Create stunning AI-generated images for free with Pictura by Imoogle. Transform text into beautiful artwork. No sign-up required.',
+    images: ['/og-image.jpg'],
+    creator: '@imlogle',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
   },
 }
 

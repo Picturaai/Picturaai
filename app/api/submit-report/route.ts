@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
 
     // Send user confirmation email
     await transporter.sendMail({
-      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@imoogleai.xyz'}>`,
+      from: `Pictura <${process.env.ZOHO_EMAIL || 'info@sidihost.sbs'}>`,
       to: body.email,
       subject: `Ticket Confirmed: ${ticketId}`,
       html: generateUserEmailHtml(ticketId, body.name, body.type),
