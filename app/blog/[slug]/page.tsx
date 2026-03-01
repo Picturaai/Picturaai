@@ -103,7 +103,7 @@ export default function BlogPostPage() {
             <span className="inline-block text-xs font-medium text-primary uppercase tracking-wider mb-3">
               {post.category}
             </span>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight">
               {post.title}
             </h1>
             <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
@@ -142,7 +142,11 @@ export default function BlogPostPage() {
           {/* Content */}
           <div 
             className="max-w-none"
-            dangerouslySetInnerHTML={{ __html: parseMarkdown(post.content) }}
+            dangerouslySetInnerHTML={{ 
+              __html: post.content.trim().startsWith('<') 
+                ? post.content 
+                : parseMarkdown(post.content) 
+            }}
           />
 
           {/* CTA */}
