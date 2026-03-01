@@ -41,6 +41,7 @@ export function Footer() {
           <div className="flex flex-col gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Company</span>
             <Link href="/about" className="text-sm text-foreground/70 transition-colors hover:text-primary">About Imoogle</Link>
+            <Link href="/blog" className="text-sm text-foreground/70 transition-colors hover:text-primary">Blog</Link>
             <Link href="/support" className="text-sm text-foreground/70 transition-colors hover:text-primary">Support Us</Link>
             <Link href="/report" className="text-sm text-foreground/70 transition-colors hover:text-primary">Report a Bug</Link>
           </div>

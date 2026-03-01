@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Send, CheckCircle2, AlertCircle, ThumbsDown, Lightbulb } from 'lucide-react'
+import { Send, CheckCircle2, AlertCircle, ThumbsDown, Lightbulb, ShieldCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { Turnstile } from '@/components/turnstile'
 
 const reportTypes = [
   { id: 'bug', label: 'Bug Report', icon: AlertCircle, desc: 'Something is not working' },
@@ -31,12 +32,27 @@ export default function ReportPage() {
   const [submitted, setSubmitted] = useState(false)
   const [ticketId, setTicketId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+
+  const handleTurnstileVerify = useCallback((token: string) => {
+    setTurnstileToken(token)
+  }, [])
+
+  const handleTurnstileError = useCallback(() => {
+    setTurnstileToken(null)
+    toast.error('Security verification failed. Please try again.')
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!name.trim() || !email.trim() || !subject.trim() || !description.trim()) {
       toast.error('Please fill in all fields.')
+      return
+    }
+
+    if (!turnstileToken) {
+      toast.error('Please complete the security verification.')
       return
     }
 
@@ -51,6 +67,7 @@ export default function ReportPage() {
           type: reportType,
           subject,
           description,
+          turnstileToken,
         }),
       })
 
@@ -217,9 +234,22 @@ export default function ReportPage() {
                 />
               </div>
 
+              {/* Turnstile Captcha */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>Protected by Cloudflare Turnstile</span>
+                </div>
+                <Turnstile 
+                  onVerify={handleTurnstileVerify} 
+                  onError={handleTurnstileError}
+                  onExpire={() => setTurnstileToken(null)}
+                />
+              </div>
+
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !turnstileToken}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="h-4 w-4" />

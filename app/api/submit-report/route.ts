@@ -17,6 +17,32 @@ interface ReportData {
   type: 'bug' | 'complaint' | 'feedback'
   subject: string
   description: string
+  turnstileToken?: string
+}
+
+async function verifyTurnstileToken(token: string): Promise<boolean> {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY
+  if (!secretKey) {
+    console.error('Turnstile secret key not configured')
+    return false
+  }
+
+  try {
+    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: secretKey,
+        response: token,
+      }),
+    })
+
+    const data = await response.json()
+    return data.success === true
+  } catch (error) {
+    console.error('Turnstile verification error:', error)
+    return false
+  }
 }
 
 function generateTicketId(): string {
@@ -151,6 +177,16 @@ export async function POST(request: NextRequest) {
 
     if (!['bug', 'complaint', 'feedback'].includes(body.type)) {
       return NextResponse.json({ error: 'Invalid report type' }, { status: 400 })
+    }
+
+    // Verify Turnstile token
+    if (!body.turnstileToken) {
+      return NextResponse.json({ error: 'Security verification required' }, { status: 400 })
+    }
+
+    const isValidToken = await verifyTurnstileToken(body.turnstileToken)
+    if (!isValidToken) {
+      return NextResponse.json({ error: 'Security verification failed. Please try again.' }, { status: 403 })
     }
 
     const ticketId = generateTicketId()
