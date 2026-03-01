@@ -371,39 +371,41 @@ export function Landing() {
               </div>
             </div>
 
-            {/* Stats with divider lines */}
-            <div className="mt-8 sm:mt-10 mx-3 sm:mx-0 flex items-center justify-center">
-              {/* Free */}
-              <div className="flex-1 flex flex-col items-center gap-1.5 py-4">
-                <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <CircleDollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            {/* Stats - Clean horizontal layout */}
+            <div className="mt-10 sm:mt-12 px-3">
+              <div className="flex items-center justify-center gap-6 sm:gap-12 md:gap-16">
+                {/* Free */}
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-lg sm:text-2xl font-bold text-foreground">Free</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Forever</p>
+                  </div>
                 </div>
-                <p className="text-base sm:text-xl font-semibold text-foreground">Free</p>
-                <p className="text-[9px] sm:text-[10px] text-muted-foreground">Forever</p>
-              </div>
-              
-              {/* Divider */}
-              <div className="w-px h-16 sm:h-20 bg-border" />
-              
-              {/* 10s */}
-              <div className="flex-1 flex flex-col items-center gap-1.5 py-4">
-                <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                
+                {/* 10s */}
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-lg sm:text-2xl font-bold text-foreground">10s</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Generation</p>
+                  </div>
                 </div>
-                <p className="text-base sm:text-xl font-semibold text-foreground">10s</p>
-                <p className="text-[9px] sm:text-[10px] text-muted-foreground">Generation</p>
-              </div>
-              
-              {/* Divider */}
-              <div className="w-px h-16 sm:h-20 bg-border" />
-              
-              {/* HD */}
-              <div className="flex-1 flex flex-col items-center gap-1.5 py-4">
-                <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                
+                {/* HD */}
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-lg sm:text-2xl font-bold text-foreground">HD</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Quality</p>
+                  </div>
                 </div>
-                <p className="text-base sm:text-xl font-semibold text-foreground">HD</p>
-                <p className="text-[9px] sm:text-[10px] text-muted-foreground">Quality</p>
               </div>
             </div>
           </motion.div>
