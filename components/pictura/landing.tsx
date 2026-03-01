@@ -199,7 +199,10 @@ export function Landing() {
               className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5"
             >
               <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
-                <Zap className="h-3 w-3" />
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </span>
                 NEW
               </span>
               <span className="h-4 w-px bg-border" />

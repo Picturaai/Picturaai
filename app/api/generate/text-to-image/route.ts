@@ -34,32 +34,32 @@ async function generateWithStability(prompt: string): Promise<string> {
   const apiKey = process.env.STABILITY_API_KEY
   if (!apiKey) throw new Error('Stability API key not configured')
 
+  // Stability AI SD3 requires multipart/form-data
+  const formData = new FormData()
+  formData.append('prompt', prompt.trim())
+  formData.append('output_format', 'png')
+  formData.append('aspect_ratio', '1:1')
+  formData.append('model', 'sd3-large')
+
   const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/sd3', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Accept': 'image/*',
     },
-    body: JSON.stringify({
-      prompt: prompt.trim(),
-      output_format: 'png',
-      aspect_ratio: '1:1',
-    }),
+    body: formData,
   })
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('Stability API error:', response.status, errorText)
-    throw new Error('Stability generation failed')
+    console.error('[v0] Stability API error:', response.status, errorText)
+    throw new Error(`Stability generation failed: ${response.status}`)
   }
 
-  const data = await response.json()
-  // Stability returns base64 image
-  if (data.image) {
-    return `data:image/png;base64,${data.image}`
-  }
-  throw new Error('No image in Stability response')
+  // SD3 returns raw image bytes when Accept: image/*
+  const imageBuffer = await response.arrayBuffer()
+  const base64 = Buffer.from(imageBuffer).toString('base64')
+  return `data:image/png;base64,${base64}`
 }
 
 async function generateWithLeonardo(prompt: string): Promise<string> {
