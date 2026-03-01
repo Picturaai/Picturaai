@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowRight, Calendar, Clock, Search, BookOpen, Sparkles, Lightbulb, Rocket } from 'lucide-react'
+import { ArrowRight, Calendar, Clock, Search, BookOpen, Megaphone, GraduationCap, Compass, Mail, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 
@@ -25,9 +27,9 @@ interface BlogPost {
 
 const CATEGORIES = [
   { id: 'all', label: 'All Posts', icon: BookOpen },
-  { id: 'announcement', label: 'Announcements', icon: Sparkles },
-  { id: 'tutorial', label: 'Tutorials', icon: Lightbulb },
-  { id: 'guide', label: 'Guides', icon: Rocket },
+  { id: 'announcement', label: 'Announcements', icon: Megaphone },
+  { id: 'tutorial', label: 'Tutorials', icon: GraduationCap },
+  { id: 'guide', label: 'Guides', icon: Compass },
 ]
 
 export default function BlogPage() {
@@ -35,6 +37,35 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [email, setEmail] = useState('')
+  const [subscribing, setSubscribing] = useState(false)
+  const router = useRouter()
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) {
+      toast.error('Please enter your email')
+      return
+    }
+    setSubscribing(true)
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      if (res.ok) {
+        router.push('/newsletter/success')
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Failed to subscribe')
+      }
+    } catch {
+      toast.error('Something went wrong')
+    } finally {
+      setSubscribing(false)
+    }
+  }
 
   useEffect(() => {
     async function fetchPosts() {
@@ -282,22 +313,45 @@ export default function BlogPage() {
       <section className="border-t border-border/40 bg-card/50">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
           <div className="text-center max-w-xl mx-auto">
+            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-primary/10 mb-6">
+              <Mail className="h-6 w-6 text-primary" />
+            </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
               Stay Updated
             </h2>
             <p className="text-muted-foreground mb-8">
               Get the latest news about Pictura features, tips, and AI image generation trends.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 h-12 px-4 rounded-xl bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
-              />
-              <button className="h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors">
-                Subscribe
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <div className="relative flex-1">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                  className="w-full h-12 pl-11 pr-4 rounded-xl bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                />
+              </div>
+              <button 
+                type="submit"
+                disabled={subscribing}
+                className="h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {subscribing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Subscribing...
+                  </>
+                ) : (
+                  'Subscribe'
+                )}
               </button>
-            </div>
+            </form>
+            <p className="text-xs text-muted-foreground mt-4">
+              No spam, unsubscribe anytime.
+            </p>
           </div>
         </div>
       </section>

@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, Clock, Zap, ImageIcon, Cpu, Sparkles, Star, ChevronRight } from 'lucide-react'
+import { ArrowRight, Check, Clock, Gauge, ImageIcon, Cpu, Gem, Star, ChevronRight, Layers, Palette, Target } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
