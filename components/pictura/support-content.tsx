@@ -48,35 +48,21 @@ export function SupportContent() {
   const handleDonate = async (amount: number) => {
     setLoading(amount)
     try {
-      const response = await fetch('https://api.korapay.com/merchant/api/v1/charges/initialize', {
+      const response = await fetch('/api/korapay-initialize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_KORAPAY_SECRET_KEY}`,
         },
         body: JSON.stringify({
-          amount: amount * 100,
-          currency: 'NGN',
-          reference: `PICTURA-${Date.now()}`,
-          description: `Support Pictura - ₦${amount.toLocaleString()} donation`,
-          channels: ['card', 'bank_transfer', 'ussd'],
-          customer: {
-            name: 'Pictura Supporter',
-            email: 'support@sidihost.sbs',
-          },
-          metadata: {
-            campaign: 'pictura-support',
-          },
-          notification_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/korapay-webhook`,
-          redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/support?success=true`,
+          amount: amount,
         }),
       })
 
       const data = await response.json()
-      if (data.status && data.data?.checkout_url) {
-        window.location.href = data.data.checkout_url
+      if (data.success && data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
       } else {
-        alert('Payment initialization failed. Please try again.')
+        alert(data.error || 'Payment initialization failed. Please try again.')
       }
     } catch (error) {
       console.error('Payment error:', error)
@@ -131,7 +117,7 @@ export function SupportContent() {
                     <tier.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground mb-1">{tier.title}</h3>
-                  <p className="text-2xl font-bold text-primary mb-2">{tier.amount.toLocaleString()} NGN</p>
+                  <p className="text-2xl font-bold text-primary mb-2">&#8358;{tier.amount.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground mb-4">{tier.description}</p>
                   <button
                     onClick={() => handleDonate(tier.amount)}
