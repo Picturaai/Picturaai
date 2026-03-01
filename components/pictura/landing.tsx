@@ -284,7 +284,7 @@ export function Landing() {
                 {/* Prompt Input */}
                 <div className="flex gap-2 mb-3">
                   <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border/50 bg-background min-w-0">
-                    <svg className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    <svg className="h-4 w-4 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={activeImage}
@@ -332,11 +332,11 @@ export function Landing() {
                   </div>
                   {/* Action buttons */}
                   <div className="absolute top-2.5 right-2.5 flex gap-1.5">
-                    <button className="h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                      <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    <button className="h-7 w-7 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center">
+                      <svg className="h-3.5 w-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     </button>
-                    <button className="h-7 w-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                      <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <button className="h-7 w-7 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center">
+                      <svg className="h-3.5 w-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </button>
                   </div>
                 </div>
