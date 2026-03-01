@@ -36,17 +36,40 @@ const supportTiers = [
 
 export function SupportContent() {
   const [loading, setLoading] = useState<number | null>(null)
-  const [showSuccess, setShowSuccess] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState<'success' | 'cancelled' | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
+  const [donorName, setDonorName] = useState('')
+  const [donorEmail, setDonorEmail] = useState('')
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (searchParams.get('success') === 'true') {
-      setShowSuccess(true)
+    const status = searchParams.get('status')
+    if (status === 'success') {
+      setPaymentStatus('success')
+    } else if (status === 'cancelled') {
+      setPaymentStatus('cancelled')
     }
   }, [searchParams])
 
-  const handleDonate = async (amount: number) => {
-    setLoading(amount)
+  const clearStatus = () => {
+    setPaymentStatus(null)
+    window.history.replaceState({}, '', '/support')
+  }
+
+  const openDonateModal = (amount: number) => {
+    setSelectedAmount(amount)
+    setShowModal(true)
+  }
+
+  const handleDonate = async () => {
+    if (!selectedAmount) return
+    if (!donorEmail.trim()) {
+      alert('Please enter your email address')
+      return
+    }
+
+    setLoading(selectedAmount)
     try {
       const response = await fetch('/api/korapay-initialize', {
         method: 'POST',
@@ -54,7 +77,9 @@ export function SupportContent() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: amount,
+          amount: selectedAmount,
+          name: donorName.trim() || 'Pictura Supporter',
+          email: donorEmail.trim(),
         }),
       })
 
@@ -69,6 +94,7 @@ export function SupportContent() {
       alert('An error occurred. Please try again.')
     } finally {
       setLoading(null)
+      setShowModal(false)
     }
   }
 
@@ -90,14 +116,49 @@ export function SupportContent() {
             </p>
           </motion.div>
 
-          {showSuccess && (
+          {paymentStatus === 'success' && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-12 p-4 rounded-lg border border-primary/30 bg-primary/10 text-foreground"
+              className="mb-12 p-6 rounded-xl border border-primary/30 bg-primary/5"
             >
-              <p className="font-semibold">Thank you for your generous support!</p>
-              <p className="text-sm text-muted-foreground">Your contribution means the world to us.</p>
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Heart className="w-4 h-4 text-primary" />
+                    </div>
+                    <p className="font-semibold text-foreground text-lg">Thank you for your support!</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Your generous contribution helps us build better tools for creators worldwide. A confirmation email has been sent to you.</p>
+                </div>
+                <button onClick={clearStatus} className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {paymentStatus === 'cancelled' && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-12 p-6 rounded-xl border border-border bg-card"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                      <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </div>
+                    <p className="font-semibold text-foreground text-lg">Payment Cancelled</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">No worries! Your payment was cancelled. You can try again anytime or explore other ways to support us below.</p>
+                </div>
+                <button onClick={clearStatus} className="text-muted-foreground hover:text-foreground transition-colors">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
             </motion.div>
           )}
 
@@ -120,11 +181,10 @@ export function SupportContent() {
                   <p className="text-2xl font-bold text-primary mb-2">&#8358;{tier.amount.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground mb-4">{tier.description}</p>
                   <button
-                    onClick={() => handleDonate(tier.amount)}
-                    disabled={loading === tier.amount}
-                    className="w-full py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => openDonateModal(tier.amount)}
+                    className="w-full py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm transition-all hover:opacity-90"
                   >
-                    {loading === tier.amount ? 'Processing...' : 'Donate'}
+                    Donate
                   </button>
                 </div>
               </motion.div>
@@ -180,6 +240,80 @@ export function SupportContent() {
         </div>
       </main>
       <Footer />
+
+      {/* Donation Modal */}
+      {showModal && selectedAmount && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowModal(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 z-10"
+          >
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground">Complete Your Donation</h3>
+              <p className="text-2xl font-bold text-primary mt-2">&#8358;{selectedAmount.toLocaleString()}</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Your Name <span className="text-muted-foreground">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={donorName}
+                  onChange={(e) => setDonorName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary/50 placeholder:text-muted-foreground/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Email Address <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={donorEmail}
+                  onChange={(e) => setDonorEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary/50 placeholder:text-muted-foreground/50"
+                />
+                <p className="text-xs text-muted-foreground mt-1.5">We'll send your receipt to this email</p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleDonate}
+              disabled={loading === selectedAmount || !donorEmail.trim()}
+              className="w-full mt-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === selectedAmount ? 'Redirecting to payment...' : 'Proceed to Payment'}
+            </button>
+
+            <p className="text-xs text-center text-muted-foreground mt-4">
+              Secure payment powered by Korapay
+            </p>
+          </motion.div>
+        </div>
+      )}
     </>
   )
 }

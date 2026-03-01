@@ -18,20 +18,20 @@ export const metadata: Metadata = {
   authors: [{ name: 'Imoogle', url: 'https://imoogle.com' }],
   creator: 'Imoogle',
   publisher: 'Imoogle',
-  metadataBase: new URL('https://pictura.imoogle.com'),
+  metadataBase: new URL('https://picturaai.sbs'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://pictura.imoogle.com',
+    url: 'https://picturaai.sbs',
     siteName: 'Pictura',
     title: 'Pictura - AI Image Generation | Create Stunning Images Free',
     description: 'Create stunning AI-generated images for free with Pictura by Imoogle. Transform text into beautiful artwork or remix existing images. No sign-up required.',
     images: [
       {
-        url: '/og-image.jpg',
+        url: '/api/og',
         width: 1200,
         height: 630,
         alt: 'Pictura - AI-Powered Image Generation',
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Pictura - AI Image Generation | Create Stunning Images Free',
     description: 'Create stunning AI-generated images for free with Pictura by Imoogle. Transform text into beautiful artwork. No sign-up required.',
-    images: ['/og-image.jpg'],
-    creator: '@imlogle',
+    images: ['/api/og'],
+    creator: '@imoogle',
   },
   robots: {
     index: true,

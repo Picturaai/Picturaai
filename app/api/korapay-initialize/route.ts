@@ -12,6 +12,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!email) {
+      return NextResponse.json(
+        { error: 'Email address is required' },
+        { status: 400 }
+      )
+    }
+
     const response = await fetch('https://api.korapay.com/merchant/api/v1/charges/initialize', {
       method: 'POST',
       headers: {
@@ -27,14 +34,15 @@ export async function POST(request: NextRequest) {
         default_channel: 'card',
         customer: {
           name: name || 'Pictura Supporter',
-          email: email || 'supporter@picturaai.sbs',
+          email: email,
         },
         metadata: {
           campaign: 'pictura-support',
           source: 'website',
         },
         notification_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://picturaai.sbs'}/api/korapay-webhook`,
-        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://picturaai.sbs'}/support?success=true`,
+        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://picturaai.sbs'}/support?status=success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://picturaai.sbs'}/support?status=cancelled`,
       }),
     })
 
