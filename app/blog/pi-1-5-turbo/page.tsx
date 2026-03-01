@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Check, Clock, ImageIcon, Sparkles, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PicturaIcon } from '@/components/pictura/icons'
+import { PicturaIcon } from '@/components/pictura/logo'
 
 const showcaseImages = [
   {

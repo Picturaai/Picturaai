@@ -8,12 +8,12 @@ import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, B
 import { PicturaIcon } from './pictura-logo'
 
 const showcaseImages = [
-  { src: '/images/showcase-1.jpg', label: 'Portrait', prompt: '"Golden skin portrait with African beadwork jewelry"' },
-  { src: '/images/showcase-2.jpg', label: 'Architecture', prompt: '"Futuristic solarpunk city with green terraces"' },
-  { src: '/images/showcase-3.jpg', label: 'Macro', prompt: '"Mechanical butterfly with copper filigree wings"' },
-  { src: '/images/showcase-4.jpg', label: 'Landscape', prompt: '"African savanna at dawn, oil painting style"' },
-  { src: '/images/showcase-5.jpg', label: 'Still Life', prompt: '"Espresso on marble, dramatic side lighting"' },
-  { src: '/images/showcase-6.jpg', label: 'Fantasy', prompt: '"Underwater coral palace with bioluminescent jellyfish"' },
+  { src: '/images/showcase-hero-1.jpg', label: 'Wildlife', prompt: '"Majestic whale and calf in crystal clear waters"' },
+  { src: '/images/showcase-hero-2.jpg', label: 'Portrait', prompt: '"Japanese samurai master with cherry blossoms"' },
+  { src: '/images/showcase-hero-3.jpg', label: 'Fantasy', prompt: '"Floating islands with waterfalls and ancient temples"' },
+  { src: '/images/showcase-hero-4.jpg', label: 'Product', prompt: '"Futuristic sports car concept, studio lighting"' },
+  { src: '/images/showcase-hero-5.jpg', label: 'Nature', prompt: '"Baby red panda sleeping on snowy branch"' },
+  { src: '/images/gallery-brand-logo.jpg', label: 'Logo', prompt: '"Modern luxury skincare brand logo design"' },
 ]
 
 const features = [
