@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Calendar, Clock, ChevronLeft } from 'lucide-react'
-import { PicturaIcon } from '@/components/pictura/logo'
+import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 interface BlogPost {
   id: number

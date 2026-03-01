@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PicturaIcon } from '@/components/pictura/logo'
+import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 interface BlogPost {
   id: number
