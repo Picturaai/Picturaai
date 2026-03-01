@@ -103,23 +103,23 @@ export default function ModelsPage() {
             <div className="mx-auto max-w-5xl px-4">
               <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <PicturaIcon size={24} className="text-primary" />
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <PicturaIcon size={20} className="text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-foreground">Pictura pi-1.5-turbo</h2>
-                      <p className="text-sm text-muted-foreground">Our fastest and most capable model</p>
+                      <h2 className="text-lg font-bold text-foreground">Pictura pi-1.5-turbo</h2>
+                      <p className="text-xs text-muted-foreground">Our fastest and most capable model</p>
                     </div>
                   </div>
 
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                  <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
                     pi-1.5-turbo delivers frontier performance for image generation with 2x faster inference, 
                     higher fidelity outputs, and improved prompt understanding. Built on an optimized diffusion 
                     backbone with enhanced attention mechanisms for better compositional understanding.
                   </p>
 
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-2 mb-5">
                     {[
                       'Up to 2048x2048 resolution output',
                       '2x faster generation than pi-1.0',
@@ -129,8 +129,8 @@ export default function ModelsPage() {
                       'Consistent style across generations',
                     ].map((feature, i) => (
                       <div key={i} className="flex items-start gap-2">
-                        <Check className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                        <span className="text-sm text-foreground">{feature}</span>
+                        <Check className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                        <span className="text-xs text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
@@ -332,23 +332,23 @@ export default function ModelsPage() {
             <div className="mx-auto max-w-5xl px-4">
               <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-12 w-12 rounded-xl bg-secondary flex items-center justify-center">
-                      <PicturaIcon size={24} className="text-muted-foreground" />
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center">
+                      <PicturaIcon size={20} className="text-muted-foreground" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-foreground">Pictura pi-1.0</h2>
-                      <p className="text-sm text-muted-foreground">Our foundational model</p>
+                      <h2 className="text-lg font-bold text-foreground">Pictura pi-1.0</h2>
+                      <p className="text-xs text-muted-foreground">Our foundational model</p>
                     </div>
                   </div>
 
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
+                  <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
                     pi-1.0 is our original release model, offering reliable image generation with good 
                     quality outputs. While pi-1.5-turbo offers improved performance, pi-1.0 remains 
                     available for users who prefer consistency with existing workflows.
                   </p>
 
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-2 mb-5">
                     {[
                       'Up to 1024x1024 resolution output',
                       'Stable and reliable generation',
@@ -356,8 +356,8 @@ export default function ModelsPage() {
                       'Consistent results across runs',
                     ].map((feature, i) => (
                       <div key={i} className="flex items-start gap-2">
-                        <Check className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                        <span className="text-sm text-foreground">{feature}</span>
+                        <Check className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                        <span className="text-xs text-foreground">{feature}</span>
                       </div>
                     ))}
                   </div>
