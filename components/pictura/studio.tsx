@@ -48,9 +48,10 @@ const TOUR_STEPS = [
 ]
 
 const MODELS = [
-  { id: 'pi-1.0', name: 'Pictura pi-1.0', status: 'active' as const, description: 'General purpose image generation' },
-  { id: 'pi-1.5-turbo', name: 'Pictura pi-1.5 Turbo', status: 'coming' as const, description: 'Faster, higher quality' },
-  { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture' },
+  { id: 'pi-1.0', name: 'Pictura pi-1.0', status: 'active' as const, description: 'General purpose image generation', provider: 'fal' },
+  { id: 'stability-sd3', name: 'Stability SD3', status: 'active' as const, description: 'Stable Diffusion 3 - High quality', provider: 'stability' },
+  { id: 'leonardo-phoenix', name: 'Leonardo Phoenix', status: 'active' as const, description: 'Leonardo AI - Creative & artistic', provider: 'leonardo' },
+  { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture', provider: 'fal' },
 ]
 
 /* Custom Send Icon - clean arrow in circle */
@@ -103,8 +104,8 @@ function TourOverlay({
   // Tooltip position
   let tooltipStyle: React.CSSProperties
   if (!rect || isMobile) {
-    // Center on screen
-    tooltipStyle = { left: '1rem', right: '1rem', bottom: '2rem' }
+    // Position at top of screen on mobile so it doesn't block content
+    tooltipStyle = { left: '1rem', right: '1rem', top: '5rem' }
   } else {
     const tooltipW = 320
     const left = Math.min(Math.max(rect.x, 12), winSize.w - tooltipW - 12)
