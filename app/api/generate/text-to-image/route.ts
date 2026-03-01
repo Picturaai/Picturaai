@@ -3,9 +3,141 @@ import { put } from '@vercel/blob'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 
+// Provider-specific generation functions
+async function generateWithZyLabs(prompt: string): Promise<string> {
+  const apiKey = process.env.ZYLABS_API_KEY
+  if (!apiKey) throw new Error('ZyLabs API key not configured')
+
+  const params = new URLSearchParams({
+    prompt: prompt.trim(),
+    width: '1024',
+    height: '1024',
+  })
+  const apiUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20188/text+to+image?${params.toString()}`
+  
+  const response = await fetch(apiUrl, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${apiKey}` },
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('ZyLabs API error:', response.status, errorText)
+    throw new Error('ZyLabs generation failed')
+  }
+
+  const data = await response.json()
+  return extractImageUrl(data)
+}
+
+async function generateWithStability(prompt: string): Promise<string> {
+  const apiKey = process.env.STABILITY_API_KEY
+  if (!apiKey) throw new Error('Stability API key not configured')
+
+  const response = await fetch('https://api.stability.ai/v2beta/stable-image/generate/sd3', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: prompt.trim(),
+      output_format: 'png',
+      aspect_ratio: '1:1',
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Stability API error:', response.status, errorText)
+    throw new Error('Stability generation failed')
+  }
+
+  const data = await response.json()
+  // Stability returns base64 image
+  if (data.image) {
+    return `data:image/png;base64,${data.image}`
+  }
+  throw new Error('No image in Stability response')
+}
+
+async function generateWithLeonardo(prompt: string): Promise<string> {
+  const apiKey = process.env.LEONARDO_API_KEY
+  if (!apiKey) throw new Error('Leonardo API key not configured')
+
+  // First, create a generation
+  const createResponse = await fetch('https://cloud.leonardo.ai/api/rest/v1/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: prompt.trim(),
+      modelId: '6b645e3a-d64f-4341-a6d8-7a3690fbf042', // Leonardo Phoenix
+      width: 1024,
+      height: 1024,
+      num_images: 1,
+    }),
+  })
+
+  if (!createResponse.ok) {
+    const errorText = await createResponse.text()
+    console.error('Leonardo API error:', createResponse.status, errorText)
+    throw new Error('Leonardo generation failed')
+  }
+
+  const createData = await createResponse.json()
+  const generationId = createData.sdGenerationJob?.generationId
+
+  if (!generationId) throw new Error('No generation ID from Leonardo')
+
+  // Poll for completion
+  for (let i = 0; i < 30; i++) {
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    const statusResponse = await fetch(`https://cloud.leonardo.ai/api/rest/v1/generations/${generationId}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    })
+
+    if (!statusResponse.ok) continue
+
+    const statusData = await statusResponse.json()
+    const images = statusData.generations_by_pk?.generated_images
+
+    if (images && images.length > 0) {
+      return images[0].url
+    }
+  }
+
+  throw new Error('Leonardo generation timed out')
+}
+
+function extractImageUrl(data: Record<string, unknown>): string {
+  // Try all known fields
+  if (data.image && typeof data.image === 'string') return data.image
+  if (data.url && typeof data.url === 'string') return data.url
+  if (data.output && typeof data.output === 'string') return data.output
+  if (data.result && typeof data.result === 'string') return data.result
+  if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+    const img = data.images[0] as Record<string, unknown>
+    return (img.url || img.src || img.image) as string
+  }
+  if (data.data && typeof data.data === 'object') {
+    const d = data.data as Record<string, unknown>
+    if (d.image) return d.image as string
+    if (d.url) return d.url as string
+    if (d.images && Array.isArray(d.images) && d.images.length > 0) {
+      return (d.images[0] as Record<string, unknown>).url as string
+    }
+  }
+  throw new Error('Could not extract image URL from response')
+}
+
 export async function POST(request: Request) {
   try {
-    const { prompt } = await request.json()
+    const { prompt, model = 'pi-1.0' } = await request.json()
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       return NextResponse.json({ error: 'A text prompt is required' }, { status: 400 })
@@ -25,75 +157,48 @@ export async function POST(request: Request) {
       )
     }
 
-    const apiKey = process.env.ZYLABS_API_KEY
-    if (!apiKey) {
-      return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
-    }
-
-    // Call ZyLabs Text-to-Image API (requires width & height params)
-    const params = new URLSearchParams({
-      prompt: prompt.trim(),
-      width: '1024',
-      height: '1024',
-    })
-    const apiUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20188/text+to+image?${params.toString()}`
-    
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-      },
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('ZyLabs API error:', response.status, errorText)
+    // Generate based on selected model
+    let imageUrl: string
+    try {
+      switch (model) {
+        case 'stability-sd3':
+          imageUrl = await generateWithStability(prompt)
+          break
+        case 'leonardo-phoenix':
+          imageUrl = await generateWithLeonardo(prompt)
+          break
+        case 'pi-1.0':
+        default:
+          imageUrl = await generateWithZyLabs(prompt)
+          break
+      }
+    } catch (genError) {
+      console.error('Generation error:', genError)
       return NextResponse.json(
-        { error: 'Image generation failed. Please try again.' },
-        { status: response.status }
-      )
-    }
-
-    const data = await response.json()
-    console.log('[v0] ZyLabs text-to-image response:', JSON.stringify(data).slice(0, 500))
-
-    // The API may return the image in various formats - try all known fields
-    let imageUrl: string | null = null
-
-    // Direct URL fields
-    if (data.image && typeof data.image === 'string') imageUrl = data.image
-    else if (data.url && typeof data.url === 'string') imageUrl = data.url
-    else if (data.output && typeof data.output === 'string') imageUrl = data.output
-    else if (data.result && typeof data.result === 'string') imageUrl = data.result
-    // Nested in images array (fal.ai style)
-    else if (data.images && Array.isArray(data.images) && data.images.length > 0) {
-      imageUrl = data.images[0].url || data.images[0].src || data.images[0].image
-    }
-    // Nested in data field
-    else if (data.data?.image) imageUrl = data.data.image
-    else if (data.data?.url) imageUrl = data.data.url
-    else if (data.data?.images?.[0]?.url) imageUrl = data.data.images[0].url
-
-    if (!imageUrl) {
-      console.error('[v0] Unexpected API response format:', JSON.stringify(data))
-      return NextResponse.json(
-        { error: 'Unexpected response from image generation service' },
+        { error: 'Image generation failed. Please try again or select a different model.' },
         { status: 500 }
       )
     }
 
-    // Download the generated image
-    const imageResponse = await fetch(imageUrl)
-    if (!imageResponse.ok) {
-      return NextResponse.json(
-        { error: 'Failed to download generated image' },
-        { status: 500 }
-      )
+    // Handle base64 images (from Stability)
+    let imageBuffer: ArrayBuffer
+    if (imageUrl.startsWith('data:')) {
+      const base64Data = imageUrl.split(',')[1]
+      imageBuffer = Buffer.from(base64Data, 'base64')
+    } else {
+      // Download the generated image
+      const imageResponse = await fetch(imageUrl)
+      if (!imageResponse.ok) {
+        return NextResponse.json(
+          { error: 'Failed to download generated image' },
+          { status: 500 }
+        )
+      }
+      imageBuffer = await imageResponse.arrayBuffer()
     }
 
-    const imageBuffer = await imageResponse.arrayBuffer()
     const timestamp = Date.now()
-    const filename = `pictura/text-to-image/${timestamp}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
+    const filename = `pictura/text-to-image/${timestamp}-${model}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
     // Upload to Vercel Blob
     const blob = await put(filename, imageBuffer, {
@@ -108,6 +213,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       url: blob.url,
       prompt: prompt.trim(),
+      model,
       type: 'text-to-image',
       createdAt: new Date().toISOString(),
       rateLimitInfo: updatedRateLimitInfo,

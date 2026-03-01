@@ -378,7 +378,7 @@ export function Studio() {
         res = await fetch('/api/generate/text-to-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: prompt.trim() }),
+          body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
         })
       } else {
         const formData = new FormData()
