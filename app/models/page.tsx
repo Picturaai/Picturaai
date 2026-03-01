@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Check, Clock, Gauge, ImageIcon, Cpu, Gem, Star, ChevronRight, Layers, Palette, Target } from 'lucide-react'
+import { ArrowRight, Check, Clock, ImageIcon, Cpu, Star, ChevronRight, Hourglass, Rocket } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
@@ -241,7 +241,7 @@ export default function ModelsPage() {
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center bg-secondary/30">
                         <div className="text-center">
-                          <Sparkles className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+                          <Hourglass className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
                           <p className="text-muted-foreground">Sample coming soon</p>
                         </div>
                       </div>
@@ -315,7 +315,7 @@ export default function ModelsPage() {
       <section className="py-16 sm:py-24">
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center rounded-2xl bg-primary/5 border border-primary/20 p-8 sm:p-12">
-            <Zap className="h-12 w-12 text-primary mx-auto mb-4" />
+            <Rocket className="h-12 w-12 text-primary mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
               Ready to Create?
             </h2>
