@@ -87,6 +87,15 @@
   100% { transform: translateX(calc(100% + 96px)); }
 }
 
+@keyframes gradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient {
+  animation: gradient 4s ease infinite;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

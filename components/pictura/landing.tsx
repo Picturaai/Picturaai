@@ -180,124 +180,157 @@ export function Landing() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden pt-32 pb-20 md:pt-44 md:pb-32">
-        {/* --- Smooth gradient background --- */}
+      <section className="relative overflow-hidden pt-28 pb-16 md:pt-40 md:pb-28">
+        {/* --- Premium animated background --- */}
         <div className="absolute inset-0 -z-10 overflow-hidden bg-background">
-          {/* Base radial glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,var(--primary)/0.08,transparent_70%)]" />
+          {/* Animated mesh gradient */}
+          <div className="absolute inset-0 opacity-40">
+            <motion.div
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse 80% 60% at 50% 0%, var(--primary) 0%, transparent 50%)',
+                filter: 'blur(60px)',
+              }}
+              animate={{
+                opacity: [0.15, 0.25, 0.15],
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
 
-          {/* Subtle pulsing radial glow */}
+          {/* Floating orbs */}
           <motion.div
-            className="absolute inset-0"
+            className="absolute top-20 left-[15%] h-72 w-72 rounded-full"
             style={{
-              background: 'radial-gradient(ellipse_100%_80%_at_50%_-20%,var(--primary)/0.04,transparent_70%)',
+              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
+              filter: 'blur(60px)',
+              opacity: 0.15,
             }}
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{
+              y: [0, -30, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
           />
-
-          {/* Slow flowing gradient orbs (minimal movement) */}
           <motion.div
-            className="absolute -top-1/3 left-1/4 h-[800px] w-[800px] rounded-full opacity-20"
+            className="absolute top-40 right-[10%] h-96 w-96 rounded-full"
             style={{
               background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
               filter: 'blur(80px)',
+              opacity: 0.12,
             }}
             animate={{
-              x: [0, 40, -20, 0],
-              y: [0, -30, 20, 0],
-              scale: [1, 1.1, 0.95, 1],
+              y: [0, 40, 0],
+              x: [0, -20, 0],
+              scale: [1, 0.95, 1],
             }}
-            transition={{ duration: 35, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
           />
 
-          <motion.div
-            className="absolute -right-1/4 top-1/4 h-[600px] w-[600px] rounded-full opacity-15"
+          {/* Subtle grid pattern */}
+          <div 
+            className="absolute inset-0 opacity-[0.015]"
             style={{
-              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
-              filter: 'blur(100px)',
+              backgroundImage: `linear-gradient(var(--primary) 1px, transparent 1px), linear-gradient(90deg, var(--primary) 1px, transparent 1px)`,
+              backgroundSize: '60px 60px',
             }}
-            animate={{
-              x: [-30, -60, 30, -30],
-              y: [0, 40, -50, 0],
-              scale: [0.95, 1.1, 1, 0.95],
-            }}
-            transition={{ duration: 38, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
           />
 
-          <motion.div
-            className="absolute -bottom-1/4 left-1/2 -translate-x-1/2 h-[700px] w-[700px] rounded-full opacity-10"
-            style={{
-              background: 'radial-gradient(circle, var(--primary) 0%, transparent 70%)',
-              filter: 'blur(120px)',
-            }}
-            animate={{
-              x: [0, -50, 50, 0],
-              y: [0, 25, -35, 0],
-              scale: [1, 1.05, 0.98, 1],
-            }}
-            transition={{ duration: 40, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          />
-
-          {/* Bottom fade to background */}
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          {/* Bottom fade */}
+          <div className="absolute inset-x-0 bottom-0 h-60 bg-gradient-to-t from-background via-background/80 to-transparent" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
-          <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto max-w-4xl text-center">
+            {/* Animated badge */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 12, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary"
+              className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-5 py-2 text-sm font-semibold text-primary backdrop-blur-sm"
             >
-              <FlaskConical className="h-3.5 w-3.5" />
-              Beta &middot; Imoogle Picture Model
+              <motion.span
+                className="relative flex h-2 w-2"
+              >
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </motion.span>
+              Free Beta Access
             </motion.div>
 
+            {/* Main headline with gradient */}
             <motion.h1
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl font-bold leading-[1.08] tracking-tight text-foreground md:text-6xl lg:text-7xl"
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="text-5xl font-bold leading-[1.05] tracking-tight text-foreground md:text-7xl lg:text-8xl"
             >
-              Turn words into
-              <br />
-              <span className="text-primary">
-                {displayText}
-                <span className="ml-0.5 inline-block w-[3px] align-middle animate-pulse bg-primary" style={{ height: '0.85em' }} />
+              <span className="block">Create</span>
+              <span className="relative inline-block mt-2">
+                <span className="bg-gradient-to-r from-primary via-amber-500 to-primary bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient">
+                  {displayText}
+                </span>
+                <motion.span 
+                  className="ml-1 inline-block w-[4px] rounded-full bg-primary align-middle"
+                  style={{ height: '0.8em' }}
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                />
               </span>
+              <span className="block mt-2">with AI</span>
             </motion.h1>
 
+            {/* Subheadline */}
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg"
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl"
             >
-              Pictura is a free AI image generation model by Imoogle Labs.
-              Create beautiful images from text or transform existing ones.
+              Pictura by Imoogle Labs transforms your ideas into stunning visuals. 
+              Generate images from text or remix existing photos, completely free.
             </motion.p>
 
+            {/* CTA Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
+              transition={{ duration: 0.6, delay: 0.35 }}
+              className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
             >
               <Link
                 href="/studio"
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] sm:w-auto"
+                className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-primary px-10 py-4 text-base font-semibold text-primary-foreground transition-all hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
               >
-                Open Studio
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                Start Creating
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
-                href="/about"
-                className="inline-flex w-full items-center justify-center rounded-full border border-border px-8 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary sm:w-auto"
+                href="/features"
+                className="inline-flex w-full items-center justify-center rounded-full border-2 border-border bg-background/50 backdrop-blur-sm px-10 py-4 text-base font-semibold text-foreground transition-all hover:border-primary/50 hover:bg-primary/5 sm:w-auto"
               >
-                Learn More
+                See Features
               </Link>
+            </motion.div>
+
+            {/* Stats bar */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="mt-16 flex flex-wrap items-center justify-center gap-8 md:gap-16"
+            >
+              {[
+                { value: '100%', label: 'Free' },
+                { value: '10s', label: 'Avg Generation' },
+                { value: 'Unlimited', label: 'Creations' },
+              ].map((stat, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </div>
+              ))}
             </motion.div>
           </div>
 
