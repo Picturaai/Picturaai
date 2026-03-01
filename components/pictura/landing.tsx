@@ -252,162 +252,188 @@ export function Landing() {
             </motion.div>
           </div>
 
-          {/* Premium Device Mockup - Apple/Samsung style */}
+          {/* Floating Image Showcase - Apple style */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="mx-auto mt-16 max-w-5xl px-4"
+            transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="relative mx-auto mt-20 max-w-6xl"
+            style={{ perspective: '2000px' }}
           >
-            {/* Device frame */}
-            <div className="relative">
-              {/* Outer device bezel */}
-              <div className="rounded-[2.5rem] bg-gradient-to-b from-zinc-700 via-zinc-800 to-zinc-900 p-[3px] dark:from-zinc-600 dark:via-zinc-700 dark:to-zinc-800">
-                <div className="rounded-[2.35rem] bg-gradient-to-b from-zinc-800 to-zinc-900 p-3 dark:from-zinc-700 dark:to-zinc-800">
-                  {/* Screen */}
-                  <div className="rounded-[1.75rem] bg-background overflow-hidden">
-                    {/* Status bar */}
-                    <div className="flex items-center justify-between px-6 py-2 bg-background">
-                      <span className="text-[11px] font-medium text-foreground">9:41</span>
-                      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-                        <div className="h-6 w-20 rounded-full bg-zinc-900 dark:bg-zinc-950" />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <svg className="h-4 w-4 text-foreground" fill="currentColor" viewBox="0 0 24 24"><path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z"/></svg>
-                        <svg className="h-4 w-4 text-foreground" fill="currentColor" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+            {/* Main floating card */}
+            <motion.div
+              className="relative mx-4"
+              animate={{ 
+                rotateX: [0, 1, 0, -1, 0],
+                rotateY: [0, -1, 0, 1, 0],
+              }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              {/* Ambient glow */}
+              <div className="absolute -inset-20 -z-20 opacity-60">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 blur-3xl" />
+              </div>
+
+              {/* Main image container */}
+              <div className="relative rounded-3xl overflow-hidden">
+                {/* The beautiful image */}
+                <div className="relative aspect-[16/10] md:aspect-[2/1] overflow-hidden rounded-3xl">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeImage}
+                      initial={{ opacity: 0, scale: 1.1 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 1.05 }}
+                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute inset-0"
+                    >
+                      <Image
+                        src={showcaseImages[activeImage].src}
+                        alt={showcaseImages[activeImage].label}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 1200px"
+                        priority
+                      />
+                      {/* Subtle vignette */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
+                    </motion.div>
+                  </AnimatePresence>
+
+                  {/* Elegant overlay UI */}
+                  <div className="absolute inset-0 flex flex-col justify-between p-6 md:p-8">
+                    {/* Top bar */}
+                    <div className="flex items-start justify-between">
+                      <motion.div
+                        key={`label-${activeImage}`}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="flex items-center gap-3"
+                      >
+                        <div className="h-10 w-10 rounded-2xl bg-white/20 backdrop-blur-xl flex items-center justify-center border border-white/10">
+                          <PicturaIcon size={20} className="text-white" />
+                        </div>
+                        <div>
+                          <p className="text-white font-semibold text-sm">Pictura</p>
+                          <p className="text-white/60 text-xs">{showcaseImages[activeImage].label}</p>
+                        </div>
+                      </motion.div>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xl text-white/90 text-xs font-medium border border-white/10">
+                          1024 x 1024
+                        </span>
                       </div>
                     </div>
 
-                    {/* App content */}
-                    <div className="px-4 pb-6 pt-2">
-                      {/* App header */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                            <PicturaIcon size={18} className="text-white" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">Pictura</p>
-                            <p className="text-[10px] text-muted-foreground">AI Studio</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
-                            <Sparkles className="h-4 w-4 text-primary" />
-                          </div>
-                        </div>
-                      </div>
+                    {/* Bottom bar */}
+                    <div>
+                      {/* Prompt */}
+                      <motion.div
+                        key={`prompt-${activeImage}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="mb-5"
+                      >
+                        <p className="text-white/50 text-[10px] font-medium uppercase tracking-widest mb-2">Prompt</p>
+                        <p className="text-white text-sm md:text-base font-medium leading-relaxed max-w-2xl">
+                          {showcaseImages[activeImage].prompt.replace(/"/g, '')}
+                        </p>
+                      </motion.div>
 
-                      {/* Main image area */}
-                      <div className="relative aspect-square rounded-2xl overflow-hidden bg-secondary/50 mb-4">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={activeImage}
-                            initial={{ opacity: 0, scale: 1.05 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                            className="absolute inset-0"
-                          >
-                            <Image
-                              src={showcaseImages[activeImage].src}
-                              alt={showcaseImages[activeImage].label}
-                              fill
-                              className="object-cover"
-                              sizes="600px"
-                              priority
-                            />
-                          </motion.div>
-                        </AnimatePresence>
-
-                        {/* Floating label */}
-                        <div className="absolute top-3 left-3">
-                          <AnimatePresence mode="wait">
-                            <motion.span
-                              key={activeImage}
-                              initial={{ opacity: 0, y: -8 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 8 }}
-                              className="inline-flex items-center gap-1.5 rounded-full bg-white/90 dark:bg-black/70 backdrop-blur-md px-3 py-1.5 text-[11px] font-medium text-zinc-900 dark:text-white"
-                            >
-                              {showcaseImages[activeImage].label}
-                            </motion.span>
-                          </AnimatePresence>
-                        </div>
-                      </div>
-
-                      {/* Prompt display */}
-                      <div className="rounded-2xl bg-secondary/50 p-4 mb-4">
-                        <div className="flex items-start gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Prompt</p>
-                            <AnimatePresence mode="wait">
-                              <motion.p
-                                key={activeImage}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="text-sm text-foreground leading-relaxed"
-                              >
-                                {showcaseImages[activeImage].prompt.replace(/"/g, '')}
-                              </motion.p>
-                            </AnimatePresence>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action bar */}
-                      <div className="flex items-center justify-between">
+                      {/* Controls */}
+                      <div className="flex items-end justify-between gap-4">
+                        {/* Thumbnails */}
                         <div className="flex gap-2">
-                          {showcaseImages.slice(0, 4).map((img, i) => (
+                          {showcaseImages.map((img, i) => (
                             <button
                               key={i}
                               onClick={() => setActiveImage(i)}
-                              className={`relative h-11 w-11 rounded-xl overflow-hidden transition-all ${
-                                i === activeImage
-                                  ? 'ring-2 ring-primary'
-                                  : 'opacity-50 hover:opacity-100'
-                              }`}
+                              className="group relative"
                             >
-                              <Image src={img.src} alt="" fill className="object-cover" sizes="44px" />
+                              <div className={`relative h-14 w-14 md:h-16 md:w-16 rounded-xl overflow-hidden transition-all duration-300 ${
+                                i === activeImage 
+                                  ? 'ring-2 ring-white scale-105' 
+                                  : 'opacity-50 hover:opacity-90 hover:scale-105'
+                              }`}>
+                                <Image src={img.src} alt="" fill className="object-cover" sizes="64px" />
+                                {i === activeImage && (
+                                  <div className="absolute inset-0 bg-white/10" />
+                                )}
+                              </div>
                             </button>
                           ))}
                         </div>
-                        <button className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground">
-                          Generate
-                        </button>
-                      </div>
-                    </div>
 
-                    {/* Home indicator */}
-                    <div className="flex justify-center pb-2">
-                      <div className="h-1 w-32 rounded-full bg-foreground/20" />
+                        {/* CTA */}
+                        <Link
+                          href="/studio"
+                          className="flex items-center gap-2 px-6 py-3 rounded-full bg-white text-zinc-900 text-sm font-semibold transition-all hover:scale-105 hover:bg-white/90"
+                        >
+                          Try it free
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Bottom reflection effect */}
+                <div className="absolute -bottom-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
               </div>
 
-              {/* Subtle reflection */}
-              <div className="absolute -inset-4 -z-10 rounded-[3rem] bg-gradient-to-b from-primary/5 to-transparent blur-2xl" />
-            </div>
+              {/* Floating side elements */}
+              <motion.div
+                className="absolute -left-8 top-1/3 hidden lg:block"
+                animate={{ y: [0, -15, 0], rotate: [0, -2, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <div className="rounded-2xl bg-card/80 backdrop-blur-xl border border-border/50 p-4 shadow-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                      <Check className="h-5 w-5 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">100% Free</p>
+                      <p className="text-xs text-muted-foreground">No credit card</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
 
-            {/* Stats row */}
-            <div className="mt-12 grid grid-cols-3 gap-4 max-w-md mx-auto">
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-foreground">Free</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Forever</p>
-              </div>
-              <div className="text-center border-x border-border/50">
-                <p className="text-2xl font-semibold text-foreground">10s</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Generation</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-foreground">HD</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Quality</p>
-              </div>
+              <motion.div
+                className="absolute -right-8 top-1/2 hidden lg:block"
+                animate={{ y: [0, 15, 0], rotate: [0, 2, 0] }}
+                transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+              >
+                <div className="rounded-2xl bg-card/80 backdrop-blur-xl border border-border/50 p-4 shadow-2xl">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Zap className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">~10 seconds</p>
+                      <p className="text-xs text-muted-foreground">Generation time</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Progress dots */}
+            <div className="flex justify-center gap-2 mt-8">
+              {showcaseImages.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImage(i)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === activeImage ? 'w-8 bg-primary' : 'w-2 bg-border hover:bg-muted-foreground/50'
+                  }`}
+                />
+              ))}
             </div>
           </motion.div>
         </div>
