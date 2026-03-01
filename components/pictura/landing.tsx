@@ -179,48 +179,42 @@ export function Landing() {
 
   return (
     <>
-      {/* Hero - Apple-inspired clean design */}
-      <section className="relative overflow-hidden pt-32 pb-24 md:pt-48 md:pb-36">
-        {/* Ultra-clean gradient background */}
+      {/* Hero - Premium design with UI mockup */}
+      <section className="relative overflow-hidden pt-28 pb-20 md:pt-40 md:pb-32">
+        {/* Clean gradient background */}
         <div className="absolute inset-0 -z-10 bg-background">
-          {/* Single subtle top glow */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,var(--primary)/0.12,transparent_60%)]" />
-          
-          {/* Soft ambient light */}
           <motion.div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] rounded-full"
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] rounded-full"
             style={{
               background: 'radial-gradient(ellipse, var(--primary) 0%, transparent 70%)',
               filter: 'blur(120px)',
-              opacity: 0.08,
+              opacity: 0.06,
             }}
-            animate={{ opacity: [0.06, 0.1, 0.06] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ opacity: [0.04, 0.08, 0.04] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
           />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-4xl text-center">
-            {/* Refined badge */}
+            {/* Clean badge without pulsing dot */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium tracking-wide text-primary uppercase"
+              className="mb-8 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium tracking-wide text-primary"
             >
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-              </span>
-              Now in Beta
+              <FlaskConical className="h-3 w-3" />
+              Free Beta Access
             </motion.div>
 
-            {/* Large, clean headline */}
+            {/* Large headline */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="text-[2.75rem] font-semibold leading-[1.1] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[5.5rem]"
+              className="text-[2.75rem] font-semibold leading-[1.08] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[5.25rem]"
             >
               Turn words into
               <br />
@@ -228,25 +222,25 @@ export function Landing() {
                 {displayText}
                 <motion.span 
                   className="ml-0.5 inline-block w-[3px] rounded-sm bg-primary align-baseline"
-                  style={{ height: '0.75em' }}
+                  style={{ height: '0.72em' }}
                   animate={{ opacity: [1, 0] }}
-                  transition={{ duration: 0.6, repeat: Infinity, repeatType: 'reverse' }}
+                  transition={{ duration: 0.53, repeat: Infinity, repeatType: 'reverse' }}
                 />
               </span>
             </motion.h1>
 
-            {/* Refined subheadline */}
+            {/* Subheadline */}
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl"
+              className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl"
             >
               Pictura is a free AI image generation model by Imoogle Labs. 
               Create stunning images from text or transform existing ones.
             </motion.p>
 
-            {/* Clean CTA buttons */}
+            {/* CTA buttons */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -255,7 +249,7 @@ export function Landing() {
             >
               <Link
                 href="/studio"
-                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
+                className="group inline-flex w-full items-center justify-center gap-2.5 rounded-full bg-primary px-8 py-4 text-[15px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
               >
                 Start Creating
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -269,194 +263,184 @@ export function Landing() {
             </motion.div>
           </div>
 
-          {/* Showcase - 3D Perspective Card Gallery */}
+          {/* Real UI Mockup - Pictura Studio Interface */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mx-auto mt-20 max-w-6xl"
-            style={{ perspective: '1800px' }}
+            transition={{ duration: 0.9, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="mx-auto mt-16 max-w-5xl"
           >
-            {/* Main display card with 3D tilt */}
-            <div className="relative">
-              {/* Ambient glow behind main card */}
-              <motion.div
-                className="absolute -inset-8 -z-10 rounded-3xl"
-                animate={{
-                  background: [
-                    'radial-gradient(ellipse at 30% 50%, var(--primary) 0%, transparent 70%)',
-                    'radial-gradient(ellipse at 70% 50%, var(--primary) 0%, transparent 70%)',
-                    'radial-gradient(ellipse at 30% 50%, var(--primary) 0%, transparent 70%)',
-                  ],
-                  opacity: [0.06, 0.1, 0.06],
-                }}
-                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-              />
-
-              {/* Stacked cards behind (depth effect) */}
-              <div className="absolute -right-3 -bottom-3 left-3 top-3 -z-20 rounded-2xl border border-border/20 bg-card/40 blur-[1px]" />
-              <div className="absolute -right-6 -bottom-6 left-6 top-6 -z-30 rounded-2xl border border-border/10 bg-card/20 blur-[2px]" />
-
-              {/* Main card */}
-              <motion.div
-                className="relative overflow-hidden rounded-2xl border border-border/50 bg-card shadow-2xl shadow-primary/10"
-                animate={{
-                  rotateY: [0, 1.5, 0, -1.5, 0],
-                  rotateX: [0, -0.5, 0, 0.5, 0],
-                }}
-                transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                <div className="relative aspect-[16/9] overflow-hidden">
-                  {/* Card flip animation between images */}
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeImage}
-                      initial={{ rotateY: 90, opacity: 0 }}
-                      animate={{ rotateY: 0, opacity: 1 }}
-                      exit={{ rotateY: -90, opacity: 0 }}
-                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute inset-0"
-                      style={{ backfaceVisibility: 'hidden' }}
-                    >
-                      <Image
-                        src={showcaseImages[activeImage].src}
-                        alt={showcaseImages[activeImage].label}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 1100px"
-                        priority
-                      />
-
-                      {/* Shimmer overlay during transition */}
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: '200%' }}
-                        transition={{ duration: 1.2, delay: 0.3 }}
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-
-                  {/* Top-left label badge */}
-                  <div className="absolute top-4 left-4 z-10">
-                    <AnimatePresence mode="wait">
-                      <motion.span
-                        key={activeImage}
-                        initial={{ opacity: 0, y: -10, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                        transition={{ duration: 0.3 }}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/40 px-3 py-1 backdrop-blur-md"
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                        <span className="text-[11px] font-medium text-white/90">
-                          {showcaseImages[activeImage].label}
-                        </span>
-                      </motion.span>
-                    </AnimatePresence>
+            {/* Browser chrome wrapper */}
+            <div className="relative rounded-xl border border-border/50 bg-card shadow-2xl shadow-black/20 overflow-hidden">
+              {/* Browser header bar */}
+              <div className="flex items-center gap-2 border-b border-border/50 bg-secondary/30 px-4 py-3">
+                <div className="flex gap-1.5">
+                  <div className="h-3 w-3 rounded-full bg-red-400/80" />
+                  <div className="h-3 w-3 rounded-full bg-yellow-400/80" />
+                  <div className="h-3 w-3 rounded-full bg-green-400/80" />
+                </div>
+                <div className="flex-1 mx-4">
+                  <div className="mx-auto max-w-md rounded-md bg-background/80 border border-border/50 px-3 py-1.5 flex items-center gap-2">
+                    <svg className="h-3.5 w-3.5 text-muted-foreground/50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    <span className="text-xs text-muted-foreground">picturaai.sbs/studio</span>
                   </div>
+                </div>
+              </div>
 
-                  {/* Bottom info panel with glassmorphism */}
-                  <div className="absolute inset-x-0 bottom-0 z-10">
-                    <div className="bg-gradient-to-t from-black/70 via-black/40 to-transparent px-6 pb-5 pt-16">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={activeImage}
-                          initial={{ opacity: 0, y: 15 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.4, delay: 0.1 }}
-                          className="flex items-end justify-between gap-4"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="rounded bg-primary/20 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-widest text-primary">
-                                Prompt
-                              </span>
-                              <span className="font-mono text-[9px] text-white/30">
-                                {activeImage + 1}/{showcaseImages.length}
-                              </span>
-                            </div>
-                            <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/85">
-                              {showcaseImages[activeImage].prompt}
-                            </p>
+              {/* Studio interface mockup */}
+              <div className="bg-background p-4 md:p-6">
+                <div className="grid md:grid-cols-[1fr,320px] gap-4 md:gap-6">
+                  {/* Main canvas area */}
+                  <div className="relative aspect-[4/3] md:aspect-[16/10] rounded-lg border border-border/50 bg-secondary/20 overflow-hidden">
+                    {/* Generated image display */}
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activeImage}
+                        initial={{ opacity: 0, scale: 1.02 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                        className="absolute inset-0"
+                      >
+                        <Image
+                          src={showcaseImages[activeImage].src}
+                          alt={showcaseImages[activeImage].label}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 800px"
+                          priority
+                        />
+                      </motion.div>
+                    </AnimatePresence>
+
+                    {/* Overlay controls */}
+                    <div className="absolute top-3 left-3 flex gap-2">
+                      <div className="rounded-md bg-black/50 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium text-white/90">
+                        1024 x 1024
+                      </div>
+                      <div className="rounded-md bg-primary/80 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium text-white">
+                        pi-1.0
+                      </div>
+                    </div>
+
+                    {/* Bottom bar */}
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex -space-x-1">
+                            {[0, 1, 2].map((i) => (
+                              <div key={i} className="h-8 w-8 rounded-md border-2 border-black/50 bg-secondary overflow-hidden">
+                                <Image src={showcaseImages[(activeImage + i) % showcaseImages.length].src} alt="" fill className="object-cover" sizes="32px" />
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex flex-shrink-0 flex-col items-center gap-1">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
-                              <PicturaIcon size={16} className="opacity-80" />
-                            </div>
-                            <span className="font-mono text-[8px] tracking-widest text-white/30">PICTURA</span>
+                          <span className="text-[11px] text-white/70">4 variations</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="rounded-md bg-white/10 backdrop-blur-sm p-2">
+                            <svg className="h-4 w-4 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                           </div>
-                        </motion.div>
-                      </AnimatePresence>
+                          <div className="rounded-md bg-white/10 backdrop-blur-sm p-2">
+                            <svg className="h-4 w-4 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Decorative corner accents */}
-                  <div className="absolute top-3 right-3 z-10 h-6 w-6 border-t-2 border-r-2 border-primary/20 rounded-tr-lg" />
-                  <div className="absolute bottom-3 left-3 z-10 h-6 w-6 border-b-2 border-l-2 border-primary/20 rounded-bl-lg" />
-                </div>
-              </motion.div>
-            </div>
+                  {/* Right sidebar - Controls */}
+                  <div className="flex flex-col gap-4">
+                    {/* Prompt input */}
+                    <div className="rounded-lg border border-border/50 bg-secondary/20 p-4">
+                      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Prompt</label>
+                      <div className="mt-2 rounded-md bg-background border border-border/50 p-3">
+                        <AnimatePresence mode="wait">
+                          <motion.p
+                            key={activeImage}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="text-sm text-foreground leading-relaxed"
+                          >
+                            {showcaseImages[activeImage].prompt.replace(/"/g, '')}
+                          </motion.p>
+                        </AnimatePresence>
+                      </div>
+                    </div>
 
-            {/* Thumbnail strip */}
-            <div className="mt-8 flex items-center justify-center gap-3">
-              {showcaseImages.map((img, i) => (
-                <button
-                  key={img.src}
-                  onClick={() => setActiveImage(i)}
-                  className="group relative"
-                  aria-label={`View ${img.label}`}
-                >
-                  <div className={`relative h-14 w-20 overflow-hidden rounded-lg border-2 transition-all duration-300 sm:h-16 sm:w-24 ${
-                    i === activeImage
-                      ? 'border-primary shadow-lg shadow-primary/20 scale-105'
-                      : 'border-border/30 opacity-50 hover:opacity-80 hover:border-border/60'
-                  }`}>
-                    <Image
-                      src={img.src}
-                      alt={img.label}
-                      fill
-                      className="object-cover"
-                      sizes="96px"
-                    />
-                    {i === activeImage && (
-                      <motion.div
-                        layoutId="showcase-active-indicator"
-                        className="absolute inset-0 border-2 border-primary rounded-lg"
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                      />
-                    )}
+                    {/* Settings */}
+                    <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 flex-1">
+                      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Settings</label>
+                      <div className="mt-3 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Model</span>
+                          <span className="text-xs font-medium text-foreground">pi-1.0</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Size</span>
+                          <span className="text-xs font-medium text-foreground">1024 x 1024</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Style</span>
+                          <span className="text-xs font-medium text-foreground">{showcaseImages[activeImage].label}</span>
+                        </div>
+                        <div className="pt-2 border-t border-border/30">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-muted-foreground">Quality</span>
+                            <span className="text-xs font-medium text-primary">High</span>
+                          </div>
+                          <div className="h-1.5 rounded-full bg-border/30 overflow-hidden">
+                            <div className="h-full w-3/4 rounded-full bg-primary" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Generate button */}
+                    <button className="rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90">
+                      Generate
+                    </button>
                   </div>
-                  <span className={`mt-1.5 block text-center text-[9px] font-medium transition-colors ${
-                    i === activeImage ? 'text-primary' : 'text-muted-foreground/50'
-                  }`}>
-                    {img.label}
-                  </span>
-                </button>
-              ))}
+                </div>
+              </div>
             </div>
 
-            {/* Progress bar */}
-            <div className="mx-auto mt-4 flex max-w-xs items-center gap-1.5">
-              {showcaseImages.map((_, i) => (
-                <div key={`prog-${i}`} className="relative h-0.5 flex-1 overflow-hidden rounded-full bg-border/30">
-                  {i === activeImage && (
-                    <motion.div
-                      className="absolute inset-y-0 left-0 rounded-full bg-primary"
-                      initial={{ width: '0%' }}
-                      animate={{ width: '100%' }}
-                      transition={{ duration: 5, ease: 'linear' }}
-                      key={`prog-active-${activeImage}`}
-                    />
-                  )}
-                  {i < activeImage && (
-                    <div className="absolute inset-0 rounded-full bg-primary/40" />
-                  )}
+            {/* Floating accent elements */}
+            <motion.div
+              className="absolute -left-4 top-1/4 hidden lg:block"
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <div className="rounded-lg border border-border/50 bg-card p-3 shadow-lg">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
+                    <Zap className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-medium text-foreground">Fast Generation</p>
+                    <p className="text-[9px] text-muted-foreground">~10 seconds</p>
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="absolute -right-4 bottom-1/4 hidden lg:block"
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+            >
+              <div className="rounded-lg border border-border/50 bg-card p-3 shadow-lg">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-md bg-green-500/10 flex items-center justify-center">
+                    <Check className="h-4 w-4 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-medium text-foreground">100% Free</p>
+                    <p className="text-[9px] text-muted-foreground">No limits</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -509,8 +493,98 @@ export function Landing() {
         </div>
       </section>
 
+      {/* Gallery - Auto-scrolling cards */}
+      <section className="py-20 md:py-28 overflow-hidden">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={0}
+            variants={fadeUp}
+            className="mx-auto max-w-2xl text-center mb-12"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              <ImageIcon className="h-3 w-3" />
+              Gallery
+            </span>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+              Created with Pictura
+            </h2>
+            <p className="mt-4 text-base text-muted-foreground">
+              See what's possible with AI-powered image generation
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Auto-scrolling gallery */}
+        <div className="relative">
+          {/* Gradient masks */}
+          <div className="absolute left-0 top-0 bottom-0 w-20 md:w-40 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-20 md:w-40 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+          
+          {/* First row - scrolls right */}
+          <motion.div
+            className="flex gap-4 mb-4"
+            animate={{ x: [0, -1920] }}
+            transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+          >
+            {[...showcaseImages, ...showcaseImages, ...showcaseImages, ...showcaseImages].map((img, i) => (
+              <div
+                key={`row1-${i}`}
+                className="group relative flex-shrink-0 w-72 md:w-80 aspect-[4/3] rounded-xl overflow-hidden border border-border/30 bg-card"
+              >
+                <Image
+                  src={img.src}
+                  alt={img.label}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="320px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-0 inset-x-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                  <span className="inline-block rounded-full bg-primary/90 px-2.5 py-1 text-[10px] font-medium text-white mb-2">
+                    {img.label}
+                  </span>
+                  <p className="text-xs text-white/90 line-clamp-2">{img.prompt.replace(/"/g, '')}</p>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* Second row - scrolls left */}
+          <motion.div
+            className="flex gap-4"
+            animate={{ x: [-1920, 0] }}
+            transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
+          >
+            {[...showcaseImages.slice(3), ...showcaseImages, ...showcaseImages, ...showcaseImages.slice(0, 3)].map((img, i) => (
+              <div
+                key={`row2-${i}`}
+                className="group relative flex-shrink-0 w-72 md:w-80 aspect-[4/3] rounded-xl overflow-hidden border border-border/30 bg-card"
+              >
+                <Image
+                  src={img.src}
+                  alt={img.label}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="320px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-0 inset-x-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                  <span className="inline-block rounded-full bg-primary/90 px-2.5 py-1 text-[10px] font-medium text-white mb-2">
+                    {img.label}
+                  </span>
+                  <p className="text-xs text-white/90 line-clamp-2">{img.prompt.replace(/"/g, '')}</p>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       {/* Models - moved up after Features */}
-      <section className="py-20 md:py-28">
+      <section className="border-t border-border/40 bg-secondary/20 py-20 md:py-28">
         <div className="mx-auto max-w-7xl px-6">
           <motion.div
             initial="hidden"
