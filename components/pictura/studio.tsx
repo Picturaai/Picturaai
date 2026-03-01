@@ -22,27 +22,37 @@ type Feedback = 'up' | 'down' | null
 const TOUR_STEPS = [
   {
     title: 'Welcome to Pictura Studio',
-    description: 'Create stunning AI-generated images in seconds. Let us show you around.',
+    description: 'Create stunning AI-generated images in seconds. Let us give you a quick tour!',
     target: 'hero',
   },
   {
     title: 'Choose Your Model',
-    description: 'Select a model from the switcher. Currently pi-1.0 is available, with more coming soon.',
+    description: 'Tap here to switch models. Try our new pi-1.5-turbo for faster, higher quality results!',
     target: 'model',
   },
   {
     title: 'Your Daily Credits',
-    description: 'During beta, you get 5 free generations per day. This counter tracks your remaining credits.',
+    description: 'You get 5 free generations per day. This shows how many you have left.',
     target: 'credits',
   },
   {
     title: 'Type Your Prompt',
-    description: 'Describe what you want to see. Be specific for best results. Use "Image to Image" to transform existing photos.',
+    description: 'Describe what you want to create. Be specific! Example: "A sunset over mountains with a lake reflection"',
     target: 'prompt',
   },
   {
-    title: 'View Your Gallery',
-    description: 'All generated images appear in your gallery. Rate them, download, or view full size.',
+    title: 'Switch Generation Mode',
+    description: 'Use "Text to Image" to create from scratch, or "Image to Image" to transform an existing photo.',
+    target: 'mode-tabs',
+  },
+  {
+    title: 'Try Prompt Ideas',
+    description: 'Stuck? Tap any suggestion to use it as your prompt. Great for inspiration!',
+    target: 'suggestions',
+  },
+  {
+    title: 'Your Gallery',
+    description: 'All your generated images appear here. Tap to view, download, or rate them.',
     target: 'gallery',
   },
 ]
@@ -100,11 +110,20 @@ function TourOverlay({
   // Position tooltip below or above target
   const showBelow = rect ? rect.y < winSize.h / 2 : true
 
-  // Tooltip position
+  // Tooltip position - position near the highlighted element
   let tooltipStyle: React.CSSProperties
-  if (!rect || isMobile) {
-    // Position at top of screen on mobile so it doesn't block content
-    tooltipStyle = { left: '1rem', right: '1rem', top: '5rem' }
+  if (!rect) {
+    // No target - center on screen for hero step
+    tooltipStyle = isMobile 
+      ? { left: '1rem', right: '1rem', top: '30%' }
+      : { left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }
+  } else if (isMobile) {
+    // Mobile: position above or below the element based on its position
+    if (showBelow) {
+      tooltipStyle = { left: '0.75rem', right: '0.75rem', top: rect.y + rect.h + pad + 16 }
+    } else {
+      tooltipStyle = { left: '0.75rem', right: '0.75rem', bottom: winSize.h - rect.y + pad + 16 }
+    }
   } else {
     const tooltipW = 320
     const left = Math.min(Math.max(rect.x, 12), winSize.w - tooltipW - 12)
@@ -161,14 +180,29 @@ function TourOverlay({
       {/* Tooltip card */}
       <motion.div
         key={`tour-${step}`}
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: showBelow ? -10 : 10 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 10 }}
+        exit={{ opacity: 0, y: showBelow ? -10 : 10 }}
         transition={{ type: 'spring', damping: 28, stiffness: 350, delay: 0.1 }}
-        className="absolute z-10 w-80 max-w-[calc(100%-2rem)] rounded-2xl border border-border/40 bg-background p-5 shadow-xl"
+        className="absolute z-10 w-80 max-w-[calc(100%-1.5rem)] rounded-2xl border border-border/40 bg-background p-5 shadow-xl"
         style={tooltipStyle}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Arrow pointer */}
+        {rect && (
+          <div 
+            className={`absolute h-3 w-3 rotate-45 border-border/40 bg-background ${
+              showBelow 
+                ? '-top-1.5 border-l border-t' 
+                : '-bottom-1.5 border-b border-r'
+            }`}
+            style={{ 
+              left: isMobile 
+                ? Math.min(Math.max(rect.x + rect.w / 2 - 12, 24), winSize.w - 48)
+                : Math.min(Math.max(rect.x + rect.w / 2 - (tooltipStyle.left as number || 0) - 6, 24), 280)
+            }}
+          />
+        )}
         {/* Progress dots */}
         <div className="mb-4 flex items-center gap-1.5">
           {steps.map((_, i) => (
@@ -631,7 +665,7 @@ export function Studio() {
                 You have <strong className="text-foreground">{rateLimit.remaining} generation{rateLimit.remaining !== 1 ? 's' : ''}</strong> remaining today.
               </p>
 
-              <div className="mt-8 flex flex-wrap justify-center gap-2">
+              <div className="mt-8 flex flex-wrap justify-center gap-2" data-tour="suggestions">
                 {[
                   'A serene Japanese garden at dawn',
                   'Astronaut riding a horse on Mars',
@@ -901,7 +935,7 @@ export function Studio() {
 
           {/* Mode switcher + status */}
           <div className="mt-2 flex items-center justify-between px-1">
-            <div className="flex items-center gap-1 rounded-lg bg-secondary/50 p-0.5">
+            <div className="flex items-center gap-1 rounded-lg bg-secondary/50 p-0.5" data-tour="mode-tabs">
               <button
                 onClick={() => { setMode('text'); handleFileChange(null) }}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${

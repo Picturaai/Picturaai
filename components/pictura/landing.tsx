@@ -191,15 +191,22 @@ export function Landing() {
 
         <div className="mx-auto max-w-7xl px-6">
           <div className="mx-auto max-w-3xl text-center">
-            {/* Simple badge */}
+            {/* Announcement banner */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="mb-6 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5"
             >
-              <FlaskConical className="h-3 w-3" />
-              Free Beta
+              <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                <Zap className="h-3 w-3" />
+                NEW
+              </span>
+              <span className="h-4 w-px bg-border" />
+              <span className="text-xs text-foreground">
+                <span className="font-semibold">pi-1.5-turbo</span> is now available
+              </span>
+              <ArrowRight className="h-3 w-3 text-muted-foreground" />
             </motion.div>
 
             {/* Headline */}
