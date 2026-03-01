@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Calendar, Clock, ChevronLeft } from 'lucide-react'
-import { PicturaIcon } from '@/components/pictura/pictura-logo'
+import { ArrowRight, Calendar, Clock, Search, BookOpen, Sparkles, Lightbulb, Rocket } from 'lucide-react'
+import { Navbar } from '@/components/pictura/navbar'
+import { Footer } from '@/components/pictura/footer'
 
 interface BlogPost {
   id: number
@@ -22,9 +23,18 @@ interface BlogPost {
   updated_at: string
 }
 
+const CATEGORIES = [
+  { id: 'all', label: 'All Posts', icon: BookOpen },
+  { id: 'announcement', label: 'Announcements', icon: Sparkles },
+  { id: 'tutorial', label: 'Tutorials', icon: Lightbulb },
+  { id: 'guide', label: 'Guides', icon: Rocket },
+]
+
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     async function fetchPosts() {
@@ -43,97 +53,143 @@ export default function BlogPage() {
     fetchPosts()
   }, [])
 
-  const featuredPost = posts.find(p => p.featured)
-  const otherPosts = posts.filter(p => !p.featured)
+  const filteredPosts = posts.filter(post => {
+    const matchesCategory = activeCategory === 'all' || post.category.toLowerCase() === activeCategory
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesCategory && matchesSearch
+  })
+
+  const featuredPost = filteredPosts.find(p => p.featured)
+  const regularPosts = filteredPosts.filter(p => !p.featured)
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <PicturaIcon size={28} className="text-primary" />
-            <span className="text-lg font-semibold text-foreground">Pictura</span>
-          </Link>
-          <Link
-            href="/studio"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+      <Navbar />
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden border-b border-border/40">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-24">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center max-w-3xl mx-auto"
           >
-            Open Studio
-          </Link>
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+              <BookOpen className="h-4 w-4" />
+              Pictura Blog
+            </span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 text-balance">
+              Insights & Updates
+            </h1>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+              Product announcements, tutorials, and tips for creating stunning AI-generated images.
+            </p>
+
+            {/* Search Bar */}
+            <div className="relative max-w-md mx-auto">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search articles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-12 pl-12 pr-4 rounded-xl bg-card border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+              />
+            </div>
+          </motion.div>
         </div>
-      </header>
+      </section>
 
-      <main className="mx-auto max-w-6xl px-4 py-12">
-        {/* Back link */}
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
-          <ChevronLeft className="h-4 w-4" />
-          Back to Home
-        </Link>
-
-        {/* Page Title */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
-        >
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">Blog</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Product updates, tutorials, and insights on AI image generation.
-          </p>
-        </motion.div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      {/* Category Tabs */}
+      <section className="border-b border-border/40 bg-card/50">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="flex items-center gap-1 overflow-x-auto py-4 scrollbar-hide">
+            {CATEGORIES.map((cat) => {
+              const Icon = cat.icon
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                    activeCategory === cat.id
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {cat.label}
+                </button>
+              )
+            })}
           </div>
-        ) : posts.length === 0 ? (
+        </div>
+      </section>
+
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:py-16">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-3 border-primary border-t-transparent" />
+            <p className="text-muted-foreground">Loading articles...</p>
+          </div>
+        ) : filteredPosts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-muted-foreground">No blog posts yet. Check back soon!</p>
+            <div className="h-16 w-16 rounded-2xl bg-secondary flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">No articles found</h3>
+            <p className="text-muted-foreground">
+              {searchQuery ? 'Try a different search term.' : 'Check back soon for new content!'}
+            </p>
           </div>
         ) : (
-          <>
+          <div className="space-y-16">
             {/* Featured Post */}
             {featuredPost && (
-              <motion.div
+              <motion.section
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="mb-16"
               >
+                <div className="flex items-center gap-2 mb-6">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">Featured</h2>
+                </div>
                 <Link href={`/blog/${featuredPost.slug}`}>
-                  <div className="group relative overflow-hidden rounded-2xl border border-border/40 bg-card">
-                    <div className="grid md:grid-cols-2 gap-0">
-                      <div className="relative aspect-[4/3] md:aspect-auto">
+                  <article className="group relative overflow-hidden rounded-2xl border border-border/40 bg-card hover:border-primary/30 transition-all duration-300">
+                    <div className="grid lg:grid-cols-5 gap-0">
+                      <div className="relative lg:col-span-3 aspect-[16/10] lg:aspect-auto lg:min-h-[400px] overflow-hidden">
                         <Image
                           src={featuredPost.cover_image}
                           alt={featuredPost.title}
                           fill
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                          sizes="(max-width: 768px) 100vw, 50vw"
+                          className="object-cover transition-transform duration-700 group-hover:scale-105"
+                          sizes="(max-width: 1024px) 100vw, 60vw"
                           priority
                         />
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                            Featured
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 lg:hidden" />
+                        <div className="absolute bottom-4 left-4 lg:hidden">
+                          <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                            {featuredPost.category}
                           </span>
                         </div>
                       </div>
-                      <div className="p-6 sm:p-8 md:p-10 flex flex-col justify-center">
-                        <span className="text-xs font-medium text-primary uppercase tracking-wider mb-3">
+                      <div className="lg:col-span-2 p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
+                        <span className="hidden lg:inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider w-fit mb-4">
                           {featuredPost.category}
                         </span>
-                        <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors">
+                        <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors leading-tight">
                           {featuredPost.title}
-                        </h2>
-                        <p className="text-muted-foreground mb-6 line-clamp-3">
+                        </h3>
+                        <p className="text-muted-foreground mb-6 line-clamp-3 leading-relaxed">
                           {featuredPost.excerpt}
                         </p>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
                           <span className="flex items-center gap-1.5">
                             <Calendar className="h-4 w-4" />
                             {new Date(featuredPost.created_at).toLocaleDateString('en-US', { 
-                              month: 'short', 
+                              month: 'long', 
                               day: 'numeric', 
                               year: 'numeric' 
                             })}
@@ -143,31 +199,38 @@ export default function BlogPage() {
                             {featuredPost.read_time} min read
                           </span>
                         </div>
-                        <span className="inline-flex items-center gap-2 text-sm font-medium text-primary">
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary group-hover:gap-3 transition-all">
                           Read Article
-                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                          <ArrowRight className="h-4 w-4" />
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </article>
                 </Link>
-              </motion.div>
+              </motion.section>
             )}
 
-            {/* Other Posts Grid */}
-            {otherPosts.length > 0 && (
-              <div>
-                <h2 className="text-xl font-semibold text-foreground mb-6">More Articles</h2>
+            {/* All Posts Grid */}
+            {regularPosts.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    {activeCategory === 'all' ? 'All Articles' : `${CATEGORIES.find(c => c.id === activeCategory)?.label}`}
+                  </h2>
+                  <span className="text-sm text-muted-foreground">
+                    {regularPosts.length} article{regularPosts.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {otherPosts.map((post, i) => (
-                    <motion.div
+                  {regularPosts.map((post, i) => (
+                    <motion.article
                       key={post.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 + i * 0.05 }}
                     >
                       <Link href={`/blog/${post.slug}`}>
-                        <div className="group h-full overflow-hidden rounded-xl border border-border/40 bg-card hover:border-primary/30 transition-colors">
+                        <div className="group h-full flex flex-col overflow-hidden rounded-xl border border-border/40 bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
                           <div className="relative aspect-[16/10] overflow-hidden">
                             <Image
                               src={post.cover_image}
@@ -176,54 +239,70 @@ export default function BlogPage() {
                               className="object-cover transition-transform duration-500 group-hover:scale-105"
                               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
-                          <div className="p-5">
-                            <span className="text-[10px] font-medium text-primary uppercase tracking-wider">
-                              {post.category}
-                            </span>
-                            <h3 className="text-lg font-semibold text-foreground mt-2 mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                          <div className="flex-1 p-5 flex flex-col">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider">
+                                {post.category}
+                              </span>
+                            </div>
+                            <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors leading-snug">
                               {post.title}
                             </h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
                               {post.excerpt}
                             </p>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t border-border/40">
                               <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
+                                <Calendar className="h-3.5 w-3.5" />
                                 {new Date(post.created_at).toLocaleDateString('en-US', { 
                                   month: 'short', 
                                   day: 'numeric'
                                 })}
                               </span>
                               <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {post.read_time} min
+                                <Clock className="h-3.5 w-3.5" />
+                                {post.read_time} min read
                               </span>
                             </div>
                           </div>
                         </div>
                       </Link>
-                    </motion.div>
+                    </motion.article>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
-          </>
+          </div>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border/40 py-8 mt-16">
-        <div className="mx-auto max-w-6xl px-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <PicturaIcon size={20} className="text-primary" />
-            <span className="text-sm text-muted-foreground">Pictura AI</span>
+      {/* Newsletter CTA */}
+      <section className="border-t border-border/40 bg-card/50">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+          <div className="text-center max-w-xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+              Stay Updated
+            </h2>
+            <p className="text-muted-foreground mb-8">
+              Get the latest news about Pictura features, tips, and AI image generation trends.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 h-12 px-4 rounded-xl bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+              />
+              <button className="h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors">
+                Subscribe
+              </button>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Pictura. All rights reserved.
-          </p>
         </div>
-      </footer>
+      </section>
+
+      <Footer />
     </div>
   )
 }

@@ -9,10 +9,10 @@ import { PicturaLogo } from './pictura-logo'
 
 const links = [
   { href: '/studio', label: 'Studio' },
-  { href: '/api-docs', label: 'API' },
+  { href: '/models', label: 'Models' },
+  { href: '/blog', label: 'Blog' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/about', label: 'About' },
-  { href: '/report', label: 'Report Bug' },
 ]
 
 export function Navbar() {

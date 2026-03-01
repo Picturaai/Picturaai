@@ -28,6 +28,7 @@ export function Footer() {
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Product</span>
             <Link href="/studio" className="text-sm text-foreground/70 transition-colors hover:text-primary">Studio</Link>
             <Link href="/features" className="text-sm text-foreground/70 transition-colors hover:text-primary">Features</Link>
+            <Link href="/models" className="text-sm text-foreground/70 transition-colors hover:text-primary">Models</Link>
             <Link href="/api-docs" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               API
               <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">SOON</span>
