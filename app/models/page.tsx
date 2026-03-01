@@ -255,18 +255,18 @@ export default function ModelsPage() {
       </section>
 
       {/* Comparison Table */}
-      <section id="comparison" className="py-16 sm:py-24 border-t border-border/40 bg-card/50">
-        <div className="mx-auto max-w-6xl px-4">
+      <section id="comparison" className="py-12 sm:py-16 border-t border-border/40 bg-card/50">
+        <div className="mx-auto max-w-5xl px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-8"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
               Model Comparison
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="text-sm text-muted-foreground max-w-xl mx-auto">
               See how our models stack up against each other
             </p>
           </motion.div>
@@ -312,22 +312,22 @@ export default function ModelsPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 sm:py-24">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="text-center rounded-2xl bg-primary/5 border border-primary/20 p-8 sm:p-12">
-            <Rocket className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+      <section className="py-12 sm:py-16">
+        <div className="mx-auto max-w-5xl px-4">
+          <div className="text-center rounded-xl bg-primary/5 border border-primary/20 p-6 sm:p-10">
+            <Rocket className="h-10 w-10 text-primary mx-auto mb-3" />
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
               Ready to Create?
             </h2>
-            <p className="text-muted-foreground max-w-md mx-auto mb-8">
+            <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
               Start generating stunning images with our AI models. Free to use during beta.
             </p>
             <Link
               href="/studio"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors text-lg"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors text-sm"
             >
               Open Studio
-              <ArrowRight className="h-5 w-5" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
