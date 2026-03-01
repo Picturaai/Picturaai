@@ -252,132 +252,161 @@ export function Landing() {
             </motion.div>
           </div>
 
-          {/* Clean UI Mockup - Google-style minimal */}
+          {/* Premium Device Mockup - Apple/Samsung style */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
-            className="mx-auto mt-14 max-w-4xl"
+            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="mx-auto mt-16 max-w-5xl px-4"
           >
-            {/* Clean card container - minimal shadow */}
-            <div className="rounded-2xl border border-border/60 bg-card overflow-hidden">
-              {/* Minimal top bar */}
-              <div className="flex items-center gap-3 border-b border-border/40 px-4 py-2.5 bg-secondary/30">
-                <div className="flex gap-1.5">
-                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
-                  <div className="h-2.5 w-2.5 rounded-full bg-border" />
-                </div>
-                <div className="flex-1 flex justify-center">
-                  <div className="flex items-center gap-1.5 rounded-md bg-background/60 px-3 py-1 text-[11px] text-muted-foreground">
-                    <svg className="h-3 w-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                    picturaai.sbs
+            {/* Device frame */}
+            <div className="relative">
+              {/* Outer device bezel */}
+              <div className="rounded-[2.5rem] bg-gradient-to-b from-zinc-700 via-zinc-800 to-zinc-900 p-[3px] dark:from-zinc-600 dark:via-zinc-700 dark:to-zinc-800">
+                <div className="rounded-[2.35rem] bg-gradient-to-b from-zinc-800 to-zinc-900 p-3 dark:from-zinc-700 dark:to-zinc-800">
+                  {/* Screen */}
+                  <div className="rounded-[1.75rem] bg-background overflow-hidden">
+                    {/* Status bar */}
+                    <div className="flex items-center justify-between px-6 py-2 bg-background">
+                      <span className="text-[11px] font-medium text-foreground">9:41</span>
+                      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+                        <div className="h-6 w-20 rounded-full bg-zinc-900 dark:bg-zinc-950" />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <svg className="h-4 w-4 text-foreground" fill="currentColor" viewBox="0 0 24 24"><path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z"/></svg>
+                        <svg className="h-4 w-4 text-foreground" fill="currentColor" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+                      </div>
+                    </div>
+
+                    {/* App content */}
+                    <div className="px-4 pb-6 pt-2">
+                      {/* App header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                            <PicturaIcon size={18} className="text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-foreground">Pictura</p>
+                            <p className="text-[10px] text-muted-foreground">AI Studio</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
+                            <Sparkles className="h-4 w-4 text-primary" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Main image area */}
+                      <div className="relative aspect-square rounded-2xl overflow-hidden bg-secondary/50 mb-4">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={activeImage}
+                            initial={{ opacity: 0, scale: 1.05 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                            className="absolute inset-0"
+                          >
+                            <Image
+                              src={showcaseImages[activeImage].src}
+                              alt={showcaseImages[activeImage].label}
+                              fill
+                              className="object-cover"
+                              sizes="600px"
+                              priority
+                            />
+                          </motion.div>
+                        </AnimatePresence>
+
+                        {/* Floating label */}
+                        <div className="absolute top-3 left-3">
+                          <AnimatePresence mode="wait">
+                            <motion.span
+                              key={activeImage}
+                              initial={{ opacity: 0, y: -8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 8 }}
+                              className="inline-flex items-center gap-1.5 rounded-full bg-white/90 dark:bg-black/70 backdrop-blur-md px-3 py-1.5 text-[11px] font-medium text-zinc-900 dark:text-white"
+                            >
+                              {showcaseImages[activeImage].label}
+                            </motion.span>
+                          </AnimatePresence>
+                        </div>
+                      </div>
+
+                      {/* Prompt display */}
+                      <div className="rounded-2xl bg-secondary/50 p-4 mb-4">
+                        <div className="flex items-start gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Prompt</p>
+                            <AnimatePresence mode="wait">
+                              <motion.p
+                                key={activeImage}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="text-sm text-foreground leading-relaxed"
+                              >
+                                {showcaseImages[activeImage].prompt.replace(/"/g, '')}
+                              </motion.p>
+                            </AnimatePresence>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action bar */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-2">
+                          {showcaseImages.slice(0, 4).map((img, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setActiveImage(i)}
+                              className={`relative h-11 w-11 rounded-xl overflow-hidden transition-all ${
+                                i === activeImage
+                                  ? 'ring-2 ring-primary'
+                                  : 'opacity-50 hover:opacity-100'
+                              }`}
+                            >
+                              <Image src={img.src} alt="" fill className="object-cover" sizes="44px" />
+                            </button>
+                          ))}
+                        </div>
+                        <button className="h-11 rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground">
+                          Generate
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Home indicator */}
+                    <div className="flex justify-center pb-2">
+                      <div className="h-1 w-32 rounded-full bg-foreground/20" />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Interface content */}
-              <div className="p-4 md:p-5">
-                {/* Prompt bar - Google search style */}
-                <div className="rounded-xl border border-border/50 bg-secondary/30 p-3 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                    </div>
-                    <AnimatePresence mode="wait">
-                      <motion.p
-                        key={activeImage}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex-1 text-sm text-foreground truncate"
-                      >
-                        {showcaseImages[activeImage].prompt.replace(/"/g, '')}
-                      </motion.p>
-                    </AnimatePresence>
-                    <button className="rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground flex-shrink-0">
-                      Generate
-                    </button>
-                  </div>
-                </div>
-
-                {/* Image display - clean */}
-                <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-secondary/20">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeImage}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="absolute inset-0"
-                    >
-                      <Image
-                        src={showcaseImages[activeImage].src}
-                        alt={showcaseImages[activeImage].label}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 900px"
-                        priority
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-
-                  {/* Simple overlay info */}
-                  <div className="absolute bottom-3 left-3 flex gap-2">
-                    <span className="rounded-md bg-black/40 backdrop-blur-sm px-2 py-1 text-[10px] font-medium text-white/90">
-                      {showcaseImages[activeImage].label}
-                    </span>
-                    <span className="rounded-md bg-black/40 backdrop-blur-sm px-2 py-1 text-[10px] text-white/70">
-                      1024 x 1024
-                    </span>
-                  </div>
-
-                  {/* Simple action buttons */}
-                  <div className="absolute bottom-3 right-3 flex gap-1.5">
-                    <div className="rounded-md bg-black/40 backdrop-blur-sm p-1.5">
-                      <svg className="h-3.5 w-3.5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    </div>
-                    <div className="rounded-md bg-black/40 backdrop-blur-sm p-1.5">
-                      <svg className="h-3.5 w-3.5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Thumbnail row */}
-                <div className="mt-3 flex gap-2 justify-center">
-                  {showcaseImages.slice(0, 5).map((img, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setActiveImage(i)}
-                      className={`relative h-12 w-16 md:h-14 md:w-20 rounded-lg overflow-hidden transition-all ${
-                        i === activeImage
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                          : 'opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <Image src={img.src} alt={img.label} fill className="object-cover" sizes="80px" />
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Subtle reflection */}
+              <div className="absolute -inset-4 -z-10 rounded-[3rem] bg-gradient-to-b from-primary/5 to-transparent blur-2xl" />
             </div>
 
-            {/* Simple stats below mockup */}
-            <div className="mt-8 flex items-center justify-center gap-8 md:gap-12 text-center">
-              <div>
+            {/* Stats row */}
+            <div className="mt-12 grid grid-cols-3 gap-4 max-w-md mx-auto">
+              <div className="text-center">
                 <p className="text-2xl font-semibold text-foreground">Free</p>
-                <p className="text-xs text-muted-foreground">Forever</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Forever</p>
               </div>
-              <div className="h-8 w-px bg-border" />
-              <div>
+              <div className="text-center border-x border-border/50">
                 <p className="text-2xl font-semibold text-foreground">10s</p>
-                <p className="text-xs text-muted-foreground">Generation</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Generation</p>
               </div>
-              <div className="h-8 w-px bg-border" />
-              <div>
-                <p className="text-2xl font-semibold text-foreground">Unlimited</p>
-                <p className="text-xs text-muted-foreground">Creations</p>
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-foreground">HD</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Quality</p>
               </div>
             </div>
           </motion.div>
