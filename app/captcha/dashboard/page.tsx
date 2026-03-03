@@ -174,11 +174,9 @@ export default function CaptchaDashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                <PicturaIcon size={20} className="text-primary-foreground" />
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold"><span className="text-primary">Pictura</span><span className="text-foreground">CAPTCHA</span></h1>
+            <div className="flex items-center gap-2.5 mb-1">
+              <PicturaIcon size={28} />
+              <h1 className="text-xl sm:text-2xl font-bold"><span className="text-[#C87941]">Pictura</span><span className="text-foreground">CAPTCHA</span></h1>
             </div>
             <p className="text-sm text-muted-foreground">Manage your sites and view analytics</p>
           </div>
