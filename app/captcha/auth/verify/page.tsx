@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, CheckCircle2, XCircle, UserPlus, LogIn, Shield } from 'lucide-react'
@@ -9,7 +9,7 @@ import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 type VerifyStatus = 'checking' | 'found' | 'syncing' | 'success' | 'no-account' | 'error'
 
-export default function CaptchaAuthVerifyPage() {
+function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const from = searchParams.get('from') || 'login' // Track where user came from
@@ -233,5 +233,31 @@ export default function CaptchaAuthVerifyPage() {
         </motion.div>
       </div>
     </div>
+  )
+}
+
+// Loading fallback for Suspense
+function VerifyLoading() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+        <div className="w-full max-w-xs sm:max-w-sm text-center">
+          <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mx-auto mb-4">
+            <PicturaIcon size={24} className="text-primary-foreground" />
+          </div>
+          <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
+          <p className="text-sm text-muted-foreground mt-3">Loading...</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function CaptchaAuthVerifyPage() {
+  return (
+    <Suspense fallback={<VerifyLoading />}>
+      <VerifyContent />
+    </Suspense>
   )
 }
