@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, RefreshCw, Loader2 } from 'lucide-react'
-import { PicturaIcon } from './pictura-icon'
+import { Check, RefreshCw, Loader2, Layers } from 'lucide-react'
 
 type ChallengeType = 'math' | 'pattern' | 'word' | 'sequence' | 'emoji' | 'color'
 
@@ -201,7 +200,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             </div>
             <span className="text-sm text-foreground">I&apos;m not a robot</span>
             <div className="ml-auto flex items-center gap-2">
-              <PicturaIcon size={16} className="text-primary" />
+              <Layers size={16} className="text-primary" />
               <span className="text-xs text-muted-foreground font-medium">PicturaCAPTCHA</span>
             </div>
           </motion.button>
@@ -218,7 +217,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border-b border-primary/10">
               <div className="flex items-center gap-2">
-                <PicturaIcon size={18} className="text-primary" />
+                <Layers size={18} className="text-primary" />
                 <span className="text-sm font-medium text-foreground">Security Verification</span>
               </div>
               <button type="button" onClick={startChallenge} className="p-1.5 rounded-md hover:bg-primary/10 transition-colors" title="Get new challenge">
@@ -286,7 +285,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             <Loader2 className="w-5 h-5 text-primary animate-spin" />
             <span className="text-sm text-muted-foreground">Verifying...</span>
             <div className="ml-auto flex items-center gap-2">
-              <PicturaIcon size={16} className="text-primary" />
+              <Layers size={16} className="text-primary" />
               <span className="text-xs text-muted-foreground">PicturaCAPTCHA</span>
             </div>
           </motion.div>
@@ -305,7 +304,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             </div>
             <span className="text-sm text-foreground font-medium">Verification complete</span>
             <div className="ml-auto flex items-center gap-2">
-              <PicturaIcon size={16} className="text-primary" />
+              <Layers size={16} className="text-primary" />
               <span className="text-xs text-muted-foreground">PicturaCAPTCHA</span>
             </div>
           </motion.div>
