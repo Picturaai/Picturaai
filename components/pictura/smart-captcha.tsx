@@ -282,11 +282,11 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   }, [])
   
   const startChallenge = useCallback(() => {
-    if (status === 'cooldown') return
+    if (status === 'cooldown' || status === 'verified' || status === 'verifying') return
     setStatus('analyzing')
     setTimeout(() => {
-      // Auto-pass if lots of human-like behavior
-      if (interactionsRef.current > 30 && Math.random() > 0.7) {
+      // Auto-pass if lots of human-like behavior (but never on first load)
+      if (interactionsRef.current > 100 && Math.random() > 0.85) {
         setStatus('verifying')
         setTimeout(() => { 
           setStatus('verified')
@@ -619,8 +619,8 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                           </>
                         ) : (
                           <>
-                            <Fingerprint className="h-6 w-6 text-muted-foreground" />
-                            <span className="text-[10px] text-muted-foreground mt-1">Hold here</span>
+                            <Fingerprint className="h-6 w-6 text-primary" />
+                            <span className="text-[10px] text-primary/70 mt-1">Hold here</span>
                           </>
                         )}
                       </div>

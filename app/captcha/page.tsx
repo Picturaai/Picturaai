@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check, Shield, Globe, Code2, ArrowRight, Copy, CheckCircle2, X, Lock, Eye } from 'lucide-react'
+import { Check, Shield, Globe, Code2, ArrowRight, Copy, CheckCircle2, X, Lock, Eye, Fingerprint } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { SmartCaptcha } from '@/components/pictura/smart-captcha'
@@ -23,7 +23,7 @@ export default function CaptchaPage() {
   const [demoVerified, setDemoVerified] = useState(false)
   
   const codeSnippet = `<!-- 1. Add the script -->
-<script src="https://captcha.picturaai.sbs/api.js" async defer></script>
+<script src="${typeof window !== 'undefined' ? window.location.origin : ''}/api/captcha/widget.js" async defer></script>
 
 <!-- 2. Add the CAPTCHA container -->
 <div id="pictura-captcha" data-sitekey="YOUR_SITE_KEY"></div>
@@ -31,8 +31,8 @@ export default function CaptchaPage() {
 <!-- 3. Handle verification -->
 <script>
   function onCaptchaVerify(token) {
-    // Send token to your server
-    fetch('/api/verify', {
+    // Send token to your server for verification
+    fetch('/your-api/verify', {
       method: 'POST',
       body: JSON.stringify({ token })
     })
@@ -276,8 +276,161 @@ export default function CaptchaPage() {
         </div>
       </section>
       
-      {/* Comparison Table */}
+      {/* Our Technology */}
       <section className="py-12 sm:py-16 md:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            custom={0}
+            variants={fadeUp}
+            className="text-center mb-10 sm:mb-12"
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-4">
+              Advanced Technology
+            </span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Powered by Cutting-Edge Detection</h2>
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+              Our multi-layer security system combines behavioral biometrics, machine learning, and cryptographic verification
+            </p>
+          </motion.div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Biometric Detection */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={0}
+              variants={fadeUp}
+              className="rounded-xl border border-border bg-card p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Fingerprint className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-lg">Biometric Presence Detection</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Our patent-pending touch analysis technology detects human presence through:
+              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">Touch pressure variance</strong> - Humans naturally vary pressure; bots are consistent</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">Micro-movement analysis</strong> - Detecting natural hand tremors and adjustments</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">Temporal patterns</strong> - Human touch has characteristic timing signatures</span>
+                </li>
+              </ul>
+            </motion.div>
+            
+            {/* Behavioral Analysis */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={1}
+              variants={fadeUp}
+              className="rounded-xl border border-border bg-card p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Eye className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-lg">Behavioral Fingerprinting</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Before any challenge is shown, we silently analyze user behavior:
+              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">Mouse velocity curves</strong> - Humans have natural acceleration patterns</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">Keystroke dynamics</strong> - Typing rhythm is unique to each person</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">Scroll behavior</strong> - Reading patterns and scroll velocity analysis</span>
+                </li>
+              </ul>
+            </motion.div>
+            
+            {/* Challenge Variety */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={2}
+              variants={fadeUp}
+              className="rounded-xl border border-border bg-card p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-lg">9 Challenge Types</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Randomized challenges prevent bots from learning patterns:
+              </p>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {['Math Problems', 'Pattern Sequences', 'Word Scrambles', 'Image Selection', 'Text Recognition', 'Slider Puzzles', 'Biometric Hold', 'Number Ordering', 'Sequence Completion'].map((type) => (
+                  <div key={type} className="rounded-lg bg-muted/50 px-2 py-1.5 text-center text-muted-foreground">
+                    {type}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+            
+            {/* Cryptographic Security */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={3}
+              variants={fadeUp}
+              className="rounded-xl border border-border bg-card p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Lock className="h-5 w-5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-lg">Cryptographic Verification</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Every verification is secured with industry-standard cryptography:
+              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">HMAC-SHA256 tokens</strong> - Tamper-proof verification tokens</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">5-minute expiration</strong> - Tokens cannot be reused or delayed</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span><strong className="text-foreground">Domain binding</strong> - Tokens only valid for your registered domains</span>
+                </li>
+              </ul>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Comparison Table */}
+      <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.div
             initial="hidden"

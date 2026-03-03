@@ -8,7 +8,7 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -503,6 +503,15 @@ export function Studio() {
           <span className="hidden rounded-md bg-primary/8 px-2 py-0.5 text-[10px] font-bold tracking-wider text-primary sm:inline-block">
             BETA
           </span>
+          
+          {/* Editor link */}
+          <Link
+            href="/studio/editor"
+            className="hidden sm:flex items-center gap-1.5 rounded-lg border border-border/40 bg-card px-2.5 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:bg-secondary/60"
+          >
+            <Pencil className="h-3 w-3" />
+            <span>Editor</span>
+          </Link>
 
           {/* Model switcher */}
           <div className="relative" data-tour="model">
