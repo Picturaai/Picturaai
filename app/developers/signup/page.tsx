@@ -173,6 +173,36 @@ export default function SignupPage() {
   const router = useRouter()
   const [step, setStep] = useState<SignupStep>('info')
   const [detecting, setDetecting] = useState(true)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  // Check if already logged in and redirect to dashboard
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const localToken = localStorage.getItem('pictura_session')
+        if (!localToken) {
+          setCheckingAuth(false)
+          return
+        }
+
+        const res = await fetch('/api/developers/auth/session', {
+          credentials: 'include',
+          headers: { 'Authorization': `Bearer ${localToken}` }
+        })
+        const data = await res.json()
+
+        if (data.authenticated && data.developer) {
+          toast.success('Already logged in! Redirecting...')
+          window.location.href = '/developers/dashboard'
+          return
+        }
+      } catch {
+        // Not authenticated, show signup form
+      }
+      setCheckingAuth(false)
+    }
+    checkAuth()
+  }, [])
   
   // Load saved form data from localStorage (except password)
   const [fullName, setFullName] = useState('')
@@ -388,6 +418,21 @@ export default function SignupPage() {
     setTimeout(() => setCopiedKey(false), 2000)
   }
 
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-background pt-28 pb-16">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
+
   return (
     <>
       <Navbar />
@@ -403,7 +448,7 @@ export default function SignupPage() {
               <h1 className="text-2xl font-semibold text-foreground mb-1.5">
                 {step === 'complete' ? 'Welcome to Pictura' : 'Create your account'}
               </h1>
-              {step === 'info' && !detecting && (
+              {step === 'info' && !detecting && !checkingAuth && (
                 <p className="text-sm text-muted-foreground">
                   Get {freeCredits} in free credits to start building
                 </p>

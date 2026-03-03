@@ -19,6 +19,36 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaKey, setCaptchaKey] = useState(0) // Used to reset CAPTCHA
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  // Check if already logged in and redirect to dashboard
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const localToken = localStorage.getItem('pictura_session')
+        if (!localToken) {
+          setCheckingAuth(false)
+          return
+        }
+
+        const res = await fetch('/api/developers/auth/session', {
+          credentials: 'include',
+          headers: { 'Authorization': `Bearer ${localToken}` }
+        })
+        const data = await res.json()
+
+        if (data.authenticated && data.developer) {
+          toast.success('Already logged in! Redirecting...')
+          window.location.href = '/developers/dashboard'
+          return
+        }
+      } catch {
+        // Not authenticated, show login form
+      }
+      setCheckingAuth(false)
+    }
+    checkAuth()
+  }, [])
   
   // Load saved email on mount
   useEffect(() => {
@@ -80,6 +110,21 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-background pt-28 pb-16">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
   }
 
   return (

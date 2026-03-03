@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Copy, Check, ExternalLink } from 'lucide-react'
+import { ArrowRight, Copy, Check, ExternalLink, Loader2 } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
@@ -14,6 +14,36 @@ export default function CaptchaSignupPage() {
   const router = useRouter()
   const [step, setStep] = useState<'choose' | 'form' | 'success'>('choose')
   const [loading, setLoading] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  // Check if already logged in and redirect to dashboard
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const localToken = localStorage.getItem('pictura_session')
+        if (!localToken) {
+          setCheckingAuth(false)
+          return
+        }
+
+        const res = await fetch('/api/developers/auth/session', {
+          credentials: 'include',
+          headers: { 'Authorization': `Bearer ${localToken}` }
+        })
+        const data = await res.json()
+
+        if (data.authenticated && data.developer) {
+          toast.success('Already logged in! Redirecting...')
+          window.location.href = '/captcha/dashboard'
+          return
+        }
+      } catch {
+        // Not authenticated, show signup form
+      }
+      setCheckingAuth(false)
+    }
+    checkAuth()
+  }, [])
   const [siteKey, setSiteKey] = useState('')
   const [secretKey, setSecretKey] = useState('')
   const [copiedSite, setCopiedSite] = useState(false)
@@ -74,6 +104,19 @@ export default function CaptchaSignupPage() {
       setTimeout(() => setCopiedSecret(false), 2000)
     }
     toast.success('Copied!')
+  }
+
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        <Navbar />
+        <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   return (
