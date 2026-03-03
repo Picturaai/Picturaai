@@ -20,8 +20,8 @@ export default function CaptchaLoginPage() {
   const [captchaVerified, setCaptchaVerified] = useState(false)
 
   const handlePicturaLogin = () => {
-    // Redirect to developer login with return URL
-    router.push('/developers/login?redirect=/captcha/dashboard')
+    // Redirect to verification flow which checks for existing account
+    router.push('/captcha/auth/verify')
   }
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
