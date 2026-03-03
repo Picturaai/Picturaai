@@ -26,7 +26,8 @@ export default function CaptchaSignupPage() {
   })
 
   const handlePicturaSignup = () => {
-    router.push('/developers/signup?redirect=/captcha/dashboard')
+    // First check if user already has an account via verify flow
+    router.push('/captcha/auth/verify')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
