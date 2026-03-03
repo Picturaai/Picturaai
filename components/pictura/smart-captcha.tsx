@@ -281,23 +281,19 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     setChallenge(generateChallenge())
   }, [])
   
+  const hasStartedRef = useRef(false)
+  
   const startChallenge = useCallback(() => {
     if (status === 'cooldown' || status === 'verified' || status === 'verifying') return
+    
+    // Prevent auto-pass - always show challenge for security
+    hasStartedRef.current = true
     setStatus('analyzing')
     setTimeout(() => {
-      // Auto-pass if lots of human-like behavior (but never on first load)
-      if (interactionsRef.current > 100 && Math.random() > 0.85) {
-        setStatus('verifying')
-        setTimeout(() => { 
-          setStatus('verified')
-          onVerify?.(`pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}`) 
-        }, 800)
-      } else {
-        resetChallenge()
-        setStatus('challenge')
-      }
+      resetChallenge()
+      setStatus('challenge')
     }, 1200)
-  }, [status, onVerify, siteKey, resetChallenge])
+  }, [status, resetChallenge])
   
   const handleWrong = useCallback(() => {
     setStatus('wrong')

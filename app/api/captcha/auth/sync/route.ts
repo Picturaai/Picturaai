@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
 import { cookies } from 'next/headers'
+import { sendCaptchaWelcomeEmail } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -35,6 +36,11 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30 // 30 days
+    })
+
+    // Send welcome email to CAPTCHA (async, don't block response)
+    sendCaptchaWelcomeEmail(developer.email, developer.name).catch(err => {
+      console.error('Failed to send CAPTCHA welcome email:', err)
     })
 
     return NextResponse.json({

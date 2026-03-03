@@ -17,8 +17,8 @@ export const emailTemplates = {
                         <td align="center" style="padding: 40px 20px;">
                             <table cellpadding="0" cellspacing="0" border="0">
                                 <tr>
-                                    <td style="width: 36px; height: 36px; background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 8px; text-align: center; vertical-align: middle;">
-                                        <span style="color: white; font-size: 20px; font-weight: bold;">P</span>
+                                    <td style="width: 40px; height: 40px;">
+                                        <img src="https://picturaai.sbs/logo.png" alt="Pictura" width="40" height="40" style="display: block; border-radius: 8px;" />
                                     </td>
                                     <td style="padding-left: 12px;">
                                         <span style="font-size: 26px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
@@ -31,9 +31,9 @@ export const emailTemplates = {
                     <!-- Main Content -->
                     <tr>
                         <td style="padding: 40px 30px;">
-                            <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Welcome to Pictura AI</h1>
+                            <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Verify Your Account</h1>
                             <p style="margin: 0 0 24px 0; font-size: 15px; color: #666; line-height: 1.6;">Hi ${name},</p>
-                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">Your verification code is:</p>
+                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">Your Pictura developer verification code is:</p>
                             
                             <!-- OTP Code -->
                             <div style="background-color: #f8f7f4; border-radius: 8px; padding: 24px; margin: 32px 0; text-align: center;">
@@ -318,6 +318,83 @@ export const emailTemplates = {
                         <td style="padding: 30px; text-align: center;">
                             <p style="margin: 0 0 12px 0; font-size: 12px; color: #999;">Thank you for using Pictura AI!</p>
                             <p style="margin: 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  `,
+
+  captchaWelcome: (name: string) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to PicturaCAPTCHA</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8f7f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f7f4;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 12px; overflow: hidden;">
+                    <!-- Header with Logo -->
+                    <tr style="background-color: #fafaf8;">
+                        <td align="center" style="padding: 40px 20px;">
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="width: 40px; height: 40px;">
+                                        <img src="https://picturaai.sbs/logo.png" alt="Pictura" width="40" height="40" style="display: block; border-radius: 8px;" />
+                                    </td>
+                                    <td style="padding-left: 12px;">
+                                        <span style="font-size: 26px; font-weight: 700; letter-spacing: -0.5px;"><span style="color: #c77d4a;">Pictura</span><span style="color: #1a1a1a;">CAPTCHA</span></span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Welcome to PicturaCAPTCHA!</h1>
+                            <p style="margin: 0 0 24px 0; font-size: 15px; color: #666; line-height: 1.6;">Hi ${name},</p>
+                            <p style="margin: 0 0 16px 0; font-size: 15px; color: #666; line-height: 1.6;">Your PicturaCAPTCHA account has been successfully linked to your Pictura developer account.</p>
+                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">You now have access to the most advanced CAPTCHA solution, powered by behavioral biometrics and AI-driven challenge systems.</p>
+                            
+                            <!-- Features -->
+                            <div style="background-color: #f8f7f4; border-radius: 8px; padding: 24px; margin: 32px 0;">
+                                <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">What you get:</h2>
+                                <ul style="margin: 0; padding-left: 20px; color: #666; font-size: 14px; line-height: 1.8;">
+                                    <li><strong>Free forever</strong> - No usage limits, no hidden fees</li>
+                                    <li><strong>9 Challenge types</strong> - Math, patterns, images, biometrics, and more</li>
+                                    <li><strong>Behavioral analysis</strong> - Detect bots before they even solve a challenge</li>
+                                    <li><strong>Easy integration</strong> - Just 3 lines of code to add to your site</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- CTA Button -->
+                            <div style="text-align: center; margin: 40px 0;">
+                                <a href="https://picturaai.sbs/captcha/dashboard" style="display: inline-block; background-color: #c77d4a; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
+                                    Go to Dashboard
+                                </a>
+                            </div>
+                            
+                            <p style="margin: 0; font-size: 14px; color: #999; text-align: center;">Get your site key and start protecting your forms today.</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr style="background-color: #fafaf8; border-top: 1px solid #ebebeb;">
+                        <td style="padding: 30px; text-align: center;">
+                            <p style="margin: 0 0 16px 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
+                            <p style="margin: 0; font-size: 12px;">
+                                <a href="https://picturaai.sbs/captcha/docs" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Documentation</a>
+                                <a href="https://picturaai.sbs/captcha" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Learn More</a>
+                            </p>
                         </td>
                     </tr>
                 </table>

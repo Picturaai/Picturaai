@@ -89,3 +89,12 @@ export async function sendInvoiceEmail(email: string, name: string, invoiceId: s
     html,
   })
 }
+
+export async function sendCaptchaWelcomeEmail(email: string, name: string) {
+  const html = emailTemplates.captchaWelcome(name)
+  return sendEmail({
+    to: email,
+    subject: 'Welcome to PicturaCAPTCHA - Your Account is Ready',
+    html,
+  })
+}

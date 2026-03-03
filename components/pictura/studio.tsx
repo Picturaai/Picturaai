@@ -8,11 +8,12 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw, Pencil,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil, Sparkles,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
 import { DownloadModal } from './download-modal'
+import { AIImageEditor } from './ai-image-editor'
 import { playSuccessSound, playLimitSound } from '@/lib/sounds'
 import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 
@@ -290,6 +291,8 @@ export function Studio() {
   const [improving, setImproving] = useState(false)
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
   const [downloadImage, setDownloadImage] = useState<GeneratedImage | null>(null)
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [editorImage, setEditorImage] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -1177,6 +1180,18 @@ export function Studio() {
               />
               <div className="absolute top-3 right-3 flex items-center gap-1.5">
                 <button
+                  onClick={() => {
+                    setEditorImage(lightbox.url)
+                    setEditorOpen(true)
+                    setLightbox(null)
+                  }}
+                  className="flex h-8 items-center gap-1.5 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium backdrop-blur-sm transition-colors hover:opacity-90"
+                  aria-label="Edit with AI"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Edit
+                </button>
+                <button
                   onClick={() => handleDownload(lightbox)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/40 text-white/80 backdrop-blur-sm transition-colors hover:bg-black/60"
                   aria-label="Download"
@@ -1241,6 +1256,25 @@ export function Studio() {
           imageName={`pictura-${Date.now()}`}
         />
       )}
+
+      {/* AI Image Editor */}
+      <AnimatePresence>
+        {editorOpen && editorImage && (
+          <AIImageEditor
+            imageUrl={editorImage}
+            onClose={() => {
+              setEditorOpen(false)
+              setEditorImage(null)
+            }}
+            onSave={(newUrl) => {
+              // Update the image in the gallery if it was edited
+              setImages(prev => prev.map(img => 
+                img.url === editorImage ? { ...img, url: newUrl } : img
+              ))
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
