@@ -22,7 +22,7 @@ export interface SendEmailOptions {
 export async function sendEmail(options: SendEmailOptions) {
   try {
     const result = await transporter.sendMail({
-      from: options.from || `Pictura <noreply@picturaai.sbs>`,
+      from: options.from || `Pictura Developer <developer@picturaai.sbs>`,
       to: options.to,
       subject: options.subject,
       html: options.html,

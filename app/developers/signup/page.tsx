@@ -167,11 +167,14 @@ function PasswordStrength({ password, onBreachStatusChange }: { password: string
   )
 }
 
+const STORAGE_KEY = 'pictura_signup_form'
+
 export default function SignupPage() {
   const router = useRouter()
   const [step, setStep] = useState<SignupStep>('info')
   const [detecting, setDetecting] = useState(true)
   
+  // Load saved form data from localStorage (except password)
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -179,6 +182,37 @@ export default function SignupPage() {
   const [phoneNumber, setPhoneNumber] = useState('')
   const [referralSource, setReferralSource] = useState('')
   const [promoCode, setPromoCode] = useState('')
+  
+  // Load saved form data on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const data = JSON.parse(saved)
+        if (data.fullName) setFullName(data.fullName)
+        if (data.email) setEmail(data.email)
+        if (data.country) setCountry(data.country)
+        if (data.phoneNumber) setPhoneNumber(data.phoneNumber)
+        if (data.referralSource) setReferralSource(data.referralSource)
+        if (data.promoCode) setPromoCode(data.promoCode)
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, [])
+  
+  // Auto-save form data (except password)
+  useEffect(() => {
+    const data = {
+      fullName,
+      email,
+      country,
+      phoneNumber,
+      referralSource,
+      promoCode,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  }, [fullName, email, country, phoneNumber, referralSource, promoCode])
   const [bonusCredits, setBonusCredits] = useState<string | null>(null)
   const [otp, setOtp] = useState('')
   const [apiKey, setApiKey] = useState('')
@@ -305,6 +339,8 @@ export default function SignupPage() {
         }
         setApiKey(data.apiKey || '')
         setBonusCredits(data.bonusCredits || null)
+        // Clear saved form data on successful signup
+        localStorage.removeItem(STORAGE_KEY)
         setStep('complete')
         toast.success('Account created successfully!')
         

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -10,12 +10,27 @@ import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { SmartCaptcha } from '@/components/pictura/smart-captcha'
 
+const LOGIN_EMAIL_KEY = 'pictura_login_email'
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  
+  // Load saved email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem(LOGIN_EMAIL_KEY)
+    if (savedEmail) setEmail(savedEmail)
+  }, [])
+  
+  // Auto-save email (not password)
+  useEffect(() => {
+    if (email) {
+      localStorage.setItem(LOGIN_EMAIL_KEY, email)
+    }
+  }, [email])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

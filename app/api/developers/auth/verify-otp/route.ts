@@ -176,7 +176,8 @@ export async function POST(req: NextRequest) {
       VALUES (${dev.id}, ${sessionToken}, ${expiresAt})
     `
 
-    return NextResponse.json({
+    // Create response with cookie
+    const response = NextResponse.json({
       success: true,
       message: bonusCredits > 0 
         ? `Account created! Welcome bonus + ${bonusCredits} promo credits applied!` 
@@ -193,6 +194,17 @@ export async function POST(req: NextRequest) {
         currency: dev.currency,
       },
     })
+
+    // Set HTTP-only cookie for persistent auth (30 days)
+    response.cookies.set('pictura_session', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: '/',
+    })
+
+    return response
   } catch (error: unknown) {
     console.error('OTP verification error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'

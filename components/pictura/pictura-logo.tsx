@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export function PicturaIcon({ className = '', size = 32 }: { className?: string; size?: number }) {
   return (
     <svg
@@ -43,13 +45,41 @@ export function PicturaWordmark({ className = '' }: { className?: string }) {
   )
 }
 
-export function PicturaLogo({ size = 'default' }: { size?: 'sm' | 'default' | 'lg' }) {
+export function PicturaLogo({ size = 'default', showText = true }: { size?: 'sm' | 'default' | 'lg'; showText?: boolean }) {
   const iconSize = size === 'sm' ? 24 : size === 'lg' ? 40 : 32
   const textClass = size === 'sm' ? 'text-lg' : size === 'lg' ? 'text-2xl' : 'text-xl'
   return (
     <span className="flex items-center gap-2.5">
       <PicturaIcon size={iconSize} />
-      <PicturaWordmark className={`${textClass} text-foreground`} />
+      {showText && <PicturaWordmark className={`${textClass} text-foreground`} />}
     </span>
+  )
+}
+
+// Image-based logo component (for when you have actual logo files)
+export function PicturaImageLogo({ 
+  size = 'default',
+  variant = 'full'
+}: { 
+  size?: 'sm' | 'default' | 'lg'
+  variant?: 'icon' | 'full'
+}) {
+  const dimensions = {
+    sm: { width: variant === 'icon' ? 24 : 100, height: 24 },
+    default: { width: variant === 'icon' ? 32 : 130, height: 32 },
+    lg: { width: variant === 'icon' ? 40 : 160, height: 40 },
+  }
+
+  const src = variant === 'icon' ? '/pictura-logo.jpg' : '/pictura-logo-full.jpg'
+
+  return (
+    <Image
+      src={src}
+      alt="Pictura"
+      width={dimensions[size].width}
+      height={dimensions[size].height}
+      className="object-contain"
+      priority
+    />
   )
 }

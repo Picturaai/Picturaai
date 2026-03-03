@@ -18,22 +18,34 @@ async function verifySession(token: string): Promise<{ developerId: string } | n
   }
 }
 
+function getTokenFromRequest(req: NextRequest): string | null {
+  // First try cookie
+  const cookieToken = req.cookies.get('pictura_session')?.value
+  if (cookieToken) return cookieToken
+  
+  // Then try Authorization header
+  const authHeader = req.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.substring(7)
+  }
+  
+  return null
+}
+
 function generateApiKey(): string {
   return 'pk_live_' + crypto.randomBytes(32).toString('hex')
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    const token = getTokenFromRequest(req)
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const token = authHeader.substring(7)
     const session = await verifySession(token)
-
     if (!session) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
 
     const { name } = await req.json()
@@ -48,8 +60,8 @@ export async function POST(req: NextRequest) {
     const keyHash = hashPassword(apiKey)
 
     const keys = await sql`
-      INSERT INTO api_keys (developer_id, name, key_prefix, key_hash)
-      VALUES (${session.developerId}, ${name}, ${keyPrefix}, ${keyHash})
+      INSERT INTO api_keys (developer_id, name, key_prefix, key_hash, is_active)
+      VALUES (${session.developerId}, ${name}, ${keyPrefix}, ${keyHash}, true)
       RETURNING id, name, created_at
     `
 
@@ -61,11 +73,12 @@ export async function POST(req: NextRequest) {
 
     // Return the full API key only once - it cannot be retrieved later
     return NextResponse.json({
+      success: true,
       id: key.id,
       name: key.name,
       key: apiKey, // Full key - only shown once!
-      key_prefix: keyPrefix,
-      created_at: key.created_at,
+      keyPreview: keyPrefix + '••••••••••••••••',
+      createdAt: key.created_at,
       message: 'Save this key securely - it will not be shown again'
     })
   } catch (error) {
@@ -76,20 +89,18 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    const token = getTokenFromRequest(req)
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const token = authHeader.substring(7)
     const session = await verifySession(token)
-
     if (!session) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
 
     const keys = await sql`
-      SELECT id, name, key_prefix, created_at, last_used, is_active
+      SELECT id, name, key_prefix, created_at, last_used_at, requests_count, is_active
       FROM api_keys
       WHERE developer_id = ${session.developerId}
       ORDER BY created_at DESC
@@ -99,10 +110,11 @@ export async function GET(req: NextRequest) {
       keys: keys.map(k => ({
         id: k.id,
         name: k.name,
-        key_preview: k.key_prefix + '...',
-        created_at: k.created_at,
-        last_used: k.last_used,
-        is_active: k.is_active,
+        keyPreview: k.key_prefix + '••••••••••••••••',
+        createdAt: k.created_at,
+        lastUsed: k.last_used_at,
+        requestsCount: k.requests_count || 0,
+        isActive: k.is_active !== false,
       }))
     })
   } catch (error) {
@@ -113,30 +125,35 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    const token = getTokenFromRequest(req)
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const token = authHeader.substring(7)
     const session = await verifySession(token)
-
     if (!session) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
 
-    const { id } = await req.json()
+    const { searchParams } = new URL(req.url)
+    const keyId = searchParams.get('id')
 
-    if (!id) {
+    if (!keyId) {
       return NextResponse.json({ error: 'Key ID is required' }, { status: 400 })
     }
 
-    await sql`
-      UPDATE api_keys SET is_active = false
-      WHERE id = ${id} AND developer_id = ${session.developerId}
+    // Actually delete the key (not just deactivate)
+    const result = await sql`
+      DELETE FROM api_keys 
+      WHERE id = ${keyId} AND developer_id = ${session.developerId}
+      RETURNING id
     `
 
-    return NextResponse.json({ success: true })
+    if (result.length === 0) {
+      return NextResponse.json({ error: 'Key not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true, message: 'API key deleted' })
   } catch (error) {
     console.error('API key deletion error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
