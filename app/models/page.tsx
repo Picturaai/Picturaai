@@ -458,13 +458,13 @@ export default function ModelsPage() {
       <section className="py-12 sm:py-16 border-t border-border/40 bg-card/30">
         <div className="mx-auto max-w-5xl px-4">
           <div className="text-center p-8 rounded-xl border border-dashed border-border/50">
-            <div className="h-12 w-12 rounded-xl bg-secondary flex items-center justify-center mx-auto mb-4">
-              <PicturaIcon size={24} className="text-muted-foreground" />
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <PicturaIcon size={24} className="text-primary" />
             </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">pi-2.0 Coming Soon</h2>
+            <h2 className="text-xl font-bold text-foreground mb-2">pi-2.0 In Development</h2>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Our next-generation model is in development, featuring breakthrough capabilities 
-              in understanding, composition, and photorealism.
+              Our next-generation model coming soon with breakthrough capabilities 
+              in understanding, composition, and photorealism. Be first to know.
             </p>
             <Link
               href="/blog"

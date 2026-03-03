@@ -1091,8 +1091,8 @@ export function Landing() {
                 {[
                   { label: 'Beta Launch', status: 'Live', active: true },
                   { label: 'Image-to-Image Support', status: 'Live', active: true },
+                  { label: 'Public API Release', status: 'Live', active: true },
                   { label: 'Higher Resolution Output', status: 'In Progress', active: false },
-                  { label: 'Public API Release', status: 'Coming Soon', active: false },
                   { label: 'Style Controls & Presets', status: 'Planned', active: false },
                 ].map((item) => (
                   <div

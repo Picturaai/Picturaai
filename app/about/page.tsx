@@ -22,10 +22,10 @@ const roadmap = [
   { label: 'Pictura Beta Launch', status: 'Live' as const },
   { label: 'Text-to-Image Generation', status: 'Live' as const },
   { label: 'Image-to-Image Transformation', status: 'Live' as const },
+  { label: 'Pictura Public API', status: 'Live' as const },
+  { label: 'Developer SDKs', status: 'Live' as const },
   { label: 'Higher Resolution Outputs', status: 'In Progress' as const },
   { label: 'Increased Daily Limits', status: 'In Progress' as const },
-  { label: 'Pictura Public API', status: 'Coming Soon' as const },
-  { label: 'Developer SDKs', status: 'Planned' as const },
 ]
 
 const values = [

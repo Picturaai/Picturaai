@@ -1036,7 +1036,7 @@ export function Studio() {
               </div>
 
               <p className="mt-4 text-xs text-muted-foreground/60">
-                Pictura is in beta. More capacity is coming soon.
+                Pictura is in beta. Join the API beta and get more capacity instantly.
               </p>
 
               <button
