@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Loader2, CheckCircle2, Mail, Lock, User, Copy, Check, ChevronDown } from 'lucide-react'
+import { ArrowRight, Loader2, CheckCircle2, Mail, Lock, User, Copy, Check, ChevronDown, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
@@ -44,8 +44,57 @@ const FREE_CREDITS: Record<string, string> = {
 
 type SignupStep = 'info' | 'verification' | 'complete'
 
-// Password Strength Component
-function PasswordStrength({ password }: { password: string }) {
+// Password Strength Component with Breach Detection
+function PasswordStrength({ password, onBreachStatusChange }: { password: string; onBreachStatusChange?: (breached: boolean) => void }) {
+  const [isBreached, setIsBreached] = useState<boolean | null>(null)
+  const [checkingBreach, setCheckingBreach] = useState(false)
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  
+  // Check if password has been breached using Have I Been Pwned API (k-anonymity)
+  useEffect(() => {
+    if (password.length < 8) {
+      setIsBreached(null)
+      onBreachStatusChange?.(false)
+      return
+    }
+    
+    // Debounce the check
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    
+    debounceRef.current = setTimeout(async () => {
+      setCheckingBreach(true)
+      try {
+        // Hash password with SHA-1 (required by HIBP API)
+        const encoder = new TextEncoder()
+        const data = encoder.encode(password)
+        const hashBuffer = await crypto.subtle.digest('SHA-1', data)
+        const hashArray = Array.from(new Uint8Array(hashBuffer))
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase()
+        
+        const prefix = hashHex.slice(0, 5)
+        const suffix = hashHex.slice(5)
+        
+        // Query HIBP API with k-anonymity (only send prefix)
+        const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`)
+        if (response.ok) {
+          const text = await response.text()
+          const breached = text.split('\n').some(line => line.startsWith(suffix))
+          setIsBreached(breached)
+          onBreachStatusChange?.(breached)
+        }
+      } catch {
+        // Silently fail - don't block user if API is down
+        setIsBreached(null)
+      } finally {
+        setCheckingBreach(false)
+      }
+    }, 500)
+    
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [password, onBreachStatusChange])
+  
   const checks = {
     length: password.length >= 8,
     uppercase: /[A-Z]/.test(password),
@@ -56,6 +105,7 @@ function PasswordStrength({ password }: { password: string }) {
   const strength = Object.values(checks).filter(Boolean).length
   
   const getStrengthColor = (level: number) => {
+    if (isBreached) return level <= strength ? 'bg-red-500' : 'bg-border'
     if (level > strength) return 'bg-border'
     if (strength === 1) return 'bg-red-500'
     if (strength === 2) return 'bg-orange-500'
@@ -64,6 +114,7 @@ function PasswordStrength({ password }: { password: string }) {
   }
   
   const getStrengthText = () => {
+    if (isBreached) return { text: 'This password was found in a data breach! Choose another.', color: 'text-red-500' }
     if (!checks.length) return { text: 'At least 8 characters required', color: 'text-red-500' }
     if (strength === 1) return { text: 'Weak - Add uppercase, numbers or symbols', color: 'text-red-500' }
     if (strength === 2) return { text: 'Fair - Getting better', color: 'text-orange-500' }
@@ -83,7 +134,18 @@ function PasswordStrength({ password }: { password: string }) {
           />
         ))}
       </div>
-      <p className={`text-xs ${strengthInfo.color}`}>{strengthInfo.text}</p>
+      <div className="flex items-center gap-2">
+        <p className={`text-xs ${strengthInfo.color}`}>{strengthInfo.text}</p>
+        {checkingBreach && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+      </div>
+      {isBreached && (
+        <div className="flex items-center gap-1.5 p-2 rounded-md bg-red-500/10 border border-red-500/20">
+          <AlertCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+          <p className="text-[10px] text-red-500">
+            This password appears in known data breaches. Using it puts your account at risk.
+          </p>
+        </div>
+      )}
       <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
         <span className={checks.length ? 'text-primary' : 'text-muted-foreground'}>
           {checks.length ? '✓' : '○'} 8+ chars
@@ -97,6 +159,9 @@ function PasswordStrength({ password }: { password: string }) {
         <span className={checks.special ? 'text-primary' : 'text-muted-foreground'}>
           {checks.special ? '✓' : '○'} Symbol
         </span>
+        {password.length >= 8 && !checkingBreach && isBreached === false && (
+          <span className="text-primary">✓ Not breached</span>
+        )}
       </div>
     </div>
   )
@@ -122,6 +187,7 @@ export default function SignupPage() {
   
   const [loading, setLoading] = useState(false)
   const [timer, setTimer] = useState(0)
+  const [isPasswordBreached, setIsPasswordBreached] = useState(false)
   
   const REFERRAL_SOURCES = [
     { value: '', label: 'Select how you found us' },
@@ -401,7 +467,7 @@ export default function SignupPage() {
                   </div>
                   {/* Password Strength Indicator */}
                   {password && (
-                    <PasswordStrength password={password} />
+                    <PasswordStrength password={password} onBreachStatusChange={setIsPasswordBreached} />
                   )}
                 </div>
 
@@ -455,7 +521,7 @@ export default function SignupPage() {
 
                 <button
                   type="submit"
-                  disabled={loading || !captchaToken}
+                  disabled={loading || !captchaToken || isPasswordBreached}
                   className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
