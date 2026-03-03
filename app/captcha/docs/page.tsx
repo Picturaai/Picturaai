@@ -101,10 +101,21 @@ export default function CaptchaDocsPage() {
           {/* Main Content */}
           <main className="min-w-0">
             <motion.div initial="hidden" animate="visible" variants={fadeUp}>
-              <h1 className="text-3xl font-bold text-foreground mb-4">PicturaCAPTCHA Documentation</h1>
-              <p className="text-muted-foreground mb-8">
-                Everything you need to integrate PicturaCAPTCHA into your website or application.
-              </p>
+              {/* Hero */}
+              <div className="mb-10 pb-8 border-b border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                    <PicturaIcon size={24} className="text-primary-foreground" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Documentation</h1>
+                    <p className="text-sm text-muted-foreground">PicturaCAPTCHA Integration Guide</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground max-w-2xl">
+                  Everything you need to integrate PicturaCAPTCHA into your website or application. Get started in under 5 minutes.
+                </p>
+              </div>
               
               {/* Getting Started */}
               <section id="getting-started" className="mb-12 scroll-mt-24">

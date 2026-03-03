@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Check, Shield, Zap, Globe, Code2, ArrowRight, Copy, CheckCircle2, X } from 'lucide-react'
+import { Check, Shield, Globe, Code2, ArrowRight, Copy, CheckCircle2, X, Lock, Eye } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { SmartCaptcha } from '@/components/pictura/smart-captcha'
@@ -18,31 +17,6 @@ const fadeUp = {
     transition: { delay: i * 0.1, duration: 0.5 }
   })
 }
-
-// Brand logos as SVG components
-const RecaptchaLogo = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#4285F4"/>
-    <path d="M12 2v10l8.5 5c1-1.7 1.5-3.7 1.5-5.8 0-5.3-4.5-9.7-10-9.2z" fill="#34A853"/>
-    <path d="M2 12c0 4.4 2.9 8.2 7 9.5V12H2z" fill="#FBBC05"/>
-    <path d="M12 22c2.8 0 5.3-1.1 7.2-2.9L12 12v10z" fill="#EA4335"/>
-  </svg>
-)
-
-const HcaptchaLogo = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
-    <rect width="24" height="24" rx="4" fill="#0074BF"/>
-    <path d="M6 8h4v4H6V8zM14 8h4v4h-4V8zM6 14h4v4H6v-4zM14 14h4v4h-4v-4z" fill="white"/>
-  </svg>
-)
-
-const CloudflareLogo = () => (
-  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none">
-    <path d="M16.5 15.5l1-3.5c.2-.6 0-1.2-.5-1.5-.5-.3-1.2-.2-1.6.2l-4 3.8h5.1z" fill="#F6821F"/>
-    <path d="M19 12c-.1-.5-.5-.9-1-.9h-6.5l-.5 1.5c-.2.6 0 1.2.5 1.5.5.3 1.2.2 1.6-.2l3-2.9h2.9z" fill="#FBAD41"/>
-    <path d="M5 15.5h11l-1-3.5H7c-.8 0-1.5.5-1.8 1.2l-.2.8v1.5z" fill="#F6821F"/>
-  </svg>
-)
 
 export default function CaptchaPage() {
   const [copied, setCopied] = useState(false)
@@ -72,14 +46,14 @@ export default function CaptchaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-border/40 pt-24 pb-16 md:pt-32 md:pb-20">
-        <div className="absolute inset-0 -z-10">
+      <section className="relative border-b border-border/40 pt-20 pb-12 sm:pt-24 sm:pb-16 md:pt-32 md:pb-20">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] md:w-[800px] h-[600px] md:h-[800px] rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] sm:w-[600px] sm:h-[600px] md:w-[800px] md:h-[800px] rounded-full bg-primary/5 blur-3xl" />
         </div>
         
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -101,36 +75,36 @@ export default function CaptchaPage() {
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
                 PicturaCAPTCHA
               </h1>
-              <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
+              <p className="mt-4 text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
                 A free, privacy-first CAPTCHA service that protects your website from bots without annoying your users.
               </p>
               
-              <div className="mt-6 md:mt-8 flex flex-col sm:flex-row justify-center lg:justify-start gap-3 sm:gap-4">
+              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center lg:justify-start gap-3">
                 <Link
                   href="/captcha/signup"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
                 >
                   Get Free Site Key
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/captcha/docs"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3.5 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
                 >
                   Documentation
                 </Link>
               </div>
               
-              <div className="mt-6 md:mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-6 text-sm text-muted-foreground">
-                <span className="flex items-center gap-2">
+              <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-2 text-xs sm:text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-primary" />
                   No limits
                 </span>
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-primary" />
                   No tracking
                 </span>
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5">
                   <Check className="h-4 w-4 text-primary" />
                   No ads
                 </span>
@@ -144,9 +118,9 @@ export default function CaptchaPage() {
               variants={fadeUp}
               className="flex justify-center"
             >
-              <div className="relative w-full max-w-sm">
+              <div className="relative w-full max-w-xs sm:max-w-sm">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5 rounded-2xl blur-xl" />
-                <div className="relative bg-card border border-border rounded-2xl p-6 md:p-8 shadow-xl">
+                <div className="relative bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-xl">
                   <p className="text-sm font-medium text-foreground mb-4">Try it yourself:</p>
                   <SmartCaptcha 
                     onVerify={() => setDemoVerified(true)} 
@@ -170,7 +144,7 @@ export default function CaptchaPage() {
       </section>
       
       {/* Features */}
-      <section className="py-16 md:py-20">
+      <section className="py-12 sm:py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.div
             initial="hidden"
@@ -178,20 +152,20 @@ export default function CaptchaPage() {
             viewport={{ once: true }}
             custom={0}
             variants={fadeUp}
-            className="text-center mb-12 md:mb-16"
+            className="text-center mb-10 sm:mb-12"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Why PicturaCAPTCHA?</h2>
-            <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Why PicturaCAPTCHA?</h2>
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               Built by developers, for developers. No corporate surveillance, no paywalls, just protection.
             </p>
           </motion.div>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {[
-              { icon: Shield, title: 'Privacy First', desc: 'No tracking cookies, no data selling, no fingerprinting.' },
-              { icon: Zap, title: 'Lightning Fast', desc: 'Challenges load instantly. No slow image grids.' },
-              { icon: Globe, title: 'Global CDN', desc: 'Served from edge locations worldwide.' },
-              { icon: Code2, title: 'Easy Integration', desc: '3 lines of code. Works with all frameworks.' },
+              { icon: Shield, title: 'Privacy First', desc: 'No tracking cookies, no data selling.' },
+              { icon: Lock, title: 'Secure', desc: 'Strong bot detection algorithms.' },
+              { icon: Globe, title: 'Global CDN', desc: 'Served from edge locations.' },
+              { icon: Code2, title: 'Easy Integration', desc: '3 lines of code to integrate.' },
             ].map((feature, i) => (
               <motion.div
                 key={feature.title}
@@ -200,13 +174,13 @@ export default function CaptchaPage() {
                 viewport={{ once: true }}
                 custom={i}
                 variants={fadeUp}
-                className="rounded-xl border border-border bg-card p-5 md:p-6"
+                className="rounded-xl border border-border bg-card p-4 sm:p-5"
               >
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <feature.icon className="h-5 w-5 text-primary" />
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                  <feature.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 </div>
-                <h3 className="font-semibold text-foreground">{feature.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{feature.desc}</p>
+                <h3 className="font-semibold text-foreground text-sm sm:text-base">{feature.title}</h3>
+                <p className="mt-1 text-xs sm:text-sm text-muted-foreground">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -214,7 +188,7 @@ export default function CaptchaPage() {
       </section>
       
       {/* Comparison Table */}
-      <section className="py-16 md:py-20 bg-muted/30">
+      <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.div
             initial="hidden"
@@ -222,10 +196,10 @@ export default function CaptchaPage() {
             viewport={{ once: true }}
             custom={0}
             variants={fadeUp}
-            className="text-center mb-10 md:mb-12"
+            className="text-center mb-8 sm:mb-10"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">Compare CAPTCHA Solutions</h2>
-            <p className="mt-4 text-muted-foreground">See how we stack up against the competition</p>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Compare CAPTCHA Solutions</h2>
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground">See how we stack up against the competition</p>
           </motion.div>
           
           <motion.div
@@ -234,79 +208,62 @@ export default function CaptchaPage() {
             viewport={{ once: true }}
             custom={1}
             variants={fadeUp}
-            className="-mx-4 sm:mx-0 overflow-x-auto"
+            className="overflow-x-auto -mx-4 sm:mx-0"
           >
-            <div className="min-w-[640px] px-4 sm:px-0">
+            <div className="min-w-[600px] px-4 sm:px-0">
               <div className="rounded-xl border border-border bg-card overflow-hidden">
-                <table className="w-full border-collapse">
+                <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-border bg-muted/50">
-                      <th className="text-left py-4 px-4 md:px-6 font-semibold text-foreground text-sm">Feature</th>
-                      <th className="py-4 px-3 md:px-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <PicturaIcon size={20} />
-                          <span className="font-semibold text-primary text-sm">Pictura</span>
+                      <th className="text-left py-3 px-3 sm:px-4 font-semibold text-foreground">Feature</th>
+                      <th className="py-3 px-2 sm:px-3 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <PicturaIcon size={16} />
+                          <span className="font-semibold text-primary">Pictura</span>
                         </div>
                       </th>
-                      <th className="py-4 px-3 md:px-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <RecaptchaLogo />
-                          <span className="font-semibold text-muted-foreground text-sm hidden sm:inline">reCAPTCHA</span>
-                        </div>
-                      </th>
-                      <th className="py-4 px-3 md:px-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <HcaptchaLogo />
-                          <span className="font-semibold text-muted-foreground text-sm hidden sm:inline">hCaptcha</span>
-                        </div>
-                      </th>
-                      <th className="py-4 px-3 md:px-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <CloudflareLogo />
-                          <span className="font-semibold text-muted-foreground text-sm hidden sm:inline">Turnstile</span>
-                        </div>
-                      </th>
+                      <th className="py-3 px-2 sm:px-3 text-center font-semibold text-muted-foreground">reCAPTCHA</th>
+                      <th className="py-3 px-2 sm:px-3 text-center font-semibold text-muted-foreground">hCaptcha</th>
+                      <th className="py-3 px-2 sm:px-3 text-center font-semibold text-muted-foreground">Turnstile</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {[
-                      { feature: 'Price', pictura: 'Free Forever', recaptcha: 'Free / Paid', hcaptcha: 'Free / Paid', turnstile: 'Free / Paid' },
-                      { feature: 'Request Limit', pictura: 'Unlimited', recaptcha: '1M/month', hcaptcha: '1M/month', turnstile: '1M/month' },
+                      { feature: 'Price', pictura: 'Free Forever', recaptcha: 'Free/Paid', hcaptcha: 'Free/Paid', turnstile: 'Free/Paid' },
+                      { feature: 'Request Limit', pictura: 'Unlimited', recaptcha: '1M/mo', hcaptcha: '1M/mo', turnstile: '1M/mo' },
                       { feature: 'Privacy Focused', pictura: true, recaptcha: false, hcaptcha: 'Partial', turnstile: 'Partial' },
-                      { feature: 'No User Tracking', pictura: true, recaptcha: false, hcaptcha: false, turnstile: 'Partial' },
-                      { feature: 'Open Source', pictura: 'Soon', recaptcha: false, hcaptcha: false, turnstile: false },
+                      { feature: 'No Tracking', pictura: true, recaptcha: false, hcaptcha: false, turnstile: 'Partial' },
                       { feature: 'Invisible Mode', pictura: true, recaptcha: true, hcaptcha: true, turnstile: true },
-                      { feature: 'Challenge Types', pictura: '4+', recaptcha: '2', hcaptcha: '3', turnstile: '1' },
                       { feature: 'Accessibility', pictura: 'AAA', recaptcha: 'AA', hcaptcha: 'AA', turnstile: 'AA' },
                     ].map((row, i) => (
                       <tr key={row.feature} className={i % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
-                        <td className="py-3 md:py-4 px-4 md:px-6 font-medium text-foreground text-sm">{row.feature}</td>
-                        <td className="py-3 md:py-4 px-3 md:px-4 text-center">
+                        <td className="py-3 px-3 sm:px-4 font-medium text-foreground">{row.feature}</td>
+                        <td className="py-3 px-2 sm:px-3 text-center">
                           {typeof row.pictura === 'boolean' ? (
-                            row.pictura ? <Check className="h-5 w-5 text-primary mx-auto" /> : <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                            row.pictura ? <Check className="h-4 w-4 text-primary mx-auto" /> : <X className="h-4 w-4 text-muted-foreground mx-auto" />
                           ) : (
-                            <span className="text-primary font-medium text-sm">{row.pictura}</span>
+                            <span className="text-primary font-medium text-xs sm:text-sm">{row.pictura}</span>
                           )}
                         </td>
-                        <td className="py-3 md:py-4 px-3 md:px-4 text-center">
+                        <td className="py-3 px-2 sm:px-3 text-center">
                           {typeof row.recaptcha === 'boolean' ? (
-                            row.recaptcha ? <Check className="h-5 w-5 text-primary mx-auto" /> : <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                            row.recaptcha ? <Check className="h-4 w-4 text-primary mx-auto" /> : <X className="h-4 w-4 text-muted-foreground mx-auto" />
                           ) : (
-                            <span className="text-muted-foreground text-sm">{row.recaptcha}</span>
+                            <span className="text-muted-foreground text-xs sm:text-sm">{row.recaptcha}</span>
                           )}
                         </td>
-                        <td className="py-3 md:py-4 px-3 md:px-4 text-center">
+                        <td className="py-3 px-2 sm:px-3 text-center">
                           {typeof row.hcaptcha === 'boolean' ? (
-                            row.hcaptcha ? <Check className="h-5 w-5 text-primary mx-auto" /> : <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                            row.hcaptcha ? <Check className="h-4 w-4 text-primary mx-auto" /> : <X className="h-4 w-4 text-muted-foreground mx-auto" />
                           ) : (
-                            <span className="text-muted-foreground text-sm">{row.hcaptcha}</span>
+                            <span className="text-muted-foreground text-xs sm:text-sm">{row.hcaptcha}</span>
                           )}
                         </td>
-                        <td className="py-3 md:py-4 px-3 md:px-4 text-center">
+                        <td className="py-3 px-2 sm:px-3 text-center">
                           {typeof row.turnstile === 'boolean' ? (
-                            row.turnstile ? <Check className="h-5 w-5 text-primary mx-auto" /> : <X className="h-5 w-5 text-muted-foreground mx-auto" />
+                            row.turnstile ? <Check className="h-4 w-4 text-primary mx-auto" /> : <X className="h-4 w-4 text-muted-foreground mx-auto" />
                           ) : (
-                            <span className="text-muted-foreground text-sm">{row.turnstile}</span>
+                            <span className="text-muted-foreground text-xs sm:text-sm">{row.turnstile}</span>
                           )}
                         </td>
                       </tr>
@@ -315,7 +272,7 @@ export default function CaptchaPage() {
                 </table>
               </div>
             </div>
-            <p className="mt-2 text-center text-xs text-muted-foreground sm:hidden">
+            <p className="mt-2 text-center text-xs text-muted-foreground sm:hidden px-4">
               Swipe to see all providers
             </p>
           </motion.div>
@@ -323,7 +280,7 @@ export default function CaptchaPage() {
       </section>
       
       {/* Code Example */}
-      <section className="py-16 md:py-20">
+      <section className="py-12 sm:py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <motion.div
@@ -334,12 +291,12 @@ export default function CaptchaPage() {
               variants={fadeUp}
               className="order-2 lg:order-1"
             >
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">Integration in minutes</h2>
-              <p className="mt-4 text-muted-foreground">
-                Add PicturaCAPTCHA to your website with just a few lines of code. Works with React, Vue, Angular, vanilla JS, and any other framework.
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Integration in minutes</h2>
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground">
+                Add PicturaCAPTCHA to your website with just a few lines of code. Works with React, Vue, Angular, and vanilla JS.
               </p>
               
-              <div className="mt-6 md:mt-8 space-y-3 md:space-y-4">
+              <div className="mt-6 space-y-3">
                 {[
                   'Get your free site key',
                   'Add the script to your page',
@@ -347,17 +304,17 @@ export default function CaptchaPage() {
                   'Handle the verification callback'
                 ].map((step, i) => (
                   <div key={step} className="flex items-center gap-3">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    <span className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                       {i + 1}
                     </span>
-                    <span className="text-foreground">{step}</span>
+                    <span className="text-sm sm:text-base text-foreground">{step}</span>
                   </div>
                 ))}
               </div>
               
               <Link
                 href="/captcha/docs"
-                className="mt-6 md:mt-8 inline-flex items-center gap-2 text-primary hover:underline"
+                className="mt-6 inline-flex items-center gap-2 text-sm sm:text-base text-primary hover:underline"
               >
                 Read full documentation
                 <ArrowRight className="h-4 w-4" />
@@ -373,12 +330,12 @@ export default function CaptchaPage() {
               className="order-1 lg:order-2"
             >
               <div className="rounded-xl border border-border bg-card overflow-hidden shadow-lg">
-                <div className="flex items-center justify-between px-4 py-3 bg-muted/50 border-b border-border">
+                <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-muted/50 border-b border-border">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1.5">
-                      <span className="h-3 w-3 rounded-full bg-red-400" />
-                      <span className="h-3 w-3 rounded-full bg-yellow-400" />
-                      <span className="h-3 w-3 rounded-full bg-green-400" />
+                      <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-red-400" />
+                      <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-yellow-400" />
+                      <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-primary/60" />
                     </div>
                     <span className="text-xs text-muted-foreground ml-2">index.html</span>
                   </div>
@@ -390,22 +347,23 @@ export default function CaptchaPage() {
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <pre className="p-4 md:p-5 text-xs md:text-sm overflow-x-auto bg-background">
-                  <code>
-                    <span className="text-muted-foreground">{'<!-- 1. Add the script -->'}</span>{'\n'}
-                    <span className="text-muted-foreground">{'<'}</span><span className="text-primary">script</span> <span className="text-foreground">src</span><span className="text-muted-foreground">=</span><span className="text-amber-600 dark:text-amber-400">&quot;https://captcha.picturaai.sbs/api.js&quot;</span> <span className="text-primary">async defer</span><span className="text-muted-foreground">{'></'}</span><span className="text-primary">script</span><span className="text-muted-foreground">{'>'}</span>{'\n\n'}
-                    <span className="text-muted-foreground">{'<!-- 2. Add the CAPTCHA container -->'}</span>{'\n'}
-                    <span className="text-muted-foreground">{'<'}</span><span className="text-primary">div</span> <span className="text-foreground">id</span><span className="text-muted-foreground">=</span><span className="text-amber-600 dark:text-amber-400">&quot;pictura-captcha&quot;</span> <span className="text-foreground">data-sitekey</span><span className="text-muted-foreground">=</span><span className="text-amber-600 dark:text-amber-400">&quot;YOUR_SITE_KEY&quot;</span><span className="text-muted-foreground">{'></'}</span><span className="text-primary">div</span><span className="text-muted-foreground">{'>'}</span>{'\n\n'}
-                    <span className="text-muted-foreground">{'<!-- 3. Handle verification -->'}</span>{'\n'}
-                    <span className="text-muted-foreground">{'<'}</span><span className="text-primary">script</span><span className="text-muted-foreground">{'>'}</span>{'\n'}
-                    {'  '}<span className="text-primary">function</span> <span className="text-foreground">onCaptchaVerify</span><span className="text-muted-foreground">(</span><span className="text-foreground">token</span><span className="text-muted-foreground">)</span> <span className="text-muted-foreground">{'{'}</span>{'\n'}
-                    {'    '}<span className="text-muted-foreground">// Send token to your server</span>{'\n'}
-                    {'    '}<span className="text-foreground">fetch</span><span className="text-muted-foreground">(</span><span className="text-amber-600 dark:text-amber-400">&apos;/api/verify&apos;</span><span className="text-muted-foreground">,</span> <span className="text-muted-foreground">{'{'}</span>{'\n'}
-                    {'      '}<span className="text-foreground">method</span><span className="text-muted-foreground">:</span> <span className="text-amber-600 dark:text-amber-400">&apos;POST&apos;</span><span className="text-muted-foreground">,</span>{'\n'}
-                    {'      '}<span className="text-foreground">body</span><span className="text-muted-foreground">:</span> <span className="text-primary">JSON</span><span className="text-muted-foreground">.</span><span className="text-foreground">stringify</span><span className="text-muted-foreground">({'{'}</span> <span className="text-foreground">token</span> <span className="text-muted-foreground">{'}'})</span>{'\n'}
-                    {'    '}<span className="text-muted-foreground">{'}'})</span>{'\n'}
-                    {'  '}<span className="text-muted-foreground">{'}'}</span>{'\n'}
-                    <span className="text-muted-foreground">{'</'}</span><span className="text-primary">script</span><span className="text-muted-foreground">{'>'}</span>
+                <pre className="p-3 sm:p-4 text-xs sm:text-sm overflow-x-auto bg-background">
+                  <code className="text-foreground font-mono leading-relaxed whitespace-pre">
+{`<!-- 1. Add the script -->
+<script src="https://captcha.picturaai.sbs/api.js" async defer></script>
+
+<!-- 2. Add the CAPTCHA container -->
+<div id="pictura-captcha" data-sitekey="YOUR_SITE_KEY"></div>
+
+<!-- 3. Handle verification -->
+<script>
+  function onCaptchaVerify(token) {
+    fetch('/api/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token })
+    })
+  }
+</script>`}
                   </code>
                 </pre>
               </div>
@@ -415,8 +373,8 @@ export default function CaptchaPage() {
       </section>
       
       {/* CTA */}
-      <section className="py-16 md:py-20 bg-primary/5">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center">
+      <section className="py-12 sm:py-16 md:py-20 border-t border-border/40 bg-gradient-to-b from-primary/5 to-transparent">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -424,18 +382,25 @@ export default function CaptchaPage() {
             custom={0}
             variants={fadeUp}
           >
-            <PicturaIcon size={48} className="mx-auto" />
-            <h2 className="mt-6 text-2xl md:text-3xl font-bold text-foreground">Ready to protect your website?</h2>
-            <p className="mt-4 text-muted-foreground">
-              Get started in under 5 minutes. No credit card required, no usage limits, no catch.
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Ready to protect your website?</h2>
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
+              Get started in minutes with our free CAPTCHA service. No credit card required.
             </p>
-            <Link
-              href="/captcha/signup"
-              className="mt-6 md:mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
-            >
-              Get Your Free Site Key
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3">
+              <Link
+                href="/captcha/signup"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+              >
+                Get Free Site Key
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/captcha/docs"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+              >
+                Read Documentation
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>
