@@ -1,3 +1,6 @@
+// Pictura AI Email Templates - Clean, Vercel-inspired design
+// Brand color: #C4A484 (warm tan)
+
 export const emailTemplates = {
   otp: (name: string, otp: string) => `
 <!DOCTYPE html>
@@ -5,60 +8,67 @@ export const emailTemplates = {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email - Pictura AI</title>
+    <title>Verify Your Email</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8f7f4;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f7f4;">
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; min-height: 100vh;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 12px; overflow: hidden;">
-                    <!-- Header with Logo -->
-                    <tr style="background-color: #fafaf8;">
-                        <td align="center" style="padding: 40px 20px;">
-                            <table cellpadding="0" cellspacing="0" border="0">
+            <td align="center" style="padding: 40px 0;">
+                <table width="100%" style="max-width: 600px;" cellpadding="0" cellspacing="0">
+                    <!-- Logo -->
+                    <tr>
+                        <td style="padding: 0 20px 32px 20px;">
+                            <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width: 40px; height: 40px;">
-                                        <img src="https://picturaai.sbs/logo.png" alt="Pictura" width="40" height="40" style="display: block; border-radius: 8px;" />
+                                    <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                        <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                     </td>
-                                    <td style="padding-left: 12px;">
-                                        <span style="font-size: 26px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
+                                    <td style="padding-left: 10px;">
+                                        <span style="font-size: 20px; font-weight: 600; color: #000;">Pictura</span>
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
                     
-                    <!-- Main Content -->
+                    <!-- Main Card -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Verify Your Account</h1>
-                            <p style="margin: 0 0 24px 0; font-size: 15px; color: #666; line-height: 1.6;">Hi ${name},</p>
-                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">Your Pictura developer verification code is:</p>
-                            
-                            <!-- OTP Code -->
-                            <div style="background-color: #f8f7f4; border-radius: 8px; padding: 24px; margin: 32px 0; text-align: center;">
-                                <p style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: 4px; color: #c77d4a; font-family: 'Courier New', monospace;">${otp}</p>
-                            </div>
-                            
-                            <p style="margin: 0 0 24px 0; font-size: 14px; color: #999;">This code will expire in 10 minutes</p>
-                            
-                            <p style="margin: 0 0 40px 0; font-size: 14px; color: #666; line-height: 1.6;">If you didn't request this code, you can safely ignore this email.</p>
-                            
-                            <!-- Security Notice -->
-                            <div style="background-color: #fafaf8; border-left: 3px solid #c77d4a; padding: 16px; margin: 32px 0 0 0;">
-                                <p style="margin: 0; font-size: 12px; color: #666;">Never share your verification code with anyone. Pictura team will never ask for your code.</p>
-                            </div>
+                        <td style="padding: 0 20px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff; border: 1px solid #eaeaea; border-radius: 8px;">
+                                <tr>
+                                    <td style="padding: 40px;">
+                                        <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 600; color: #000; line-height: 1.3;">Verify your email address</h1>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Hi ${name},</p>
+                                        
+                                        <p style="margin: 0 0 32px 0; font-size: 14px; color: #666; line-height: 1.6;">Enter this verification code to complete your signup:</p>
+                                        
+                                        <!-- OTP Code -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 32px 0;">
+                                            <tr>
+                                                <td style="background-color: #fafafa; border: 1px solid #eaeaea; border-radius: 6px; padding: 24px; text-align: center;">
+                                                    <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #000; font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', monospace;">${otp}</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 13px; color: #999; line-height: 1.5;">This code expires in 10 minutes.</p>
+                                        
+                                        <hr style="border: none; border-top: 1px solid #eaeaea; margin: 32px 0;" />
+                                        
+                                        <p style="margin: 0; font-size: 13px; color: #999; line-height: 1.5;">If you didn't request this code, you can safely ignore this email. Someone may have entered your email by mistake.</p>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
-                    <tr style="background-color: #fafaf8; border-top: 1px solid #ebebeb;">
-                        <td style="padding: 30px; text-align: center;">
-                            <p style="margin: 0 0 16px 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
-                            <p style="margin: 0 0 16px 0; font-size: 12px;">
-                                <a href="https://x.com/GetPicturaAI" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">X (Twitter)</a>
-                                <a href="https://t.me/picturaai_bot" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Telegram</a>
-                                <a href="https://picturaai.sbs" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Website</a>
+                    <tr>
+                        <td style="padding: 32px 20px; text-align: center;">
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0; font-size: 12px; color: #999;">
+                                <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
                             </p>
                         </td>
                     </tr>
@@ -76,76 +86,109 @@ export const emailTemplates = {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Pictura AI - Developer Platform</title>
+    <title>Welcome to Pictura</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8f7f4;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f7f4;">
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; min-height: 100vh;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 12px; overflow: hidden;">
-                    <!-- Header -->
-                    <tr style="background: linear-gradient(135deg, #f8f7f4 0%, #fafaf8 100%);">
-                        <td align="center" style="padding: 40px 20px;">
-                            <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+            <td align="center" style="padding: 40px 0;">
+                <table width="100%" style="max-width: 600px;" cellpadding="0" cellspacing="0">
+                    <!-- Logo -->
+                    <tr>
+                        <td style="padding: 0 20px 32px 20px;">
+                            <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width: 40px; height: 40px; background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 10px; text-align: center; vertical-align: middle;">
-                                        <span style="color: white; font-size: 24px; font-weight: bold;">P</span>
+                                    <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                        <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                     </td>
-                                    <td style="padding-left: 12px;">
-                                        <span style="font-size: 30px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
+                                    <td style="padding-left: 10px;">
+                                        <span style="font-size: 20px; font-weight: 600; color: #000;">Pictura</span>
                                     </td>
                                 </tr>
                             </table>
-                            <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Welcome to the Platform</h1>
                         </td>
                     </tr>
                     
-                    <!-- Main Content -->
+                    <!-- Main Card -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <p style="margin: 0 0 24px 0; font-size: 15px; color: #666; line-height: 1.6;">Hi ${name},</p>
-                            <p style="margin: 0 0 16px 0; font-size: 15px; color: #666; line-height: 1.6;">Welcome to Pictura. Your developer account is ready, and we've added <strong>${credits} ${currency}</strong> in free credits to get you started.</p>
-                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">Build with our API. Add AI image generation to your products. Ship faster.</p>
-                            
-                            <!-- Credits Card -->
-                            <div style="background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 12px; padding: 32px; margin: 32px 0; text-align: center; color: white;">
-                                <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.9;">Available Credits</p>
-                                <p style="margin: 0; font-size: 36px; font-weight: 700;">${credits} ${currency}</p>
-                            </div>
-                            
-                            <h2 style="margin: 32px 0 16px 0; font-size: 18px; font-weight: 600; color: #1a1a1a;">Next Steps:</h2>
-                            <ol style="margin: 0; padding-left: 20px; color: #666;">
-                                <li style="margin-bottom: 12px;">
-                                    <strong><a href="https://picturaai.sbs/developers/dashboard" style="color: #c77d4a; text-decoration: none;">Go to Your Dashboard</a></strong> - Create API keys and manage your projects
-                                </li>
-                                <li style="margin-bottom: 12px;">
-                                    <strong>Read the <a href="https://picturaai.sbs/docs" style="color: #c77d4a; text-decoration: none;">Documentation</a></strong> - Learn how to use our API
-                                </li>
-                                <li style="margin-bottom: 12px;">
-                                    <strong>Try the <a href="https://picturaai.sbs/studio" style="color: #c77d4a; text-decoration: none;">Studio</a></strong> - Experiment with image generation
-                                </li>
-                                <li style="margin-bottom: 0;">
-                                    <strong>Install the SDK</strong> - Use our client library in your projects
-                                </li>
-                            </ol>
-                            
-                            <!-- CTA Button -->
-                            <div style="text-align: center; margin: 40px 0;">
-                                <a href="https://picturaai.sbs/developers/dashboard" style="display: inline-block; background-color: #c77d4a; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
-                                    Open Dashboard
-                                </a>
-                            </div>
+                        <td style="padding: 0 20px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff; border: 1px solid #eaeaea; border-radius: 8px;">
+                                <tr>
+                                    <td style="padding: 40px;">
+                                        <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 600; color: #000; line-height: 1.3;">Welcome to Pictura</h1>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Hi ${name},</p>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Your developer account is ready. We've added <strong style="color: #000;">${credits} ${currency}</strong> in free credits to help you get started.</p>
+                                        
+                                        <!-- Credits Box -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 32px 0;">
+                                            <tr>
+                                                <td style="background-color: #C4A484; border-radius: 6px; padding: 24px; text-align: center;">
+                                                    <p style="margin: 0 0 4px 0; font-size: 12px; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 0.5px;">Your Balance</p>
+                                                    <p style="margin: 0; font-size: 32px; font-weight: 700; color: #fff;">${credits} ${currency}</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Here's what you can do next:</p>
+                                        
+                                        <!-- Steps -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 32px 0;">
+                                            <tr>
+                                                <td style="padding: 16px; background-color: #fafafa; border: 1px solid #eaeaea; border-radius: 6px; margin-bottom: 8px;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 24px; height: 24px; background-color: #C4A484; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">1</td>
+                                                            <td style="padding-left: 12px; font-size: 14px; color: #000;">Create your first API key in the dashboard</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr><td style="height: 8px;"></td></tr>
+                                            <tr>
+                                                <td style="padding: 16px; background-color: #fafafa; border: 1px solid #eaeaea; border-radius: 6px;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 24px; height: 24px; background-color: #C4A484; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">2</td>
+                                                            <td style="padding-left: 12px; font-size: 14px; color: #000;">Read the API documentation</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr><td style="height: 8px;"></td></tr>
+                                            <tr>
+                                                <td style="padding: 16px; background-color: #fafafa; border: 1px solid #eaeaea; border-radius: 6px;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width: 24px; height: 24px; background-color: #C4A484; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">3</td>
+                                                            <td style="padding-left: 12px; font-size: 14px; color: #000;">Start generating images with your app</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- CTA Button -->
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td>
+                                                    <a href="https://picturaai.sbs/developers/dashboard" style="display: block; background-color: #000; color: #fff; padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px; text-align: center;">Go to Dashboard</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
-                    <tr style="background-color: #fafaf8; border-top: 1px solid #ebebeb;">
-                        <td style="padding: 30px; text-align: center;">
-                            <p style="margin: 0 0 16px 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
-                            <p style="margin: 0; font-size: 12px;">
-                                <a href="https://x.com/GetPicturaAI" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">X (Twitter)</a>
-                                <a href="https://t.me/picturaai_bot" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Telegram</a>
-                                <a href="https://picturaai.sbs" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Website</a>
+                    <tr>
+                        <td style="padding: 32px 20px; text-align: center;">
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0; font-size: 12px; color: #999;">
+                                <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
                             </p>
                         </td>
                     </tr>
@@ -163,56 +206,72 @@ export const emailTemplates = {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Low Credits Alert - Pictura AI</title>
+    <title>Low Credits Alert</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8f7f4;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f7f4;">
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; min-height: 100vh;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 12px; overflow: hidden;">
-                    <!-- Header -->
-                    <tr style="background-color: #fafaf8;">
-                        <td align="center" style="padding: 40px 20px;">
-                            <table cellpadding="0" cellspacing="0" border="0">
+            <td align="center" style="padding: 40px 0;">
+                <table width="100%" style="max-width: 600px;" cellpadding="0" cellspacing="0">
+                    <!-- Logo -->
+                    <tr>
+                        <td style="padding: 0 20px 32px 20px;">
+                            <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width: 36px; height: 36px; background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 8px; text-align: center; vertical-align: middle;">
-                                        <span style="color: white; font-size: 20px; font-weight: bold;">P</span>
+                                    <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                        <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                     </td>
-                                    <td style="padding-left: 12px;">
-                                        <span style="font-size: 26px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
+                                    <td style="padding-left: 10px;">
+                                        <span style="font-size: 20px; font-weight: 600; color: #000;">Pictura</span>
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
                     
-                    <!-- Main Content -->
+                    <!-- Main Card -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Low Credits Alert</h1>
-                            <p style="margin: 0 0 24px 0; font-size: 15px; color: #666; line-height: 1.6;">Hi ${name},</p>
-                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">Your Pictura AI account is running low on credits.</p>
-                            
-                            <!-- Alert Box -->
-                            <div style="background-color: #fff5f0; border-left: 4px solid #ff6b35; padding: 20px; margin: 32px 0; border-radius: 6px;">
-                                <p style="margin: 0; font-size: 18px; font-weight: 600; color: #ff6b35;">Credits Remaining: ${creditsRemaining} ${currency}</p>
-                            </div>
-                            
-                            <h2 style="margin: 24px 0 16px 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">Add Credits to Continue</h2>
-                            <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Visit your dashboard to add more credits and keep generating images without interruption.</p>
-                            
-                            <div style="text-align: center; margin: 40px 0;">
-                                <a href="https://picturaai.sbs/developers/dashboard/billing" style="display: inline-block; background-color: #c77d4a; color: white; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
-                                    Add Credits
-                                </a>
-                            </div>
+                        <td style="padding: 0 20px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff; border: 1px solid #eaeaea; border-radius: 8px;">
+                                <tr>
+                                    <td style="padding: 40px;">
+                                        <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 600; color: #000; line-height: 1.3;">Your credits are running low</h1>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Hi ${name},</p>
+                                        
+                                        <p style="margin: 0 0 32px 0; font-size: 14px; color: #666; line-height: 1.6;">Your Pictura account balance is getting low. Add more credits to continue generating images without interruption.</p>
+                                        
+                                        <!-- Balance Box -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 32px 0;">
+                                            <tr>
+                                                <td style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 24px; text-align: center;">
+                                                    <p style="margin: 0 0 4px 0; font-size: 12px; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px;">Remaining Balance</p>
+                                                    <p style="margin: 0; font-size: 32px; font-weight: 700; color: #dc2626;">${creditsRemaining} ${currency}</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- CTA Button -->
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td>
+                                                    <a href="https://picturaai.sbs/developers/dashboard/billing" style="display: block; background-color: #000; color: #fff; padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px; text-align: center;">Add Credits</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
-                    <tr style="background-color: #fafaf8; border-top: 1px solid #ebebeb;">
-                        <td style="padding: 30px; text-align: center;">
-                            <p style="margin: 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
+                    <tr>
+                        <td style="padding: 32px 20px; text-align: center;">
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0; font-size: 12px; color: #999;">
+                                <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
+                            </p>
                         </td>
                     </tr>
                 </table>
@@ -223,101 +282,104 @@ export const emailTemplates = {
 </html>
   `,
 
-  invoice: (name: string, invoiceId: string, amount: number, currency: string, items: any[], date: string) => `
+  invoice: (name: string, invoiceId: string, amount: number, currency: string, items: Array<{description: string, amount: number}>, date: string) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice ${invoiceId} - Pictura AI</title>
+    <title>Invoice ${invoiceId}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8f7f4;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f7f4;">
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; min-height: 100vh;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 12px; overflow: hidden;">
-                    <!-- Header -->
-                    <tr style="background-color: #fafaf8;">
-                        <td style="padding: 40px 30px;">
+            <td align="center" style="padding: 40px 0;">
+                <table width="100%" style="max-width: 600px;" cellpadding="0" cellspacing="0">
+                    <!-- Logo -->
+                    <tr>
+                        <td style="padding: 0 20px 32px 20px;">
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td align="left">
-                                        <table cellpadding="0" cellspacing="0" border="0">
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0">
                                             <tr>
-                                                <td style="width: 32px; height: 32px; background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 6px; text-align: center; vertical-align: middle;">
-                                                    <span style="color: white; font-size: 18px; font-weight: bold;">P</span>
+                                                <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                                    <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                                 </td>
                                                 <td style="padding-left: 10px;">
-                                                    <span style="font-size: 22px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
+                                                    <span style="font-size: 20px; font-weight: 600; color: #000;">Pictura</span>
                                                 </td>
                                             </tr>
                                         </table>
                                     </td>
-                                    <td align="right">
-                                        <p style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">INVOICE</p>
+                                    <td style="text-align: right;">
+                                        <span style="font-size: 14px; font-weight: 600; color: #000;">INVOICE</span>
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
                     
-                    <!-- Invoice Details -->
+                    <!-- Main Card -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <table width="100%" cellpadding="0" cellspacing="0">
+                        <td style="padding: 0 20px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff; border: 1px solid #eaeaea; border-radius: 8px;">
                                 <tr>
-                                    <td width="50%">
-                                        <p style="margin: 0 0 4px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Bill To</p>
-                                        <p style="margin: 0 0 16px 0; font-size: 15px; font-weight: 600; color: #1a1a1a;">${name}</p>
-                                    </td>
-                                    <td align="right">
-                                        <table cellpadding="0" cellspacing="0" align="right">
+                                    <td style="padding: 40px;">
+                                        <!-- Invoice Details -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 32px 0;">
                                             <tr>
-                                                <td style="padding: 0 12px 8px 0; font-size: 12px; color: #999;">Invoice #</td>
-                                                <td style="padding: 0 0 8px 0; font-size: 12px; color: #1a1a1a; font-weight: 600;">${invoiceId}</td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding: 0 12px 0 0; font-size: 12px; color: #999;">Date</td>
-                                                <td style="padding: 0 0 0 0; font-size: 12px; color: #1a1a1a; font-weight: 600;">${date}</td>
+                                                <td width="50%">
+                                                    <p style="margin: 0 0 4px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px;">Billed to</p>
+                                                    <p style="margin: 0; font-size: 14px; font-weight: 500; color: #000;">${name}</p>
+                                                </td>
+                                                <td style="text-align: right;">
+                                                    <p style="margin: 0 0 4px 0; font-size: 12px; color: #999;">Invoice #${invoiceId}</p>
+                                                    <p style="margin: 0; font-size: 12px; color: #999;">${date}</p>
+                                                </td>
                                             </tr>
                                         </table>
+                                        
+                                        <hr style="border: none; border-top: 1px solid #eaeaea; margin: 0 0 24px 0;" />
+                                        
+                                        <!-- Items -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 24px 0;">
+                                            <tr>
+                                                <td style="padding: 8px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #eaeaea;">Description</td>
+                                                <td style="padding: 8px 0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; text-align: right; border-bottom: 1px solid #eaeaea;">Amount</td>
+                                            </tr>
+                                            ${items.map(item => `
+                                            <tr>
+                                                <td style="padding: 16px 0; font-size: 14px; color: #000; border-bottom: 1px solid #eaeaea;">${item.description}</td>
+                                                <td style="padding: 16px 0; font-size: 14px; color: #000; text-align: right; border-bottom: 1px solid #eaeaea;">${item.amount} ${currency}</td>
+                                            </tr>
+                                            `).join('')}
+                                        </table>
+                                        
+                                        <!-- Total -->
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="padding: 16px 0; font-size: 16px; font-weight: 600; color: #000;">Total</td>
+                                                <td style="padding: 16px 0; font-size: 16px; font-weight: 600; color: #000; text-align: right;">${amount} ${currency}</td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <hr style="border: none; border-top: 1px solid #eaeaea; margin: 24px 0;" />
+                                        
+                                        <p style="margin: 0; font-size: 13px; color: #999; line-height: 1.5;">Thank you for using Pictura AI.</p>
                                     </td>
                                 </tr>
                             </table>
-                            
-                            <!-- Items Table -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 40px; border-collapse: collapse;">
-                                <tr style="border-bottom: 2px solid #ebebeb;">
-                                    <td style="padding: 12px 0; font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase;">Description</td>
-                                    <td align="right" style="padding: 12px 0; font-size: 12px; font-weight: 600; color: #999; text-transform: uppercase;">Amount</td>
-                                </tr>
-                                ${items.map(item => `
-                                <tr style="border-bottom: 1px solid #ebebeb;">
-                                    <td style="padding: 16px 0; font-size: 14px; color: #666;">${item.description}</td>
-                                    <td align="right" style="padding: 16px 0; font-size: 14px; color: #666;">${currency} ${item.amount.toFixed(2)}</td>
-                                </tr>
-                                `).join('')}
-                            </table>
-                            
-                            <!-- Total -->
-                            <div style="margin-top: 40px; padding-top: 24px; border-top: 2px solid #ebebeb;">
-                                <table width="100%" cellpadding="0" cellspacing="0">
-                                    <tr>
-                                        <td align="right">
-                                            <p style="margin: 0 0 4px 0; font-size: 12px; color: #999;">Total Amount</p>
-                                            <p style="margin: 0; font-size: 28px; font-weight: 700; color: #c77d4a;">${currency} ${amount.toFixed(2)}</p>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
-                    <tr style="background-color: #fafaf8; border-top: 1px solid #ebebeb;">
-                        <td style="padding: 30px; text-align: center;">
-                            <p style="margin: 0 0 12px 0; font-size: 12px; color: #999;">Thank you for using Pictura AI!</p>
-                            <p style="margin: 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
+                    <tr>
+                        <td style="padding: 32px 20px; text-align: center;">
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0; font-size: 12px; color: #999;">
+                                <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
+                            </p>
                         </td>
                     </tr>
                 </table>
@@ -336,64 +398,61 @@ export const emailTemplates = {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to PicturaCAPTCHA</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8f7f4;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f7f4;">
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fafafa; min-height: 100vh;">
         <tr>
-            <td align="center" style="padding: 40px 20px;">
-                <table width="100%" max-width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 12px; overflow: hidden;">
-                    <!-- Header with Logo -->
-                    <tr style="background-color: #fafaf8;">
-                        <td align="center" style="padding: 40px 20px;">
-                            <table cellpadding="0" cellspacing="0" border="0">
+            <td align="center" style="padding: 40px 0;">
+                <table width="100%" style="max-width: 600px;" cellpadding="0" cellspacing="0">
+                    <!-- Logo -->
+                    <tr>
+                        <td style="padding: 0 20px 32px 20px;">
+                            <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width: 40px; height: 40px;">
-                                        <img src="https://picturaai.sbs/logo.png" alt="Pictura" width="40" height="40" style="display: block; border-radius: 8px;" />
+                                    <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                        <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                     </td>
-                                    <td style="padding-left: 12px;">
-                                        <span style="font-size: 26px; font-weight: 700; letter-spacing: -0.5px;"><span style="color: #c77d4a;">Pictura</span><span style="color: #1a1a1a;">CAPTCHA</span></span>
+                                    <td style="padding-left: 10px;">
+                                        <span style="font-size: 20px; font-weight: 600; color: #000;">Pictura</span>
                                     </td>
                                 </tr>
                             </table>
                         </td>
                     </tr>
                     
-                    <!-- Main Content -->
+                    <!-- Main Card -->
                     <tr>
-                        <td style="padding: 40px 30px;">
-                            <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Welcome to PicturaCAPTCHA!</h1>
-                            <p style="margin: 0 0 24px 0; font-size: 15px; color: #666; line-height: 1.6;">Hi ${name},</p>
-                            <p style="margin: 0 0 16px 0; font-size: 15px; color: #666; line-height: 1.6;">Your PicturaCAPTCHA account has been successfully linked to your Pictura developer account.</p>
-                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">You now have access to the most advanced CAPTCHA solution, powered by behavioral biometrics and AI-driven challenge systems.</p>
-                            
-                            <!-- Features -->
-                            <div style="background-color: #f8f7f4; border-radius: 8px; padding: 24px; margin: 32px 0;">
-                                <h2 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1a1a1a;">What you get:</h2>
-                                <ul style="margin: 0; padding-left: 20px; color: #666; font-size: 14px; line-height: 1.8;">
-                                    <li><strong>Free forever</strong> - No usage limits, no hidden fees</li>
-                                    <li><strong>9 Challenge types</strong> - Math, patterns, images, biometrics, and more</li>
-                                    <li><strong>Behavioral analysis</strong> - Detect bots before they even solve a challenge</li>
-                                    <li><strong>Easy integration</strong> - Just 3 lines of code to add to your site</li>
-                                </ul>
-                            </div>
-                            
-                            <!-- CTA Button -->
-                            <div style="text-align: center; margin: 40px 0;">
-                                <a href="https://picturaai.sbs/captcha/dashboard" style="display: inline-block; background-color: #c77d4a; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">
-                                    Go to Dashboard
-                                </a>
-                            </div>
-                            
-                            <p style="margin: 0; font-size: 14px; color: #999; text-align: center;">Get your site key and start protecting your forms today.</p>
+                        <td style="padding: 0 20px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff; border: 1px solid #eaeaea; border-radius: 8px;">
+                                <tr>
+                                    <td style="padding: 40px;">
+                                        <h1 style="margin: 0 0 24px 0; font-size: 24px; font-weight: 600; color: #000; line-height: 1.3;">Welcome to PicturaCAPTCHA</h1>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Hi ${name},</p>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Your PicturaCAPTCHA account is ready. You can now protect your forms and applications with our AI-powered CAPTCHA solution.</p>
+                                        
+                                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #666; line-height: 1.6;">Get started by adding the CAPTCHA widget to your website. Check out our documentation for integration guides.</p>
+                                        
+                                        <!-- CTA Button -->
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td>
+                                                    <a href="https://picturaai.sbs/captcha/docs" style="display: block; background-color: #000; color: #fff; padding: 14px 24px; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 14px; text-align: center;">View Documentation</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
-                    <tr style="background-color: #fafaf8; border-top: 1px solid #ebebeb;">
-                        <td style="padding: 30px; text-align: center;">
-                            <p style="margin: 0 0 16px 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
-                            <p style="margin: 0; font-size: 12px;">
-                                <a href="https://picturaai.sbs/captcha/docs" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Documentation</a>
-                                <a href="https://picturaai.sbs/captcha" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Learn More</a>
+                    <tr>
+                        <td style="padding: 32px 20px; text-align: center;">
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0; font-size: 12px; color: #999;">
+                                <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
                             </p>
                         </td>
                     </tr>
