@@ -19,15 +19,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (!sessionToken) {
-      return NextResponse.json({ 
-        authenticated: false, 
-        developer: null 
-      })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Verify session token and get developer info
     const sessions = await sql`
-      SELECT s.*, d.id as developer_id, d.name, d.email, d.credits_balance, d.currency
+      SELECT s.developer_id, d.id, d.name, d.email, d.full_name, d.credits_balance, d.currency
       FROM developer_sessions s
       JOIN developers d ON s.developer_id = d.id
       WHERE s.session_token = ${sessionToken} 
@@ -35,32 +32,23 @@ export async function GET(request: NextRequest) {
     `
 
     if (sessions.length === 0) {
-      // Invalid or expired session
-      return NextResponse.json({ 
-        authenticated: false, 
-        developer: null 
-      })
+      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
 
-    const session = sessions[0]
+    const dev = sessions[0]
 
     return NextResponse.json({
-      authenticated: true,
       developer: {
-        id: session.developer_id,
-        name: session.name,
-        email: session.email,
-        credits: session.credits_balance,
-        currency: session.currency
+        id: dev.id,
+        name: dev.name || dev.full_name,
+        email: dev.email,
+        credits: dev.credits_balance,
+        currency: dev.currency
       }
     })
 
   } catch (error) {
-    console.error('Session check error:', error)
-    return NextResponse.json({ 
-      authenticated: false, 
-      developer: null,
-      error: 'Failed to verify session'
-    })
+    console.error('Auth me error:', error)
+    return NextResponse.json({ error: 'Failed to get user' }, { status: 500 })
   }
 }

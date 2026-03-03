@@ -18,6 +18,7 @@ export default function CaptchaLoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [captchaVerified, setCaptchaVerified] = useState(false)
+  const [captchaKey, setCaptchaKey] = useState(0)
 
   const handlePicturaLogin = () => {
     // Redirect to verification flow which checks for existing account
@@ -42,19 +43,31 @@ export default function CaptchaLoginPage() {
       const res = await fetch('/api/developers/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password })
       })
 
       const data = await res.json()
 
-      if (res.ok) {
+      if (res.ok && data.token) {
+        // Store session for fallback
+        localStorage.setItem('pictura_session', data.token)
+        localStorage.setItem('pictura_developer', JSON.stringify(data.developer))
         toast.success('Welcome back!')
-        router.push('/captcha/dashboard')
+        // Small delay then redirect
+        setTimeout(() => {
+          window.location.href = '/captcha/dashboard'
+        }, 100)
       } else {
         toast.error(data.error || 'Invalid credentials')
+        // Reset CAPTCHA on failed login
+        setCaptchaVerified(false)
+        setCaptchaKey(prev => prev + 1)
       }
     } catch {
       toast.error('Something went wrong')
+      setCaptchaVerified(false)
+      setCaptchaKey(prev => prev + 1)
     } finally {
       setLoading(false)
     }
@@ -151,6 +164,7 @@ export default function CaptchaLoginPage() {
 
                 <div className="pt-2">
                   <SmartCaptcha 
+                    key={captchaKey}
                     onVerify={() => setCaptchaVerified(true)} 
                     size="compact"
                   />

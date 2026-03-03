@@ -46,18 +46,30 @@ export default function CaptchaDashboard() {
     checkAuth()
   }, [])
 
+  const getAuthHeaders = (): HeadersInit => {
+    const localToken = localStorage.getItem('pictura_session')
+    const headers: HeadersInit = {}
+    if (localToken) {
+      headers['Authorization'] = `Bearer ${localToken}`
+    }
+    return headers
+  }
+  
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/developers/auth/me')
+      const res = await fetch('/api/developers/auth/me', {
+        credentials: 'include',
+        headers: getAuthHeaders()
+      })
       if (res.ok) {
         const data = await res.json()
         setDeveloper(data.developer)
         fetchSites()
       } else {
-        router.push('/captcha/login')
+        window.location.href = '/captcha/login'
       }
     } catch {
-      router.push('/captcha/login')
+      window.location.href = '/captcha/login'
     } finally {
       setLoading(false)
     }
@@ -65,7 +77,10 @@ export default function CaptchaDashboard() {
 
   const fetchSites = async () => {
     try {
-      const res = await fetch('/api/captcha/sites')
+      const res = await fetch('/api/captcha/sites', {
+        credentials: 'include',
+        headers: getAuthHeaders()
+      })
       if (res.ok) {
         const data = await res.json()
         setSites(data.sites || [])
@@ -94,7 +109,8 @@ export default function CaptchaDashboard() {
     try {
       const res = await fetch('/api/captcha/sites', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        credentials: 'include',
         body: JSON.stringify({ domain: cleanDomain })
       })
       

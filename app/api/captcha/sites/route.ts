@@ -13,17 +13,25 @@ function generateSecretKey() {
   return 'sk_live_' + crypto.randomBytes(24).toString('hex')
 }
 
-async function getDevFromSession() {
+async function getDevFromSession(request?: NextRequest) {
   const cookieStore = await cookies()
-  const sessionId = cookieStore.get('dev_session')?.value
+  let sessionToken = cookieStore.get('pictura_session')?.value
   
-  if (!sessionId) return null
+  // Fallback to Authorization header
+  if (!sessionToken && request) {
+    const authHeader = request.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      sessionToken = authHeader.substring(7)
+    }
+  }
+  
+  if (!sessionToken) return null
   
   const sessions = await sql`
     SELECT d.id, d.name, d.email 
     FROM developer_sessions s
     JOIN developers d ON d.id = s.developer_id
-    WHERE s.session_token = ${sessionId}
+    WHERE s.session_token = ${sessionToken}
     AND s.expires_at > NOW()
   `
   
@@ -31,9 +39,9 @@ async function getDevFromSession() {
 }
 
 // GET - List all sites for the developer
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const dev = await getDevFromSession()
+    const dev = await getDevFromSession(request)
     if (!dev) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -58,7 +66,7 @@ export async function GET() {
 // POST - Add a new site
 export async function POST(req: NextRequest) {
   try {
-    const dev = await getDevFromSession()
+    const dev = await getDevFromSession(req)
     if (!dev) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

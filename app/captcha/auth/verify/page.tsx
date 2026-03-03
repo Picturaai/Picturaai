@@ -26,7 +26,17 @@ function VerifyContent() {
         setStatus('checking')
         await new Promise(resolve => setTimeout(resolve, 800))
         
-        const sessionRes = await fetch('/api/developers/auth/session')
+        // Get token from localStorage as fallback
+        const localToken = localStorage.getItem('pictura_session')
+        const headers: HeadersInit = {}
+        if (localToken) {
+          headers['Authorization'] = `Bearer ${localToken}`
+        }
+        
+        const sessionRes = await fetch('/api/developers/auth/session', {
+          credentials: 'include',
+          headers
+        })
         const sessionData = await sessionRes.json()
 
         // Check if user is authenticated
