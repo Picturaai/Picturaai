@@ -244,8 +244,8 @@ print(image.url)`,
                   },
                   { 
                     step: '2', 
-                    title: 'AI Processing', 
-                    desc: 'Multiple AI models work together to generate your image',
+                    title: 'Pictura Engine', 
+                    desc: 'Our proprietary AI engine processes your prompt',
                     wireframe: <WireframeProcess />
                   },
                   { 

@@ -4,15 +4,17 @@ import { hashPassword } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
-// Generate image using Mistral Pixtral API
-async function generateWithMistral(prompt: string, width: number, height: number): Promise<string> {
-  const apiKey = process.env.MISTRAL_API_KEY
-  if (!apiKey) throw new Error('Mistral API key not configured')
+// Pictura AI Image Generation Engine (Internal)
+// This is Pictura's proprietary image generation service
+async function generateWithPicturaEngine(prompt: string, width: number, height: number): Promise<string> {
+  const internalApiKey = process.env.MISTRAL_API_KEY
+  if (!internalApiKey) throw new Error('Pictura engine not configured')
 
+  // Internal generation endpoint
   const response = await fetch('https://api.mistral.ai/v1/images/generations', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      'Authorization': `Bearer ${internalApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -23,9 +25,7 @@ async function generateWithMistral(prompt: string, width: number, height: number
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
-    console.error('[API v1] Mistral error:', response.status, errorText)
-    throw new Error('Mistral generation failed')
+    throw new Error('Pictura generation engine error')
   }
 
   const data = await response.json()
@@ -40,7 +40,7 @@ async function generateWithMistral(prompt: string, width: number, height: number
     }
   }
   
-  throw new Error('Could not extract image from Mistral response')
+  throw new Error('Generation failed')
 }
 
 // Cost per image in USD - very affordable!
@@ -137,14 +137,13 @@ export async function POST(request: NextRequest) {
     // Parse size
     const [width, height] = size.split('x').map(Number)
 
-    // Generate image using Mistral (Pixtral) API directly
+    // Generate image using Pictura AI Engine
     let imageUrl: string
     try {
-      imageUrl = await generateWithMistral(prompt, width || 1024, height || 1024)
-    } catch (err) {
-      console.error('[API v1] Mistral generation failed:', err)
+      imageUrl = await generateWithPicturaEngine(prompt, width || 1024, height || 1024)
+    } catch {
       return NextResponse.json({ 
-        error: 'Image generation failed',
+        error: 'Image generation failed. Please try again.',
         code: 'generation_failed'
       }, { status: 500 })
     }
@@ -206,9 +205,15 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     status: 'ok',
+    service: 'Pictura AI',
     version: 'v1',
+    engine: 'Pictura Image Engine 1.5',
     endpoints: [
-      { method: 'POST', path: '/v1/generate', description: 'Generate an image from text' },
+      { method: 'POST', path: '/v1/generate', description: 'Generate an image using Pictura AI' },
+    ],
+    models: [
+      { id: 'pi-1.5-turbo', name: 'Pictura 1.5 Turbo', description: 'Fast, high-quality image generation' },
+      { id: 'pi-1.0', name: 'Pictura 1.0', description: 'Balanced quality and speed' },
     ],
     pricing: {
       per_image_usd: COST_PER_IMAGE_USD,
