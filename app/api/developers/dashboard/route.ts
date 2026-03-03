@@ -39,10 +39,12 @@ async function verifySession(token: string): Promise<{ developerId: string } | n
 function getTokenFromRequest(req: NextRequest): string | null {
   // First try cookie
   const cookieToken = req.cookies.get('pictura_session')?.value
+  console.log('[v0] getTokenFromRequest - Cookie token found:', !!cookieToken)
   if (cookieToken) return cookieToken
   
-  // Then try Authorization header
+  // Then try Authorization header (for localStorage fallback)
   const authHeader = req.headers.get('authorization')
+  console.log('[v0] getTokenFromRequest - Auth header found:', !!authHeader)
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7)
   }

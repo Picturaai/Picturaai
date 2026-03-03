@@ -115,8 +115,19 @@ export default function DeveloperDashboard() {
   const fetchDashboard = useCallback(async () => {
     try {
       console.log('[v0] Dashboard - Fetching dashboard data...')
+      
+      // Get token from localStorage as fallback
+      const localToken = localStorage.getItem('pictura_session')
+      console.log('[v0] Dashboard - Local token found:', !!localToken)
+      
+      const headers: HeadersInit = {}
+      if (localToken) {
+        headers['Authorization'] = `Bearer ${localToken}`
+      }
+      
       const res = await fetch('/api/developers/dashboard', {
         credentials: 'include',
+        headers,
       })
 
       console.log('[v0] Dashboard - Response status:', res.status)
@@ -125,7 +136,9 @@ export default function DeveloperDashboard() {
         const errorData = await res.json().catch(() => ({}))
         console.log('[v0] Dashboard - Error response:', errorData)
         if (res.status === 401) {
-          console.log('[v0] Dashboard - Unauthorized, redirecting to login')
+          console.log('[v0] Dashboard - Unauthorized, clearing local storage and redirecting to login')
+          localStorage.removeItem('pictura_session')
+          localStorage.removeItem('pictura_developer')
           window.location.href = '/developers/login'
           return
         }
@@ -156,8 +169,13 @@ export default function DeveloperDashboard() {
 
   const handleLogout = async () => {
     try {
+      const localToken = localStorage.getItem('pictura_session')
+      const headers: HeadersInit = {}
+      if (localToken) headers['Authorization'] = `Bearer ${localToken}`
+      
       await fetch('/api/developers/auth/logout', {
         method: 'POST',
+        headers,
         credentials: 'include',
       })
     } finally {
@@ -175,9 +193,13 @@ export default function DeveloperDashboard() {
 
     setCreatingKey(true)
     try {
+      const localToken = localStorage.getItem('pictura_session')
+      const headers: HeadersInit = { 'Content-Type': 'application/json' }
+      if (localToken) headers['Authorization'] = `Bearer ${localToken}`
+      
       const res = await fetch('/api/developers/api-keys', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ name: newKeyName.trim() }),
       })
@@ -203,8 +225,13 @@ export default function DeveloperDashboard() {
 
     setDeletingKey(true)
     try {
+      const localToken = localStorage.getItem('pictura_session')
+      const headers: HeadersInit = {}
+      if (localToken) headers['Authorization'] = `Bearer ${localToken}`
+      
       const res = await fetch(`/api/developers/api-keys?id=${keyToDelete.id}`, {
         method: 'DELETE',
+        headers,
         credentials: 'include',
       })
 

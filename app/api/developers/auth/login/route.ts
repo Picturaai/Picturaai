@@ -7,9 +7,11 @@ const sql = neon(process.env.DATABASE_URL!)
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json()
+    
+    console.log('[v0] Login API - Attempting login for:', email?.toLowerCase())
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Missing email or password' }, { status: 400 })
+      return NextResponse.json({ error: 'Please enter both email and password' }, { status: 400 })
     }
 
     // Find developer
@@ -18,18 +20,33 @@ export async function POST(req: NextRequest) {
       FROM developers
       WHERE email = ${email.toLowerCase()}
     `
+    
+    console.log('[v0] Login API - Found developers:', developers.length)
 
     if (developers.length === 0) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return NextResponse.json({ error: 'No account found with this email. Please sign up first.' }, { status: 401 })
     }
 
     const developer = developers[0]
+    
+    console.log('[v0] Login API - Developer found:', developer.id)
+    console.log('[v0] Login API - Password hash exists:', !!developer.password_hash)
+    console.log('[v0] Login API - Password hash length:', developer.password_hash?.length)
+
+    // Check if password hash exists (account might be created via OTP only)
+    if (!developer.password_hash) {
+      console.log('[v0] Login API - No password hash stored for this account')
+      return NextResponse.json({ error: 'Please complete your registration first' }, { status: 401 })
+    }
 
     // Verify password
-    const passwordMatch = verifyPassword(password, developer.password_hash)
+    const inputPasswordHash = verifyPassword(password, developer.password_hash)
+    console.log('[v0] Login API - Password verification result:', inputPasswordHash)
+    
+    const passwordMatch = inputPasswordHash
 
     if (!passwordMatch) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      return NextResponse.json({ error: 'Incorrect password. Please try again.' }, { status: 401 })
     }
 
     // Generate session token

@@ -64,17 +64,21 @@ export default function LoginPage() {
       const data = await res.json()
       console.log('[v0] Login - response status:', res.status, 'data:', data)
 
-      if (res.ok) {
-        console.log('[v0] Login - success! Redirecting to dashboard...')
-        // Store session info for client-side access
+      if (res.ok && data.token) {
+        console.log('[v0] Login - success! Token received, redirecting to dashboard...')
+        // Store session info for client-side access (fallback if cookies fail)
         localStorage.setItem('pictura_session', data.token)
         localStorage.setItem('pictura_developer', JSON.stringify(data.developer))
+        // Clear saved login email on successful login
+        localStorage.removeItem(LOGIN_EMAIL_KEY)
         toast.success('Welcome back!')
-        // Use full page redirect to ensure cookies are read
-        window.location.href = '/developers/dashboard'
+        // Small delay to ensure cookies are set before redirect
+        setTimeout(() => {
+          window.location.href = '/developers/dashboard'
+        }, 100)
       } else {
         console.log('[v0] Login - failed:', data.error)
-        toast.error(data.error || 'Invalid credentials')
+        toast.error(data.error || 'Login failed. Please try again.')
         // Reset CAPTCHA on failed login
         setCaptchaToken(null)
         setCaptchaKey(prev => prev + 1)
