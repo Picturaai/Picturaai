@@ -54,11 +54,11 @@ export const emailTemplates = {
                     <!-- Footer -->
                     <tr style="background-color: #fafaf8; border-top: 1px solid #ebebeb;">
                         <td style="padding: 30px; text-align: center;">
-                            <p style="margin: 0 0 12px 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
-                            <p style="margin: 0; font-size: 12px;">
-                                <a href="https://picturaai.sbs" style="color: #c77d4a; text-decoration: none; margin: 0 12px;">Website</a>
-                                <a href="https://picturaai.sbs/blog" style="color: #c77d4a; text-decoration: none; margin: 0 12px;">Blog</a>
-                                <a href="https://picturaai.sbs/contact" style="color: #c77d4a; text-decoration: none; margin: 0 12px;">Contact</a>
+                            <p style="margin: 0 0 16px 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
+                            <p style="margin: 0 0 16px 0; font-size: 12px;">
+                                <a href="https://x.com/GetPicturaAI" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">X (Twitter)</a>
+                                <a href="https://t.me/picturaai_bot" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Telegram</a>
+                                <a href="https://picturaai.sbs" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Website</a>
                             </p>
                         </td>
                     </tr>
@@ -104,8 +104,8 @@ export const emailTemplates = {
                     <tr>
                         <td style="padding: 40px 30px;">
                             <p style="margin: 0 0 24px 0; font-size: 15px; color: #666; line-height: 1.6;">Hi ${name},</p>
-                            <p style="margin: 0 0 16px 0; font-size: 15px; color: #666; line-height: 1.6;">Welcome to Pictura! Your developer account is now active. We've added <strong>${credits} ${currency}</strong> in free credits to your account.</p>
-                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">Use these credits to integrate AI image generation into your applications. No credit card required to get started.</p>
+                            <p style="margin: 0 0 16px 0; font-size: 15px; color: #666; line-height: 1.6;">Welcome to Pictura. Your developer account is ready, and we've added <strong>${credits} ${currency}</strong> in free credits to get you started.</p>
+                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">Build with our API. Add AI image generation to your products. Ship faster.</p>
                             
                             <!-- Credits Card -->
                             <div style="background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 12px; padding: 32px; margin: 32px 0; text-align: center; color: white;">
@@ -141,7 +141,12 @@ export const emailTemplates = {
                     <!-- Footer -->
                     <tr style="background-color: #fafaf8; border-top: 1px solid #ebebeb;">
                         <td style="padding: 30px; text-align: center;">
-                            <p style="margin: 0 0 12px 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
+                            <p style="margin: 0 0 16px 0; font-size: 12px; color: #999;">© 2026 Pictura AI. All rights reserved.</p>
+                            <p style="margin: 0; font-size: 12px;">
+                                <a href="https://x.com/GetPicturaAI" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">X (Twitter)</a>
+                                <a href="https://t.me/picturaai_bot" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Telegram</a>
+                                <a href="https://picturaai.sbs" style="color: #c77d4a; text-decoration: none; margin: 0 10px;">Website</a>
+                            </p>
                         </td>
                     </tr>
                 </table>

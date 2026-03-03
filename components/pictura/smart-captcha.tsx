@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, RefreshCw, Loader2 } from 'lucide-react'
+import { PicturaIcon } from './pictura-logo'
 
 type ChallengeType = 'math' | 'pattern' | 'word' | 'sequence'
 
@@ -128,7 +129,6 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
     if (state !== 'challenge' || !challenge) return
     setSelected(answer)
 
-    // Fast verification - just 150ms delay for visual feedback
     setTimeout(() => {
       if (answer === challenge.answer) {
         setState('verified')
@@ -141,12 +141,11 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
           setState('failed')
           setTimeout(() => startChallenge(), 500)
         } else {
-          // Generate new challenge on wrong answer
           setChallenge(generateChallenge())
           setSelected(null)
         }
       }
-    }, 150)
+    }, 100)
   }, [state, challenge, attempts, onVerify, startChallenge])
 
   useEffect(() => {
@@ -157,7 +156,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
   }, [state, onExpire])
 
   return (
-    <div className="w-full max-w-sm mx-auto">
+    <div className="w-full max-w-xs mx-auto">
       <AnimatePresence mode="wait">
         {state === 'idle' && (
           <motion.button
@@ -167,15 +166,12 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             exit={{ opacity: 0 }}
             type="button"
             onClick={startChallenge}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md border border-border bg-card hover:border-primary/40 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border bg-card hover:border-primary/50 transition-all"
           >
-            <div className="w-5 h-5 rounded border-2 border-muted-foreground/40 flex items-center justify-center shrink-0" />
+            <div className="w-5 h-5 rounded border-2 border-muted-foreground/40" />
             <span className="text-sm text-foreground">I&apos;m not a robot</span>
-            <div className="ml-auto flex items-center gap-1.5 shrink-0">
-              <div className="w-4 h-4 rounded bg-primary/10 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-primary">P</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground hidden sm:inline">Pictura</span>
+            <div className="ml-auto flex items-center gap-1.5">
+              <PicturaIcon size={18} />
             </div>
           </motion.button>
         )}
@@ -185,18 +181,16 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             key="challenge"
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="rounded-md border border-border bg-card overflow-hidden"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            className="rounded-lg border border-border bg-card overflow-hidden shadow-sm"
           >
-            <div className="flex items-center justify-between px-3 py-2 bg-secondary/50 border-b border-border">
+            <div className="flex items-center justify-between px-3 py-2 bg-secondary/40 border-b border-border">
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded bg-primary flex items-center justify-center">
-                  <span className="text-xs font-bold text-primary-foreground">P</span>
-                </div>
+                <PicturaIcon size={20} />
                 <span className="text-xs font-medium text-foreground">Verify you&apos;re human</span>
               </div>
-              <button type="button" onClick={startChallenge} className="p-1 rounded hover:bg-secondary transition-colors" title="New challenge">
+              <button type="button" onClick={startChallenge} className="p-1 rounded hover:bg-secondary transition-colors">
                 <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
             </div>
@@ -212,7 +206,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
                     type="button"
                     onClick={() => handleSelect(opt)}
                     disabled={selected !== null}
-                    className={`px-3 py-2 rounded border text-sm font-medium transition-all ${
+                    className={`px-3 py-2 rounded-md border text-sm font-medium transition-all ${
                       selected === opt
                         ? opt === challenge.answer
                           ? 'bg-primary/10 border-primary text-primary'
@@ -232,7 +226,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
               )}
             </div>
 
-            <div className="flex items-center justify-between px-3 py-1.5 bg-secondary/30 border-t border-border">
+            <div className="flex items-center justify-between px-3 py-1.5 bg-secondary/20 border-t border-border">
               <span className="text-[9px] text-muted-foreground">PicturaCAPTCHA</span>
               <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
                 <a href="/privacy" className="hover:underline">Privacy</a>
@@ -248,18 +242,14 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             key="verified"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-primary/30 bg-primary/5"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-primary/30 bg-primary/5"
           >
-            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
+            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
               <Check className="w-3 h-3 text-primary-foreground" />
             </div>
             <span className="text-sm text-foreground">Verified</span>
-            <div className="ml-auto flex items-center gap-1.5 shrink-0">
-              <div className="w-4 h-4 rounded bg-primary/10 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-primary">P</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground hidden sm:inline">Pictura</span>
+            <div className="ml-auto">
+              <PicturaIcon size={18} />
             </div>
           </motion.div>
         )}
@@ -269,10 +259,9 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             key="failed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-md border border-destructive/30 bg-destructive/5"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-destructive/30 bg-destructive/5"
           >
-            <Loader2 className="w-4 h-4 text-destructive animate-spin shrink-0" />
+            <Loader2 className="w-4 h-4 text-destructive animate-spin" />
             <span className="text-sm text-destructive">Loading new challenge...</span>
           </motion.div>
         )}

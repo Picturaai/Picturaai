@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     // Create developer account
     const developer = await sql`
       INSERT INTO developers (
-        full_name,
+        name,
         email,
         password_hash,
         phone,
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         ${credits},
         true
       )
-      RETURNING id, email, full_name, credits_balance, currency
+      RETURNING id, email, name, credits_balance, currency
     `
 
     if (developer.length === 0) {
@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
       apiKey, // Shown once - won't be displayed again
       developer: {
         id: dev.id,
-        name: dev.full_name,
+        name: dev.name,
         email: dev.email,
         credits: dev.credits_balance,
         currency: dev.currency,
