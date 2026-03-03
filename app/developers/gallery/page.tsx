@@ -12,7 +12,7 @@ import {
   Grid3X3, LayoutGrid, Clock, Sparkles, ImageIcon, Filter
 } from 'lucide-react'
 import Link from 'next/link'
-import { PicturaIcon } from '@/components/pictura/pictura-icon'
+import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 interface ImageItem {
   id: number

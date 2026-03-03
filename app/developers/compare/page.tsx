@@ -13,7 +13,7 @@ import {
   RefreshCw, Zap, ImageIcon
 } from 'lucide-react'
 import Link from 'next/link'
-import { PicturaIcon } from '@/components/pictura/pictura-icon'
+import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 interface ModelResult {
   model: string

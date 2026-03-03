@@ -10,7 +10,7 @@ import {
   ImageIcon, DollarSign, Activity, Calendar
 } from 'lucide-react'
 import Link from 'next/link'
-import { PicturaIcon } from '@/components/pictura/pictura-icon'
+import { PicturaIcon } from '@/components/pictura/pictura-logo'
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
