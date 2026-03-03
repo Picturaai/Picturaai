@@ -139,8 +139,9 @@ export async function POST(req: NextRequest) {
         currency: dev.currency,
       },
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('OTP verification error:', error)
-    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: `Something went wrong: ${errorMessage}` }, { status: 500 })
   }
 }

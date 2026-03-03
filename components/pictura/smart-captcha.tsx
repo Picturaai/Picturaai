@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, RefreshCw, Loader2 } from 'lucide-react'
-import { PicturaIcon } from './pictura-logo'
+import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 type ChallengeType = 'math' | 'pattern' | 'word' | 'sequence'
 
