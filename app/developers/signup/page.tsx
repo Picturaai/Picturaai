@@ -385,7 +385,10 @@ export default function SignupPage() {
 
                 {/* Smart CAPTCHA */}
                 <SmartCaptcha 
-                  onVerify={(token) => setCaptchaToken(token)} 
+                  onVerify={(token) => {
+                    console.log('[v0] Signup - Received CAPTCHA token:', token)
+                    setCaptchaToken(token)
+                  }} 
                 />
 
                 <button

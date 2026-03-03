@@ -24,7 +24,7 @@ function WireframeRequest() {
   return (
     <div className="bg-background rounded-lg border border-border/50 p-3 h-full">
       <div className="flex items-center gap-2 mb-2">
-        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+        <div className="h-1.5 w-1.5 rounded-full bg-primary" />
         <div className="h-1 w-8 bg-muted-foreground/20 rounded" />
       </div>
       <div className="space-y-1.5">
@@ -80,15 +80,15 @@ function WireframeResponse() {
   return (
     <div className="bg-background rounded-lg border border-border/50 p-3 h-full">
       <div className="flex items-center gap-2 mb-2">
-        <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
-        <span className="text-[8px] text-green-500 font-mono">200 OK</span>
+        <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+        <span className="text-[8px] text-primary font-mono">200 OK</span>
       </div>
       <div className="aspect-[4/3] bg-gradient-to-br from-primary/10 to-primary/5 rounded border border-border/30 mb-2 flex items-center justify-center">
         <Sparkles className="h-4 w-4 text-primary/40" />
       </div>
       <div className="flex items-center gap-1">
         <div className="h-0.5 flex-1 bg-muted-foreground/15 rounded" />
-        <Check className="h-2 w-2 text-green-500" />
+        <Check className="h-2 w-2 text-primary" />
       </div>
     </div>
   )

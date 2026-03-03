@@ -314,6 +314,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   const startChallenge = useCallback(() => {
     if (status === 'cooldown' || status === 'verified' || status === 'verifying') return
     
+    console.log('[v0] SmartCaptcha - Starting challenge flow')
     hasStartedRef.current = true
     setStatus('analyzing')
     
@@ -323,6 +324,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     
     setTimeout(() => {
       const steps = analyzeRisk()
+      console.log('[v0] SmartCaptcha - Risk analysis complete, required steps:', steps)
       setRequiredSteps(steps)
       setCurrentStep(1)
       resetChallenge()
@@ -334,6 +336,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   const handleWrong = useCallback(() => {
     if (!challenge) return
     
+    console.log('[v0] SmartCaptcha - Answer wrong! Showing correct answer')
     // Store the correct answer to show
     let correctAnswerText = challenge.answer
     if (challenge.type === 'image' && challenge.images) {
@@ -359,9 +362,11 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   }, [attempts, resetChallenge, challenge])
   
   const handleCorrect = useCallback(() => {
+    console.log('[v0] SmartCaptcha - Answer correct! Step', currentStep, 'of', requiredSteps)
     if (currentStep < requiredSteps) {
       setStatus('verifying')
       setTimeout(() => {
+        console.log('[v0] SmartCaptcha - Moving to next challenge')
         setCurrentStep(prev => prev + 1)
         resetChallenge()
         setStatus('challenge')
@@ -370,7 +375,10 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
       setStatus('verifying')
       setTimeout(() => { 
         setStatus('verified')
-        onVerify?.(`pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}_${requiredSteps}step`) 
+        const token = `pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}_${requiredSteps}step`
+        console.log('[v0] SmartCaptcha - All challenges complete!')
+        console.log('[v0] SmartCaptcha - Generated token:', token)
+        onVerify?.(token) 
       }, 800)
     }
   }, [onVerify, siteKey, currentStep, requiredSteps, resetChallenge])
