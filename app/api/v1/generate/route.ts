@@ -5,42 +5,121 @@ import { hashPassword } from '@/lib/email'
 const sql = neon(process.env.DATABASE_URL!)
 
 // Pictura AI Image Generation Engine (Internal)
-// This is Pictura's proprietary image generation service
+// Uses multiple providers with automatic failover
 async function generateWithPicturaEngine(prompt: string, width: number, height: number): Promise<string> {
-  const internalApiKey = process.env.MISTRAL_API_KEY
-  if (!internalApiKey) throw new Error('Pictura engine not configured')
+  const providers = [
+    generateWithStability,
+    generateWithLeonardo,
+    generateWithZyLabs,
+  ]
+  
+  for (const provider of providers) {
+    try {
+      return await provider(prompt, width, height)
+    } catch (err) {
+      console.error('Provider failed, trying next:', err)
+      continue
+    }
+  }
+  
+  throw new Error('All generation providers failed')
+}
 
-  // Internal generation endpoint
-  const response = await fetch('https://api.mistral.ai/v1/images/generations', {
+// Stability AI
+async function generateWithStability(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.STABILITY_API_KEY
+  if (!apiKey) throw new Error('Stability not configured')
+
+  const response = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${internalApiKey}`,
+      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'pixtral-large-latest',
-      prompt: prompt.trim(),
-      size: `${width}x${height}`,
+      text_prompts: [{ text: prompt, weight: 1 }],
+      cfg_scale: 7,
+      width: Math.min(width, 1024),
+      height: Math.min(height, 1024),
+      samples: 1,
+      steps: 30,
     }),
   })
 
-  if (!response.ok) {
-    throw new Error('Pictura generation engine error')
-  }
+  if (!response.ok) throw new Error('Stability generation failed')
 
   const data = await response.json()
-  
-  if (data.data && data.data[0]) {
-    const imageData = data.data[0]
-    if (imageData.b64_json) {
-      return `data:image/png;base64,${imageData.b64_json}`
-    }
-    if (imageData.url) {
-      return imageData.url
-    }
+  if (data.artifacts?.[0]?.base64) {
+    return `data:image/png;base64,${data.artifacts[0].base64}`
   }
-  
-  throw new Error('Generation failed')
+  throw new Error('No image from Stability')
+}
+
+// Leonardo AI
+async function generateWithLeonardo(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.LEONARDO_API_KEY
+  if (!apiKey) throw new Error('Leonardo not configured')
+
+  const createResponse = await fetch('https://cloud.leonardo.ai/api/rest/v1/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: prompt.trim(),
+      modelId: '6b645e3a-d64f-4341-a6d8-7a3690fbf042',
+      width: Math.min(width, 1024),
+      height: Math.min(height, 1024),
+      num_images: 1,
+    }),
+  })
+
+  if (!createResponse.ok) throw new Error('Leonardo creation failed')
+
+  const createData = await createResponse.json()
+  const generationId = createData.sdGenerationJob?.generationId
+  if (!generationId) throw new Error('No generation ID')
+
+  // Poll for completion
+  for (let i = 0; i < 30; i++) {
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    const statusResponse = await fetch(`https://cloud.leonardo.ai/api/rest/v1/generations/${generationId}`, {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    })
+    if (!statusResponse.ok) continue
+    const statusData = await statusResponse.json()
+    const images = statusData.generations_by_pk?.generated_images
+    if (images?.[0]?.url) return images[0].url
+  }
+  throw new Error('Leonardo timed out')
+}
+
+// ZyLabs
+async function generateWithZyLabs(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.ZYLABS_API_KEY
+  if (!apiKey) throw new Error('ZyLabs not configured')
+
+  const response = await fetch('https://api.zylabs.io/v1/image/generate', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: prompt.trim(),
+      width,
+      height,
+      model: 'stable-diffusion-xl',
+    }),
+  })
+
+  if (!response.ok) throw new Error('ZyLabs generation failed')
+
+  const data = await response.json()
+  if (data.url || data.image_url) return data.url || data.image_url
+  if (data.base64) return `data:image/png;base64,${data.base64}`
+  throw new Error('No image from ZyLabs')
 }
 
 // Cost per image in USD - very affordable!
@@ -177,8 +256,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        id: imageData.id || `img_${Date.now()}`,
-        url: imageData.imageUrl || imageData.url,
+        id: imageData.id,
+        url: imageUrl,
         prompt: prompt,
         model: model,
         size: size,
