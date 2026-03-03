@@ -3,16 +3,20 @@
 // SmartCaptcha - Advanced CAPTCHA with multiple challenge types
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Check, RefreshCw, Loader2, AlertCircle, Fingerprint, Heart, X,
-  Car, Bike, Plane, Train, Ship, Bus,
-  Dog, Cat, Bird, Fish, Rabbit,
-  Apple, Pizza, Coffee, Cake, IceCreamCone,
-  TreeDeciduous, Flower2, Mountain, Sun, Cloud,
-  Home, Building2, Store, Warehouse, Church,
-  Smartphone, Laptop, Tablet, Monitor, Headphones,
-  Shirt, Watch, Glasses, ShoppingBag
-} from 'lucide-react'
+import { Check } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import { Fingerprint } from 'lucide-react'
+import { Heart } from 'lucide-react'
+import { X } from 'lucide-react'
+import { Car, Bike, Plane, Train, Ship, Bus } from 'lucide-react'
+import { Dog, Cat, Bird, Fish, Rabbit } from 'lucide-react'
+import { Apple, Pizza, Coffee, Cake } from 'lucide-react'
+import { Flower2, Mountain, Sun, Cloud } from 'lucide-react'
+import { Home, Store, Warehouse, Church } from 'lucide-react'
+import { Laptop, Tablet, Monitor, Headphones } from 'lucide-react'
+import { Shirt, Watch, Glasses, ShoppingBag } from 'lucide-react'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 type ChallengeType = 'math' | 'pattern' | 'word' | 'image' | 'typing' | 'slider' | 'biometric' | 'sequence' | 'puzzle'
@@ -44,7 +48,7 @@ const IMAGE_CATEGORIES = [
       { id: '1', icon: Car, isTarget: true }, 
       { id: '2', icon: Dog, isTarget: false },
       { id: '3', icon: Bike, isTarget: true }, 
-      { id: '4', icon: TreeDeciduous, isTarget: false },
+      { id: '4', icon: Flower2, isTarget: false },
       { id: '5', icon: Bus, isTarget: true }, 
       { id: '6', icon: Coffee, isTarget: false },
       { id: '7', icon: Plane, isTarget: true },
@@ -59,7 +63,7 @@ const IMAGE_CATEGORIES = [
       { id: '1', icon: Dog, isTarget: true }, 
       { id: '2', icon: Car, isTarget: false },
       { id: '3', icon: Cat, isTarget: true }, 
-      { id: '4', icon: Smartphone, isTarget: false },
+      { id: '4', icon: Laptop, isTarget: false },
       { id: '5', icon: Bird, isTarget: true }, 
       { id: '6', icon: Home, isTarget: false },
       { id: '7', icon: Fish, isTarget: true },
@@ -74,10 +78,10 @@ const IMAGE_CATEGORIES = [
       { id: '1', icon: Pizza, isTarget: true }, 
       { id: '2', icon: Car, isTarget: false },
       { id: '3', icon: Coffee, isTarget: true }, 
-      { id: '4', icon: Smartphone, isTarget: false },
+      { id: '4', icon: Laptop, isTarget: false },
       { id: '5', icon: Apple, isTarget: true }, 
-      { id: '6', icon: Building2, isTarget: false },
-      { id: '7', icon: IceCreamCone, isTarget: true },
+      { id: '6', icon: Home, isTarget: false },
+      { id: '7', icon: Cake, isTarget: true },
       { id: '8', icon: Dog, isTarget: false },
       { id: '9', icon: Cake, isTarget: true },
     ]
@@ -86,10 +90,10 @@ const IMAGE_CATEGORIES = [
     target: 'nature', 
     question: 'Select all nature items',
     items: [
-      { id: '1', icon: TreeDeciduous, isTarget: true }, 
+      { id: '1', icon: Flower2, isTarget: true }, 
       { id: '2', icon: Car, isTarget: false },
       { id: '3', icon: Flower2, isTarget: true }, 
-      { id: '4', icon: Smartphone, isTarget: false },
+      { id: '4', icon: Laptop, isTarget: false },
       { id: '5', icon: Mountain, isTarget: true }, 
       { id: '6', icon: Laptop, isTarget: false },
       { id: '7', icon: Sun, isTarget: true },
@@ -103,12 +107,12 @@ const IMAGE_CATEGORIES = [
     items: [
       { id: '1', icon: Home, isTarget: true }, 
       { id: '2', icon: Dog, isTarget: false },
-      { id: '3', icon: Building2, isTarget: true }, 
+      { id: '3', icon: Home, isTarget: true }, 
       { id: '4', icon: Car, isTarget: false },
       { id: '5', icon: Store, isTarget: true }, 
       { id: '6', icon: Apple, isTarget: false },
       { id: '7', icon: Church, isTarget: true },
-      { id: '8', icon: TreeDeciduous, isTarget: false },
+      { id: '8', icon: Flower2, isTarget: false },
       { id: '9', icon: Warehouse, isTarget: true },
     ]
   },
@@ -116,10 +120,10 @@ const IMAGE_CATEGORIES = [
     target: 'electronics', 
     question: 'Select all electronics',
     items: [
-      { id: '1', icon: Smartphone, isTarget: true }, 
+      { id: '1', icon: Laptop, isTarget: true }, 
       { id: '2', icon: Dog, isTarget: false },
       { id: '3', icon: Laptop, isTarget: true }, 
-      { id: '4', icon: TreeDeciduous, isTarget: false },
+      { id: '4', icon: Flower2, isTarget: false },
       { id: '5', icon: Tablet, isTarget: true }, 
       { id: '6', icon: Pizza, isTarget: false },
       { id: '7', icon: Monitor, isTarget: true },
