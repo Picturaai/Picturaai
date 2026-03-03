@@ -1,14 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Download, Loader2, CheckCircle, X, FileImage, FileCode, Sparkles } from 'lucide-react'
 import { FORMAT_OPTIONS, convertImageFormat, downloadFile, formatFileSize } from '@/lib/image-formats'
 import { toast } from 'sonner'
 
@@ -35,8 +30,7 @@ export function DownloadModal({
       if (!format) throw new Error('Format not found')
 
       if (formatId === 'svg') {
-        // For SVG, create a wrapper
-        const img = new Image()
+        const img = new window.Image()
         img.crossOrigin = 'anonymous'
         img.onload = () => {
           const svg = `
@@ -51,7 +45,6 @@ export function DownloadModal({
         }
         img.src = imageUrl
       } else {
-        // For raster formats, use Canvas conversion
         const quality = format.quality || 90
         const blob = await convertImageFormat(imageUrl, formatId, quality)
         downloadFile(blob, `${imageName}.${format.ext}`)
@@ -59,86 +52,140 @@ export function DownloadModal({
         toast.success(`Downloaded as ${format.label} (${formatFileSize(blob.size)})`)
       }
     } catch (error) {
-      console.error('[v0] Download error:', error)
+      console.error('Download error:', error)
       toast.error(`Failed to download ${formatId.toUpperCase()}`)
     } finally {
       setDownloading(null)
     }
   }
 
+  if (!open) return null
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Download Image Assets</DialogTitle>
-          <DialogDescription>
-            Choose your preferred format. Each option is optimized for different use cases.
-          </DialogDescription>
-        </DialogHeader>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => onOpenChange(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl bg-background border border-border shadow-2xl"
+          >
+            {/* Close button */}
+            <button
+              onClick={() => onOpenChange(false)}
+              className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {FORMAT_OPTIONS.map((format) => {
-            const isDownloading = downloading === format.id
-            const isDownloaded = downloadedFormats.has(format.id)
+            <div className="flex flex-col lg:flex-row">
+              {/* Image Preview */}
+              <div className="relative w-full lg:w-1/2 aspect-square lg:aspect-auto bg-muted/30 flex items-center justify-center p-6 lg:p-8">
+                <div className="relative w-full h-full max-h-[300px] lg:max-h-none rounded-xl overflow-hidden shadow-lg">
+                  <Image
+                    src={imageUrl}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
+                </div>
+              </div>
 
-            return (
-              <button
-                key={format.id}
-                onClick={() => handleDownload(format.id)}
-                disabled={downloading !== null}
-                className="group relative flex flex-col gap-2 rounded-lg border border-border/50 bg-card p-4 transition-all hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-primary">
-                    {format.label}
-                  </span>
-                  {isDownloading ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  ) : isDownloaded ? (
-                    <CheckCircle className="h-4 w-4 text-primary" />
-                  ) : (
-                    <Download className="h-4 w-4 text-muted-foreground/50 transition-colors group-hover:text-primary" />
-                  )}
+              {/* Download Options */}
+              <div className="flex-1 p-6 lg:p-8 overflow-y-auto max-h-[50vh] lg:max-h-[80vh]">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Download className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-foreground">Download Image</h2>
+                    <p className="text-xs text-muted-foreground">Choose your preferred format</p>
+                  </div>
                 </div>
 
-                {/* Description */}
-                <p className="text-left text-[11px] leading-relaxed text-muted-foreground">
-                  {format.description}
-                </p>
+                {/* Format Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {FORMAT_OPTIONS.map((format) => {
+                    const isDownloading = downloading === format.id
+                    const isDownloaded = downloadedFormats.has(format.id)
+                    const Icon = format.id === 'svg' ? FileCode : FileImage
 
-                {/* Use case */}
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {format.useCase.split(', ').map((use, i) => (
-                    <span
-                      key={i}
-                      className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] text-primary/70"
-                    >
-                      {use}
-                    </span>
-                  ))}
+                    return (
+                      <motion.button
+                        key={format.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleDownload(format.id)}
+                        disabled={downloading !== null}
+                        className={`relative flex flex-col gap-2 rounded-xl border p-4 text-left transition-all ${
+                          isDownloaded
+                            ? 'border-primary/50 bg-primary/5'
+                            : 'border-border/50 bg-card hover:border-primary/30 hover:bg-primary/5'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {/* Format badge */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4 text-primary" />
+                            <span className="font-mono text-xs font-bold uppercase tracking-wider text-foreground">
+                              {format.label}
+                            </span>
+                          </div>
+                          {isDownloading ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          ) : isDownloaded ? (
+                            <CheckCircle className="h-4 w-4 text-primary" />
+                          ) : (
+                            <Download className="h-4 w-4 text-muted-foreground/50" />
+                          )}
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-[11px] leading-relaxed text-muted-foreground line-clamp-2">
+                          {format.description}
+                        </p>
+
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-1 mt-auto">
+                          {format.useCase.split(', ').slice(0, 2).map((use, i) => (
+                            <span
+                              key={i}
+                              className="rounded-full bg-muted px-2 py-0.5 text-[9px] font-medium text-muted-foreground"
+                            >
+                              {use}
+                            </span>
+                          ))}
+                        </div>
+                      </motion.button>
+                    )
+                  })}
                 </div>
 
-                {/* Status */}
-                {isDownloading && (
-                  <p className="text-[10px] text-muted-foreground">Downloading...</p>
-                )}
-                {isDownloaded && !isDownloading && (
-                  <p className="text-[10px] text-primary/70">Downloaded</p>
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Info box */}
-        <div className="mt-4 flex items-start gap-3 rounded-lg bg-muted/50 p-3">
-          <AlertCircle className="h-4 w-4 flex-shrink-0 text-muted-foreground/60 mt-0.5" />
-          <p className="text-[12px] text-muted-foreground/70 leading-relaxed">
-            <strong>Pro tip:</strong> Use PNG for transparent backgrounds, SVG for infinite scalability, JPEG for print, and WebP for modern web optimization.
-          </p>
-        </div>
-      </DialogContent>
-    </Dialog>
+                {/* Pro tip */}
+                <div className="mt-6 flex items-start gap-3 rounded-xl bg-primary/5 border border-primary/10 p-4">
+                  <Sparkles className="h-4 w-4 flex-shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <p className="text-xs font-medium text-foreground mb-1">Pro tip</p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Use PNG for transparent backgrounds, JPEG for photos, WebP for web optimization, and SVG for infinite scalability.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
