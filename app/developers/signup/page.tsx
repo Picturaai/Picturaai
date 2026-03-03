@@ -44,6 +44,64 @@ const FREE_CREDITS: Record<string, string> = {
 
 type SignupStep = 'info' | 'verification' | 'complete'
 
+// Password Strength Component
+function PasswordStrength({ password }: { password: string }) {
+  const checks = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  }
+  
+  const strength = Object.values(checks).filter(Boolean).length
+  
+  const getStrengthColor = (level: number) => {
+    if (level > strength) return 'bg-border'
+    if (strength === 1) return 'bg-red-500'
+    if (strength === 2) return 'bg-orange-500'
+    if (strength === 3) return 'bg-amber-500'
+    return 'bg-primary'
+  }
+  
+  const getStrengthText = () => {
+    if (!checks.length) return { text: 'At least 8 characters required', color: 'text-red-500' }
+    if (strength === 1) return { text: 'Weak - Add uppercase, numbers or symbols', color: 'text-red-500' }
+    if (strength === 2) return { text: 'Fair - Getting better', color: 'text-orange-500' }
+    if (strength === 3) return { text: 'Good - Almost there!', color: 'text-amber-500' }
+    return { text: 'Strong password!', color: 'text-primary' }
+  }
+  
+  const strengthInfo = getStrengthText()
+  
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="flex gap-1">
+        {[1, 2, 3, 4].map((level) => (
+          <div
+            key={level}
+            className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${getStrengthColor(level)}`}
+          />
+        ))}
+      </div>
+      <p className={`text-xs ${strengthInfo.color}`}>{strengthInfo.text}</p>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
+        <span className={checks.length ? 'text-primary' : 'text-muted-foreground'}>
+          {checks.length ? '✓' : '○'} 8+ chars
+        </span>
+        <span className={checks.uppercase ? 'text-primary' : 'text-muted-foreground'}>
+          {checks.uppercase ? '✓' : '○'} Uppercase
+        </span>
+        <span className={checks.number ? 'text-primary' : 'text-muted-foreground'}>
+          {checks.number ? '✓' : '○'} Number
+        </span>
+        <span className={checks.special ? 'text-primary' : 'text-muted-foreground'}>
+          {checks.special ? '✓' : '○'} Symbol
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function SignupPage() {
   const router = useRouter()
   const [step, setStep] = useState<SignupStep>('info')
@@ -342,52 +400,8 @@ export default function SignupPage() {
                     />
                   </div>
                   {/* Password Strength Indicator */}
-                  {password.length > 0 && (
-                    <div className="mt-2">
-                      <div className="flex gap-1 mb-1">
-                        {[1, 2, 3, 4].map((level) => {
-                          const strength = 
-                            (password.length >= 8 ? 1 : 0) +
-                            (/[A-Z]/.test(password) ? 1 : 0) +
-                            (/[0-9]/.test(password) ? 1 : 0) +
-                            (/[^A-Za-z0-9]/.test(password) ? 1 : 0)
-                          return (
-                            <div
-                              key={level}
-                              className={`h-1 flex-1 rounded-full transition-colors ${
-                                level <= strength
-                                  ? strength === 1
-                                    ? 'bg-destructive'
-                                    : strength === 2
-                                      ? 'bg-orange-500'
-                                      : strength === 3
-                                        ? 'bg-primary/70'
-                                        : 'bg-primary'
-                                  : 'bg-border'
-                              }`}
-                            />
-                          )
-                        })}
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        {password.length < 8
-                          ? 'Password must be at least 8 characters'
-                          : (() => {
-                              const strength = 
-                                (password.length >= 8 ? 1 : 0) +
-                                (/[A-Z]/.test(password) ? 1 : 0) +
-                                (/[0-9]/.test(password) ? 1 : 0) +
-                                (/[^A-Za-z0-9]/.test(password) ? 1 : 0)
-                              return strength === 1
-                                ? 'Weak - Add uppercase, numbers, or symbols'
-                                : strength === 2
-                                  ? 'Fair - Add more variety'
-                                  : strength === 3
-                                    ? 'Good - Almost there!'
-                                    : 'Strong password'
-                            })()}
-                      </p>
-                    </div>
+                  {password && (
+                    <PasswordStrength password={password} />
                   )}
                 </div>
 

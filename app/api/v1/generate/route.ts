@@ -4,6 +4,45 @@ import { hashPassword } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
+// Generate image using Mistral Pixtral API
+async function generateWithMistral(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.MISTRAL_API_KEY
+  if (!apiKey) throw new Error('Mistral API key not configured')
+
+  const response = await fetch('https://api.mistral.ai/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'pixtral-large-latest',
+      prompt: prompt.trim(),
+      size: `${width}x${height}`,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('[API v1] Mistral error:', response.status, errorText)
+    throw new Error('Mistral generation failed')
+  }
+
+  const data = await response.json()
+  
+  if (data.data && data.data[0]) {
+    const imageData = data.data[0]
+    if (imageData.b64_json) {
+      return `data:image/png;base64,${imageData.b64_json}`
+    }
+    if (imageData.url) {
+      return imageData.url
+    }
+  }
+  
+  throw new Error('Could not extract image from Mistral response')
+}
+
 // Cost per image in USD - very affordable!
 const COST_PER_IMAGE_USD = 0.01
 
@@ -98,30 +137,19 @@ export async function POST(request: NextRequest) {
     // Parse size
     const [width, height] = size.split('x').map(Number)
 
-    // Call third-party API (the actual image generation service)
-    // This proxies through our own studio generate endpoint for now
-    const generateResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://picturaai.sbs'}/api/studio/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prompt,
-        model,
-        width: width || 1024,
-        height: height || 1024,
-        negativePrompt: negative_prompt,
-      }),
-    })
-
-    if (!generateResponse.ok) {
-      const errorText = await generateResponse.text()
-      console.error('[v0] Generation failed:', errorText)
+    // Generate image using Mistral (Pixtral) API directly
+    let imageUrl: string
+    try {
+      imageUrl = await generateWithMistral(prompt, width || 1024, height || 1024)
+    } catch (err) {
+      console.error('[API v1] Mistral generation failed:', err)
       return NextResponse.json({ 
         error: 'Image generation failed',
         code: 'generation_failed'
       }, { status: 500 })
     }
 
-    const imageData = await generateResponse.json()
+    const imageData = { url: imageUrl, id: `img_${Date.now()}` }
 
     // Deduct credits
     await sql`
