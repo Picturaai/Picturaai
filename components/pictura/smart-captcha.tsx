@@ -2,75 +2,198 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, RefreshCw, Loader2, AlertCircle, Fingerprint, Heart, X } from 'lucide-react'
+import { 
+  Check, RefreshCw, Loader2, AlertCircle, Fingerprint, Heart, X,
+  Car, Bike, Plane, Train, Ship, Bus,
+  Dog, Cat, Bird, Fish, Rabbit,
+  Apple, Pizza, Coffee, Cake, IceCream,
+  Tree, Flower2, Mountain, Sun, Cloud,
+  Home, Building, Store, Warehouse, Church,
+  Phone, Laptop, Tablet, Monitor, Headphones,
+  Shirt, Watch, Glasses, ShoppingBag
+} from 'lucide-react'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
-type ChallengeType = 'math' | 'pattern' | 'word' | 'image' | 'typing' | 'slider' | 'biometric'
+type ChallengeType = 'math' | 'pattern' | 'word' | 'image' | 'typing' | 'slider' | 'biometric' | 'sequence' | 'puzzle'
+
+interface ImageItem {
+  id: string
+  icon: React.ComponentType<{ className?: string }>
+  isTarget: boolean
+}
 
 interface Challenge {
   type: ChallengeType
   question: string
   answer: string
   options?: string[]
-  images?: { id: string; emoji: string; isTarget: boolean }[]
+  images?: ImageItem[]
   targetCount?: number
   distortedText?: string
   sliderTarget?: number
+  puzzlePieces?: number[]
 }
 
+// Real icon-based image categories
 const IMAGE_CATEGORIES = [
-  { target: 'cats', items: [
-    { id: '1', emoji: '🐱', isTarget: true }, { id: '2', emoji: '🐕', isTarget: false },
-    { id: '3', emoji: '🐈', isTarget: true }, { id: '4', emoji: '🐦', isTarget: false },
-    { id: '5', emoji: '🦁', isTarget: false }, { id: '6', emoji: '🐈‍⬛', isTarget: true },
-  ]},
-  { target: 'food', items: [
-    { id: '1', emoji: '🍕', isTarget: true }, { id: '2', emoji: '🚗', isTarget: false },
-    { id: '3', emoji: '🍔', isTarget: true }, { id: '4', emoji: '🏠', isTarget: false },
-    { id: '5', emoji: '🎸', isTarget: false }, { id: '6', emoji: '🍎', isTarget: true },
-  ]},
-  { target: 'vehicles', items: [
-    { id: '1', emoji: '🚗', isTarget: true }, { id: '2', emoji: '🌳', isTarget: false },
-    { id: '3', emoji: '✈️', isTarget: true }, { id: '4', emoji: '🏀', isTarget: false },
-    { id: '5', emoji: '🚌', isTarget: true }, { id: '6', emoji: '🎵', isTarget: false },
-  ]},
+  { 
+    target: 'vehicles', 
+    question: 'Select all vehicles',
+    items: [
+      { id: '1', icon: Car, isTarget: true }, 
+      { id: '2', icon: Dog, isTarget: false },
+      { id: '3', icon: Bike, isTarget: true }, 
+      { id: '4', icon: Tree, isTarget: false },
+      { id: '5', icon: Bus, isTarget: true }, 
+      { id: '6', icon: Coffee, isTarget: false },
+      { id: '7', icon: Plane, isTarget: true },
+      { id: '8', icon: Apple, isTarget: false },
+      { id: '9', icon: Home, isTarget: false },
+    ]
+  },
+  { 
+    target: 'animals', 
+    question: 'Select all animals',
+    items: [
+      { id: '1', icon: Dog, isTarget: true }, 
+      { id: '2', icon: Car, isTarget: false },
+      { id: '3', icon: Cat, isTarget: true }, 
+      { id: '4', icon: Phone, isTarget: false },
+      { id: '5', icon: Bird, isTarget: true }, 
+      { id: '6', icon: Home, isTarget: false },
+      { id: '7', icon: Fish, isTarget: true },
+      { id: '8', icon: Laptop, isTarget: false },
+      { id: '9', icon: Rabbit, isTarget: true },
+    ]
+  },
+  { 
+    target: 'food', 
+    question: 'Select all food items',
+    items: [
+      { id: '1', icon: Pizza, isTarget: true }, 
+      { id: '2', icon: Car, isTarget: false },
+      { id: '3', icon: Coffee, isTarget: true }, 
+      { id: '4', icon: Phone, isTarget: false },
+      { id: '5', icon: Apple, isTarget: true }, 
+      { id: '6', icon: Building, isTarget: false },
+      { id: '7', icon: IceCream, isTarget: true },
+      { id: '8', icon: Dog, isTarget: false },
+      { id: '9', icon: Cake, isTarget: true },
+    ]
+  },
+  { 
+    target: 'nature', 
+    question: 'Select all nature items',
+    items: [
+      { id: '1', icon: Tree, isTarget: true }, 
+      { id: '2', icon: Car, isTarget: false },
+      { id: '3', icon: Flower2, isTarget: true }, 
+      { id: '4', icon: Phone, isTarget: false },
+      { id: '5', icon: Mountain, isTarget: true }, 
+      { id: '6', icon: Laptop, isTarget: false },
+      { id: '7', icon: Sun, isTarget: true },
+      { id: '8', icon: Pizza, isTarget: false },
+      { id: '9', icon: Cloud, isTarget: true },
+    ]
+  },
+  { 
+    target: 'buildings', 
+    question: 'Select all buildings',
+    items: [
+      { id: '1', icon: Home, isTarget: true }, 
+      { id: '2', icon: Dog, isTarget: false },
+      { id: '3', icon: Building, isTarget: true }, 
+      { id: '4', icon: Car, isTarget: false },
+      { id: '5', icon: Store, isTarget: true }, 
+      { id: '6', icon: Apple, isTarget: false },
+      { id: '7', icon: Church, isTarget: true },
+      { id: '8', icon: Tree, isTarget: false },
+      { id: '9', icon: Warehouse, isTarget: true },
+    ]
+  },
+  { 
+    target: 'electronics', 
+    question: 'Select all electronics',
+    items: [
+      { id: '1', icon: Phone, isTarget: true }, 
+      { id: '2', icon: Dog, isTarget: false },
+      { id: '3', icon: Laptop, isTarget: true }, 
+      { id: '4', icon: Tree, isTarget: false },
+      { id: '5', icon: Tablet, isTarget: true }, 
+      { id: '6', icon: Pizza, isTarget: false },
+      { id: '7', icon: Monitor, isTarget: true },
+      { id: '8', icon: Home, isTarget: false },
+      { id: '9', icon: Headphones, isTarget: true },
+    ]
+  },
+]
+
+const MATH_CHALLENGES = [
+  () => { const a = Math.floor(Math.random() * 15) + 5; const b = Math.floor(Math.random() * 15) + 5; return { q: `${a} + ${b} = ?`, a: (a + b).toString() } },
+  () => { const a = Math.floor(Math.random() * 20) + 15; const b = Math.floor(Math.random() * 10) + 1; return { q: `${a} - ${b} = ?`, a: (a - b).toString() } },
+  () => { const a = Math.floor(Math.random() * 8) + 2; const b = Math.floor(Math.random() * 8) + 2; return { q: `${a} × ${b} = ?`, a: (a * b).toString() } },
+  () => { const b = Math.floor(Math.random() * 8) + 2; const ans = Math.floor(Math.random() * 8) + 2; return { q: `${b * ans} ÷ ${b} = ?`, a: ans.toString() } },
+]
+
+const PATTERN_CHALLENGES = [
+  { seq: [2, 4, 6, 8], next: '10', q: '2, 4, 6, 8, ?' },
+  { seq: [1, 3, 5, 7], next: '9', q: '1, 3, 5, 7, ?' },
+  { seq: [3, 6, 9, 12], next: '15', q: '3, 6, 9, 12, ?' },
+  { seq: [1, 4, 9, 16], next: '25', q: '1, 4, 9, 16, ?' },
+  { seq: [2, 4, 8, 16], next: '32', q: '2, 4, 8, 16, ?' },
+  { seq: [1, 1, 2, 3, 5], next: '8', q: '1, 1, 2, 3, 5, ?' },
+  { seq: [10, 20, 30, 40], next: '50', q: '10, 20, 30, 40, ?' },
+  { seq: [100, 90, 80, 70], next: '60', q: '100, 90, 80, 70, ?' },
+]
+
+const WORD_CHALLENGES = [
+  { scrambled: 'UEBL', answer: 'BLUE' },
+  { scrambled: 'ETRE', answer: 'TREE' },
+  { scrambled: 'ODOG', answer: 'GOOD' },
+  { scrambled: 'PLAPE', answer: 'APPLE' },
+  { scrambled: 'OSUHE', answer: 'HOUSE' },
+  { scrambled: 'ATWER', answer: 'WATER' },
+  { scrambled: 'DOLUC', answer: 'CLOUD' },
+  { scrambled: 'ENERG', answer: 'GREEN' },
+]
+
+const SEQUENCE_CHALLENGES = [
+  { q: 'Monday, Tuesday, Wednesday, ?', options: ['Friday', 'Thursday', 'Sunday', 'Saturday'], answer: 'Thursday' },
+  { q: 'January, February, March, ?', options: ['May', 'April', 'June', 'December'], answer: 'April' },
+  { q: 'A, B, C, D, ?', options: ['F', 'E', 'G', 'Z'], answer: 'E' },
+  { q: 'Spring, Summer, Fall, ?', options: ['Spring', 'Winter', 'Summer', 'Rain'], answer: 'Winter' },
 ]
 
 const generateChallenge = (): Challenge => {
-  const types: ChallengeType[] = ['math', 'pattern', 'word', 'image', 'typing', 'slider', 'biometric']
+  const types: ChallengeType[] = ['math', 'pattern', 'word', 'image', 'typing', 'slider', 'biometric', 'sequence', 'puzzle']
   const type = types[Math.floor(Math.random() * types.length)]
   
   switch (type) {
     case 'math': {
-      const ops = ['+', '-', '×']
-      const op = ops[Math.floor(Math.random() * ops.length)]
-      let a: number, b: number, answer: number
-      if (op === '+') { a = Math.floor(Math.random() * 20) + 1; b = Math.floor(Math.random() * 20) + 1; answer = a + b }
-      else if (op === '-') { a = Math.floor(Math.random() * 20) + 10; b = Math.floor(Math.random() * a); answer = a - b }
-      else { a = Math.floor(Math.random() * 10) + 1; b = Math.floor(Math.random() * 10) + 1; answer = a * b }
-      const wrongAnswers = [answer + Math.floor(Math.random() * 5) + 1, answer - Math.floor(Math.random() * 5) - 1, answer + Math.floor(Math.random() * 10) - 5].filter(x => x !== answer && x > 0)
-      return { type, question: `What is ${a} ${op} ${b}?`, answer: answer.toString(), options: [answer.toString(), ...wrongAnswers.slice(0, 3).map(String)].sort(() => Math.random() - 0.5) }
+      const challenge = MATH_CHALLENGES[Math.floor(Math.random() * MATH_CHALLENGES.length)]()
+      const answer = parseInt(challenge.a)
+      const wrongAnswers = [answer + Math.floor(Math.random() * 5) + 1, answer - Math.floor(Math.random() * 5) - 1, answer + Math.floor(Math.random() * 10) - 5].filter(x => x !== answer && x > 0).slice(0, 3)
+      return { type, question: challenge.q, answer: challenge.a, options: [challenge.a, ...wrongAnswers.map(String)].sort(() => Math.random() - 0.5) }
     }
     case 'pattern': {
-      const patterns = [
-        { seq: [2, 4, 6, 8], next: '10', q: '2, 4, 6, 8, ?' },
-        { seq: [1, 3, 5, 7], next: '9', q: '1, 3, 5, 7, ?' },
-        { seq: [3, 6, 9, 12], next: '15', q: '3, 6, 9, 12, ?' },
-        { seq: [1, 4, 9, 16], next: '25', q: '1, 4, 9, 16, ?' },
-        { seq: [2, 4, 8, 16], next: '32', q: '2, 4, 8, 16, ?' },
-      ]
-      const p = patterns[Math.floor(Math.random() * patterns.length)]
+      const p = PATTERN_CHALLENGES[Math.floor(Math.random() * PATTERN_CHALLENGES.length)]
       const wrongOpts = [parseInt(p.next) + 2, parseInt(p.next) - 1, parseInt(p.next) + 5].map(String)
       return { type, question: p.q, answer: p.next, options: [p.next, ...wrongOpts].sort(() => Math.random() - 0.5) }
     }
     case 'word': {
-      const words = [{ scrambled: 'UEBL', answer: 'BLUE' }, { scrambled: 'ETRE', answer: 'TREE' }, { scrambled: 'ODOG', answer: 'GOOD' }, { scrambled: 'PPLAE', answer: 'APPLE' }]
-      const w = words[Math.floor(Math.random() * words.length)]
-      return { type, question: `Unscramble: ${w.scrambled}`, answer: w.answer, options: [w.answer, 'CAKE', 'MOON', 'FISH'].sort(() => Math.random() - 0.5) }
+      const w = WORD_CHALLENGES[Math.floor(Math.random() * WORD_CHALLENGES.length)]
+      const wrongWords = WORD_CHALLENGES.filter(x => x.answer !== w.answer).slice(0, 3).map(x => x.answer)
+      return { type, question: `Unscramble: ${w.scrambled}`, answer: w.answer, options: [w.answer, ...wrongWords].sort(() => Math.random() - 0.5) }
+    }
+    case 'sequence': {
+      const s = SEQUENCE_CHALLENGES[Math.floor(Math.random() * SEQUENCE_CHALLENGES.length)]
+      return { type, question: s.q, answer: s.answer, options: s.options.sort(() => Math.random() - 0.5) }
     }
     case 'image': {
       const cat = IMAGE_CATEGORIES[Math.floor(Math.random() * IMAGE_CATEGORIES.length)]
-      return { type, question: `Select all ${cat.target}`, answer: cat.target, images: cat.items, targetCount: cat.items.filter(i => i.isTarget).length }
+      // Shuffle items
+      const shuffled = [...cat.items].sort(() => Math.random() - 0.5)
+      return { type, question: cat.question, answer: cat.target, images: shuffled, targetCount: shuffled.filter(i => i.isTarget).length }
     }
     case 'typing': {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -81,6 +204,11 @@ const generateChallenge = (): Challenge => {
     case 'slider': {
       const target = Math.floor(Math.random() * 60) + 20
       return { type, question: `Slide to ${target}`, answer: target.toString(), sliderTarget: target }
+    }
+    case 'puzzle': {
+      // Simple number ordering puzzle
+      const pieces = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5)
+      return { type, question: 'Tap numbers in order: 1, 2, 3...', answer: '123456789', puzzlePieces: pieces }
     }
     case 'biometric':
       return { type, question: 'Hold to verify your presence', answer: 'verified' }
@@ -101,6 +229,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   const [userAnswer, setUserAnswer] = useState('')
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [sliderValue, setSliderValue] = useState(50)
+  const [puzzleSequence, setPuzzleSequence] = useState<number[]>([])
   const [attempts, setAttempts] = useState(0)
   const [cooldownTime, setCooldownTime] = useState(0)
   
@@ -120,7 +249,12 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     const track = () => { interactionsRef.current++ }
     window.addEventListener('mousemove', track)
     window.addEventListener('touchstart', track)
-    return () => { window.removeEventListener('mousemove', track); window.removeEventListener('touchstart', track) }
+    window.addEventListener('scroll', track)
+    return () => { 
+      window.removeEventListener('mousemove', track)
+      window.removeEventListener('touchstart', track)
+      window.removeEventListener('scroll', track)
+    }
   }, [])
   
   // Cooldown timer
@@ -140,6 +274,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     setUserAnswer('')
     setSelectedImages([])
     setSliderValue(50)
+    setPuzzleSequence([])
     setHoldProgress(0)
     setPulseData([])
     setPulseDetected(false)
@@ -150,15 +285,18 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     if (status === 'cooldown') return
     setStatus('analyzing')
     setTimeout(() => {
-      // Auto-pass if lots of human behavior
-      if (interactionsRef.current > 20 && Math.random() > 0.6) {
+      // Auto-pass if lots of human-like behavior
+      if (interactionsRef.current > 30 && Math.random() > 0.7) {
         setStatus('verifying')
-        setTimeout(() => { setStatus('verified'); onVerify?.(`pictura_${Date.now()}_${siteKey}`) }, 800)
+        setTimeout(() => { 
+          setStatus('verified')
+          onVerify?.(`pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}`) 
+        }, 800)
       } else {
         resetChallenge()
         setStatus('challenge')
       }
-    }, 1000)
+    }, 1200)
   }, [status, onVerify, siteKey, resetChallenge])
   
   const handleWrong = useCallback(() => {
@@ -179,7 +317,10 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   
   const handleCorrect = useCallback(() => {
     setStatus('verifying')
-    setTimeout(() => { setStatus('verified'); onVerify?.(`pictura_${Date.now()}_${siteKey}`) }, 800)
+    setTimeout(() => { 
+      setStatus('verified')
+      onVerify?.(`pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}`) 
+    }, 800)
   }, [onVerify, siteKey])
   
   const checkAnswer = useCallback((answer?: string) => {
@@ -188,7 +329,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     let correct = false
     
     switch (challenge.type) {
-      case 'math': case 'pattern': case 'word':
+      case 'math': case 'pattern': case 'word': case 'sequence':
         correct = check.toUpperCase() === challenge.answer.toUpperCase()
         break
       case 'typing':
@@ -201,6 +342,9 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
       case 'slider':
         correct = Math.abs(sliderValue - (challenge.sliderTarget || 50)) <= 3
         break
+      case 'puzzle':
+        correct = puzzleSequence.join('') === '123456789'
+        break
       case 'biometric':
         correct = holdProgress >= 100 && pulseDetected
         break
@@ -208,7 +352,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     
     if (correct) handleCorrect()
     else handleWrong()
-  }, [challenge, userAnswer, selectedImages, sliderValue, holdProgress, pulseDetected, handleCorrect, handleWrong])
+  }, [challenge, userAnswer, selectedImages, sliderValue, puzzleSequence, holdProgress, pulseDetected, handleCorrect, handleWrong])
   
   // Auto-check for typing
   useEffect(() => {
@@ -235,6 +379,14 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     }
   }, [selectedImages, challenge, checkAnswer])
   
+  // Auto-check for puzzle
+  useEffect(() => {
+    if (challenge?.type === 'puzzle' && puzzleSequence.length === 9) {
+      const timer = setTimeout(() => checkAnswer(), 300)
+      return () => clearTimeout(timer)
+    }
+  }, [puzzleSequence, challenge, checkAnswer])
+  
   // Biometric hold handlers
   const startHold = () => {
     if (challenge?.type !== 'biometric' || status !== 'challenge') return
@@ -248,7 +400,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
       if (progress >= 100 && holdIntervalRef.current) clearInterval(holdIntervalRef.current)
     }, 50)
     
-    // Simulate pulse detection - detecting "blood flow" via touch pressure variations
+    // Simulate pulse detection
     pulseIntervalRef.current = setInterval(() => {
       setPulseData(prev => {
         const newData = [...prev, 60 + Math.random() * 40]
@@ -281,6 +433,13 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   
   const toggleImage = (id: string) => {
     setSelectedImages(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+  }
+  
+  const handlePuzzleTap = (num: number) => {
+    const expectedNext = puzzleSequence.length + 1
+    if (num === expectedNext) {
+      setPuzzleSequence(prev => [...prev, num])
+    }
   }
 
   return (
@@ -338,7 +497,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                   </button>
                 </div>
                 
-                {/* Options (math, pattern, word) */}
+                {/* Options (math, pattern, word, sequence) */}
                 {challenge.options && (
                   <div className="grid grid-cols-2 gap-2">
                     {challenge.options.map((opt) => (
@@ -349,14 +508,26 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                   </div>
                 )}
                 
-                {/* Image selection */}
+                {/* Image selection with real icons */}
                 {challenge.type === 'image' && challenge.images && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {challenge.images.map((img) => (
-                      <button key={img.id} onClick={() => toggleImage(img.id)} className={`aspect-square rounded-lg border-2 text-2xl flex items-center justify-center transition-all ${selectedImages.includes(img.id) ? 'border-primary bg-primary/10' : 'border-border bg-muted/50 hover:border-primary/30'}`}>
-                        {img.emoji}
-                      </button>
-                    ))}
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      {challenge.images.map((img) => {
+                        const IconComponent = img.icon
+                        return (
+                          <button 
+                            key={img.id} 
+                            onClick={() => toggleImage(img.id)} 
+                            className={`aspect-square rounded-lg border-2 flex items-center justify-center transition-all ${selectedImages.includes(img.id) ? 'border-primary bg-primary/10' : 'border-border bg-muted/50 hover:border-primary/30'}`}
+                          >
+                            <IconComponent className={`h-6 w-6 ${selectedImages.includes(img.id) ? 'text-primary' : 'text-foreground'}`} />
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center">
+                      Selected: {selectedImages.length} / {challenge.targetCount}
+                    </p>
                   </div>
                 )}
                 
@@ -388,12 +559,50 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                   </div>
                 )}
                 
+                {/* Puzzle - Number ordering */}
+                {challenge.type === 'puzzle' && challenge.puzzlePieces && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      {challenge.puzzlePieces.map((num) => {
+                        const isSelected = puzzleSequence.includes(num)
+                        const isNext = num === puzzleSequence.length + 1
+                        return (
+                          <button 
+                            key={num} 
+                            onClick={() => handlePuzzleTap(num)}
+                            disabled={isSelected}
+                            className={`aspect-square rounded-lg border-2 flex items-center justify-center text-lg font-bold transition-all ${
+                              isSelected 
+                                ? 'border-primary bg-primary text-primary-foreground' 
+                                : isNext 
+                                  ? 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/20' 
+                                  : 'border-border bg-muted/50 text-foreground hover:border-primary/30'
+                            }`}
+                          >
+                            {num}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center">
+                      Progress: {puzzleSequence.length} / 9
+                    </p>
+                  </div>
+                )}
+                
                 {/* Biometric Hold */}
                 {challenge.type === 'biometric' && (
                   <div className="space-y-3 text-center">
-                    <p className="text-xs text-muted-foreground">Press and hold to detect pulse</p>
+                    <p className="text-xs text-muted-foreground">Press and hold to detect presence</p>
                     
-                    <button onMouseDown={startHold} onMouseUp={endHold} onMouseLeave={endHold} onTouchStart={startHold} onTouchEnd={endHold} className={`relative w-24 h-24 rounded-full border-4 transition-all mx-auto flex items-center justify-center ${isHolding ? 'border-primary bg-primary/10 scale-95' : 'border-border bg-muted/30 hover:border-primary/50'}`}>
+                    <button 
+                      onMouseDown={startHold} 
+                      onMouseUp={endHold} 
+                      onMouseLeave={endHold} 
+                      onTouchStart={startHold} 
+                      onTouchEnd={endHold} 
+                      className={`relative w-24 h-24 rounded-full border-4 transition-all mx-auto flex items-center justify-center ${isHolding ? 'border-primary bg-primary/10 scale-95' : 'border-border bg-muted/30 hover:border-primary/50'}`}
+                    >
                       {/* Progress ring */}
                       <svg className="absolute inset-0 w-full h-full -rotate-90">
                         <circle cx="48" cy="48" r="44" fill="none" stroke="currentColor" strokeWidth="4" className="text-primary/20" />
@@ -410,35 +619,18 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                           </>
                         ) : (
                           <>
-                            <Fingerprint className="h-8 w-8 text-muted-foreground" />
-                            <span className="text-[10px] text-muted-foreground mt-1">HOLD</span>
+                            <Fingerprint className="h-6 w-6 text-muted-foreground" />
+                            <span className="text-[10px] text-muted-foreground mt-1">Hold here</span>
                           </>
                         )}
                       </div>
                     </button>
                     
-                    {/* Pulse visualization */}
-                    {isHolding && pulseData.length > 0 && (
-                      <div className="h-8 flex items-end justify-center gap-0.5">
-                        {pulseData.slice(-20).map((val, i) => (
-                          <motion.div key={i} initial={{ height: 0 }} animate={{ height: `${(val - 50) * 0.5}px` }} className="w-1 bg-primary/60 rounded-full" />
-                        ))}
-                      </div>
+                    {pulseDetected && holdProgress >= 100 && (
+                      <p className="text-xs text-primary font-medium">Presence verified!</p>
                     )}
-                    
-                    <p className="text-[10px] text-muted-foreground">
-                      {pulseDetected ? 'Pulse detected - Release to verify' : 'Simulates biometric blood flow detection'}
-                    </p>
                   </div>
                 )}
-                
-                {/* Attempts */}
-                <div className="flex items-center justify-between pt-1">
-                  <div className="flex gap-1">
-                    {[0, 1, 2].map((i) => (<div key={i} className={`h-1.5 w-1.5 rounded-full ${i < attempts ? 'bg-destructive' : 'bg-muted'}`} />))}
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{3 - attempts} attempts left</span>
-                </div>
               </motion.div>
             )}
             
@@ -460,18 +652,12 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
             
             {/* Cooldown */}
             {status === 'cooldown' && (
-              <motion.div key="cooldown" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center space-y-3">
-                <div className="flex items-center justify-center gap-2 text-destructive">
-                  <AlertCircle className="h-5 w-5" />
-                  <span className="text-sm font-medium">Verification Failed</span>
-                </div>
-                <p className="text-xs text-muted-foreground">We couldn't verify you are human.</p>
-                <div className="flex items-center justify-center gap-2">
-                  <div className="h-8 w-8 rounded-full border-2 border-muted flex items-center justify-center">
-                    <span className="text-sm font-mono font-bold text-foreground">{cooldownTime}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">seconds until retry</span>
-                </div>
+              <motion.div key="cooldown" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-2">
+                <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                <p className="text-sm font-medium text-foreground">We couldn&apos;t verify you are human</p>
+                <p className="text-xs text-muted-foreground mt-1">Too many failed attempts</p>
+                <p className="text-lg font-mono font-bold text-primary mt-3">{cooldownTime}s</p>
+                <p className="text-[10px] text-muted-foreground">Try again in</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -479,7 +665,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
         
         {/* Footer */}
         <div className="px-4 py-2 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
-          <span>Protected by Pictura</span>
+          <span>Protected by <span className="text-primary">Pictura</span></span>
           <div className="flex items-center gap-2">
             <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
             <span>·</span>

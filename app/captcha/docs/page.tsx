@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Copy, Check, ArrowLeft, Book, Code2, Server, Shield, Settings, Terminal } from 'lucide-react'
+import { Copy, Check, ArrowLeft, Book, Code2, Server, Shield, Settings, Terminal, Fingerprint, Eye, Brain, Zap } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 
@@ -14,6 +14,7 @@ const fadeUp = {
 
 const sections = [
   { id: 'getting-started', label: 'Getting Started', icon: Book },
+  { id: 'how-it-works', label: 'How It Works', icon: Brain },
   { id: 'installation', label: 'Installation', icon: Terminal },
   { id: 'configuration', label: 'Configuration', icon: Settings },
   { id: 'server-verification', label: 'Server Verification', icon: Server },
@@ -60,6 +61,9 @@ function CodeBlock({ code, filename }: { code: string; filename?: string }) {
 
 export default function CaptchaDocsPage() {
   const [activeSection, setActiveSection] = useState('getting-started')
+
+  // Use window.location.origin for the correct domain
+  const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://yourdomain.com'
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -140,39 +144,111 @@ export default function CaptchaDocsPage() {
                 </div>
               </section>
               
+              {/* How It Works */}
+              <section id="how-it-works" className="mb-10 scroll-mt-24">
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4">How It Works</h2>
+                <p className="text-sm text-muted-foreground mb-6">
+                  PicturaCAPTCHA uses a multi-layered approach to distinguish humans from bots:
+                </p>
+                
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Eye className="h-4 w-4 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground text-sm">Behavioral Analysis</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Tracks mouse movements, scroll velocity, typing patterns, and touch interactions. Humans have natural, varied patterns - bots move mechanically.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Brain className="h-4 w-4 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground text-sm">Risk Scoring</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      AI calculates a risk score (0-100). Low-risk users pass automatically. Higher risk triggers a challenge.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Fingerprint className="h-4 w-4 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground text-sm">Biometric Detection</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Our unique hold-to-verify feature detects human touch patterns and pressure variations - impossible for bots to replicate.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-card border border-border rounded-xl p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Zap className="h-4 w-4 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground text-sm">Smart Challenges</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      7 challenge types: math, patterns, image selection, text typing, word unscramble, slider, and biometric hold.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-6 p-4 rounded-xl bg-muted/30 border border-border">
+                  <h4 className="font-medium text-foreground text-sm mb-2">Auto-Verify Technology</h4>
+                  <p className="text-xs text-muted-foreground">
+                    When users answer correctly, PicturaCAPTCHA automatically verifies them - no need to click a submit button. Wrong answers show immediate feedback and load a new challenge. After 3 failed attempts, users must wait 60 seconds before trying again.
+                  </p>
+                </div>
+              </section>
+              
               {/* Installation */}
               <section id="installation" className="mb-10 scroll-mt-24">
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4">Installation</h2>
                 
-                <h3 className="text-sm font-medium text-foreground mb-2">Add the Script</h3>
+                <h3 className="text-sm font-medium text-foreground mb-2">1. Add the Script</h3>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Add this script tag to your HTML head or before the closing body tag:
+                </p>
                 <CodeBlock 
                   filename="index.html"
-                  code={`<script src="https://captcha.picturaai.sbs/api.js" async defer></script>`}
+                  code={`<script src="${BASE_URL}/api/captcha/widget.js" async defer></script>`}
                 />
                 
-                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">Add the Container</h3>
+                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">2. Add the Container</h3>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Place this where you want the CAPTCHA to appear:
+                </p>
                 <CodeBlock 
                   filename="form.html"
-                  code={`<form id="myForm">
-  <input type="email" name="email" />
+                  code={`<form id="myForm" method="POST" action="/submit">
+  <input type="email" name="email" required />
   
-  <!-- PicturaCAPTCHA -->
+  <!-- PicturaCAPTCHA Widget -->
   <div id="pictura-captcha" 
        data-sitekey="YOUR_SITE_KEY"
-       data-callback="onVerify">
+       data-callback="onCaptchaVerify">
   </div>
   
   <button type="submit">Submit</button>
 </form>
 
 <script>
-  function onVerify(token) {
-    console.log('Verified:', token);
+  function onCaptchaVerify(token) {
+    // Token is automatically added to form
+    console.log('User verified! Token:', token);
   }
 </script>`}
                 />
                 
-                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">NPM Package</h3>
+                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">NPM Package (Coming Soon)</h3>
                 <CodeBlock 
                   filename="terminal"
                   code={`npm install @pictura/captcha`}
@@ -186,15 +262,17 @@ export default function CaptchaDocsPage() {
                 <div className="space-y-3">
                   {[
                     { attr: 'data-sitekey', default: 'required', desc: 'Your site key from the dashboard' },
-                    { attr: 'data-callback', default: '-', desc: 'Function called on successful verification' },
-                    { attr: 'data-size', default: 'normal', desc: 'Size: compact, normal, or invisible' },
+                    { attr: 'data-callback', default: '-', desc: 'Function called on successful verification with token' },
+                    { attr: 'data-expired-callback', default: '-', desc: 'Function called when token expires (after 5 min)' },
+                    { attr: 'data-error-callback', default: '-', desc: 'Function called on error' },
+                    { attr: 'data-size', default: 'normal', desc: 'Widget size: compact or normal' },
                     { attr: 'data-theme', default: 'auto', desc: 'Theme: light, dark, or auto' },
                   ].map((item) => (
-                    <div key={item.attr} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 p-3 rounded-lg bg-muted/30 border border-border">
-                      <code className="text-primary text-xs font-medium">{item.attr}</code>
-                      <span className="text-xs text-muted-foreground hidden sm:block">|</span>
-                      <span className="text-xs text-muted-foreground">Default: {item.default}</span>
-                      <span className="text-xs text-muted-foreground hidden sm:block">|</span>
+                    <div key={item.attr} className="flex flex-col gap-1 p-3 rounded-lg bg-muted/30 border border-border">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <code className="text-primary text-xs font-medium bg-primary/10 px-2 py-0.5 rounded">{item.attr}</code>
+                        <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded bg-muted">Default: {item.default}</span>
+                      </div>
                       <span className="text-xs text-foreground">{item.desc}</span>
                     </div>
                   ))}
@@ -205,27 +283,51 @@ export default function CaptchaDocsPage() {
               <section id="server-verification" className="mb-10 scroll-mt-24">
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4">Server Verification</h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Always verify tokens on your server to prevent bypass:
+                  <strong className="text-foreground">Always verify tokens on your server.</strong> Never trust client-side verification alone.
                 </p>
                 
                 <CodeBlock 
-                  filename="verify.js"
-                  code={`const response = await fetch(
-  'https://captcha.picturaai.sbs/api/verify',
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      secret: process.env.CAPTCHA_SECRET,
-      token: captchaToken
-    })
-  }
-);
+                  filename="server.js"
+                  code={`// POST to your server with the captcha token
+const { captchaToken } = req.body;
 
-const { success } = await response.json();
+// Verify with PicturaCAPTCHA API
+const response = await fetch('${BASE_URL}/api/captcha/verify', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    secret: process.env.PICTURA_CAPTCHA_SECRET, // Your secret key
+    token: captchaToken,                         // Token from client
+    ip: req.ip                                   // Optional: user IP
+  })
+});
 
-if (!success) {
+const result = await response.json();
+
+if (result.success) {
+  // User is human - proceed with form submission
+  console.log('Verification successful');
+} else {
+  // Verification failed
+  console.log('Bot detected:', result.error);
   throw new Error('CAPTCHA verification failed');
+}`}
+                />
+                
+                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">Response Format</h3>
+                <CodeBlock 
+                  filename="response.json"
+                  code={`// Success
+{
+  "success": true,
+  "challenge_ts": "2024-01-15T12:00:00Z",
+  "hostname": "yoursite.com"
+}
+
+// Failure
+{
+  "success": false,
+  "error": "invalid-token" // or "expired-token", "already-used"
 }`}
                 />
               </section>
@@ -234,21 +336,44 @@ if (!success) {
               <section id="frameworks" className="mb-10 scroll-mt-24">
                 <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4">Framework Guides</h2>
                 
-                <h3 className="text-sm font-medium text-foreground mb-2">React Component</h3>
+                <h3 className="text-sm font-medium text-foreground mb-2">React / Next.js</h3>
                 <CodeBlock 
-                  filename="Form.tsx"
-                  code={`import { PicturaCaptcha } from '@pictura/captcha/react';
+                  filename="ContactForm.tsx"
+                  code={`'use client'
+import { useState } from 'react';
 
-function ContactForm() {
+export function ContactForm() {
   const [token, setToken] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!token) {
+      alert('Please complete the CAPTCHA');
+      return;
+    }
+    
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        email: e.target.email.value,
+        captchaToken: token 
+      })
+    });
+    
+    if (res.ok) setSubmitted(true);
+  };
   
   return (
     <form onSubmit={handleSubmit}>
-      <input type="email" name="email" />
+      <input type="email" name="email" required />
       
-      <PicturaCaptcha
-        sitekey="YOUR_SITE_KEY"
-        onVerify={setToken}
+      {/* Import SmartCaptcha component */}
+      <SmartCaptcha 
+        siteKey="YOUR_SITE_KEY"
+        onVerify={(t) => setToken(t)}
       />
       
       <button type="submit">Submit</button>
@@ -259,24 +384,36 @@ function ContactForm() {
                 
                 <h3 className="text-sm font-medium text-foreground mb-2 mt-6">Next.js API Route</h3>
                 <CodeBlock 
-                  filename="app/api/verify/route.ts"
-                  code={`export async function POST(req: Request) {
-  const { token } = await req.json();
+                  filename="app/api/contact/route.ts"
+                  code={`import { NextResponse } from 'next/server';
+
+export async function POST(req: Request) {
+  const { email, captchaToken } = await req.json();
   
-  const res = await fetch(
-    'https://captcha.picturaai.sbs/api/verify',
+  // Verify CAPTCHA
+  const captchaRes = await fetch(
+    '${BASE_URL}/api/captcha/verify',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        secret: process.env.CAPTCHA_SECRET,
-        token
+        secret: process.env.PICTURA_CAPTCHA_SECRET,
+        token: captchaToken
       })
     }
   );
   
-  const data = await res.json();
-  return Response.json({ success: data.success });
+  const captchaData = await captchaRes.json();
+  
+  if (!captchaData.success) {
+    return NextResponse.json(
+      { error: 'CAPTCHA verification failed' },
+      { status: 400 }
+    );
+  }
+  
+  // Process form...
+  return NextResponse.json({ success: true });
 }`}
                 />
               </section>
@@ -287,13 +424,18 @@ function ContactForm() {
                 
                 <div className="grid gap-3">
                   {[
-                    { title: 'Keep secrets secure', desc: 'Never expose your secret key in client-side code.' },
-                    { title: 'Verify every request', desc: 'Always verify tokens server-side before processing.' },
-                    { title: 'Single-use tokens', desc: 'Each token can only be verified once.' },
-                    { title: 'Token expiration', desc: 'Tokens expire after 5 minutes.' },
+                    { title: 'Keep secrets secure', desc: 'Never expose your secret key in client-side code. Use environment variables.' },
+                    { title: 'Verify every submission', desc: 'Always verify tokens server-side before processing any form.' },
+                    { title: 'Tokens are single-use', desc: 'Each token can only be verified once to prevent replay attacks.' },
+                    { title: 'Tokens expire quickly', desc: 'Tokens expire after 5 minutes. Users must re-verify if they wait too long.' },
+                    { title: 'Domain validation', desc: 'Tokens are tied to your registered domain and cannot be used elsewhere.' },
+                    { title: 'Rate limiting', desc: 'We rate limit verification requests to prevent abuse.' },
                   ].map((item) => (
                     <div key={item.title} className="bg-card border border-border rounded-xl p-4">
-                      <h3 className="font-semibold text-foreground text-sm mb-1">{item.title}</h3>
+                      <h3 className="font-semibold text-foreground text-sm mb-1 flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-primary" />
+                        {item.title}
+                      </h3>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
                     </div>
                   ))}
@@ -302,18 +444,16 @@ function ContactForm() {
               
               {/* CTA */}
               <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 text-center">
-                <h3 className="font-semibold text-foreground mb-2">Need help?</h3>
+                <h3 className="font-semibold text-foreground mb-2">Ready to get started?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Join our community for support.
+                  Create your free account and get your API keys in seconds.
                 </p>
-                <a 
-                  href="https://t.me/picturaai_bot"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link 
+                  href="/captcha/signup"
                   className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
                 >
-                  Join Telegram
-                </a>
+                  Get Started Free
+                </Link>
               </div>
             </motion.div>
           </main>
