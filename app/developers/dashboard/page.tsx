@@ -43,6 +43,8 @@ import {
   Activity,
   ArrowUpRight,
   Shield,
+  Wallet,
+  Lock,
   User,
   DollarSign,
   Gift,
@@ -1208,68 +1210,65 @@ export default function DeveloperDashboard() {
 
       {/* Pricing Modal */}
       <Dialog open={showPricingModal} onOpenChange={setShowPricingModal}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-[#C87941]" />
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
+          {/* Header with brand gradient */}
+          <div className="bg-gradient-to-r from-[#C87941] to-[#A65D2E] p-4 text-white">
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
               Buy Credits
             </DialogTitle>
-            <DialogDescription>
-              Choose a credit package that suits your needs. Credits never expire.
-            </DialogDescription>
-          </DialogHeader>
+            <p className="text-white/80 text-xs mt-0.5">Choose a package. Credits never expire.</p>
+          </div>
           
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 py-4">
+          <div className="p-4 space-y-2 max-h-[50vh] overflow-y-auto">
             {[
-              { name: 'Starter', credits: 1000, price: 500, icon: Zap, popular: false },
-              { name: 'Growth', credits: 5000, price: 2000, icon: Sparkles, popular: true },
-              { name: 'Pro', credits: 15000, price: 5000, icon: Crown, popular: false },
-              { name: 'Business', credits: 50000, price: 15000, icon: CreditCard, popular: false },
-              { name: 'Enterprise', credits: 150000, price: 40000, icon: Shield, popular: false },
-              { name: 'Custom', credits: 500000, price: 100000, icon: Gift, popular: false },
+              { name: 'Starter', credits: 1000, price: 500, popular: false },
+              { name: 'Growth', credits: 5000, price: 2000, popular: true },
+              { name: 'Pro', credits: 15000, price: 5000, popular: false },
+              { name: 'Business', credits: 50000, price: 15000, popular: false },
+              { name: 'Enterprise', credits: 150000, price: 40000, popular: false },
+              { name: 'Custom', credits: 500000, price: 100000, popular: false },
             ].map((plan) => (
               <div
                 key={plan.name}
                 onClick={() => setSelectedPlan(plan)}
-                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
+                className={`relative flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
                   selectedPlan?.name === plan.name 
-                    ? 'border-[#C87941] bg-[#C87941]/5' 
-                    : 'border-border hover:border-[#C87941]/50'
-                } ${plan.popular ? 'ring-2 ring-[#C87941]/20' : ''}`}
+                    ? 'border-[#C87941] bg-[#C87941]/5 shadow-sm' 
+                    : 'border-border hover:border-[#C87941]/50 hover:bg-muted/50'
+                }`}
               >
-                {plan.popular && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#C87941] text-white text-[10px] font-semibold rounded-full">
-                    Popular
-                  </div>
-                )}
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                    selectedPlan?.name === plan.name ? 'bg-[#C87941] text-white' : 'bg-[#C87941]/10 text-[#C87941]'
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                    selectedPlan?.name === plan.name 
+                      ? 'bg-[#C87941] text-white' 
+                      : 'bg-muted text-muted-foreground'
                   }`}>
-                    <plan.icon className="h-4 w-4" />
+                    {plan.name.charAt(0)}
                   </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{plan.name}</span>
+                      {plan.popular && (
+                        <span className="px-1.5 py-0.5 bg-[#C87941] text-white text-[9px] font-medium rounded">Best</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{plan.credits.toLocaleString()} credits</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-[#C87941]">
+                    {CURRENCY_SYMBOLS[developer.currency] || '₦'}{plan.price.toLocaleString()}
+                  </span>
                   {selectedPlan?.name === plan.name && (
-                    <Check className="h-5 w-5 text-[#C87941]" />
+                    <Check className="h-4 w-4 text-[#C87941]" />
                   )}
                 </div>
-                <h3 className="font-semibold text-sm mb-1">{plan.name}</h3>
-                <p className="text-lg font-bold text-[#C87941] mb-0.5">
-                  {CURRENCY_SYMBOLS[developer.currency] || '₦'}{plan.price.toLocaleString()}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {plan.credits.toLocaleString()} credits
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  {((plan.price / plan.credits) * 100).toFixed(1)} kobo/credit
-                </p>
               </div>
             ))}
           </div>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setShowPricingModal(false)} className="sm:flex-1">
-              Cancel
-            </Button>
+          <div className="p-4 pt-0 space-y-3">
             <Button 
               onClick={async () => {
                 if (!selectedPlan || !developer) return
@@ -1303,7 +1302,7 @@ export default function DeveloperDashboard() {
                 }
               }}
               disabled={!selectedPlan || processingPayment}
-              className="bg-[#C87941] hover:bg-[#B86D35] sm:flex-1"
+              className="w-full bg-[#C87941] hover:bg-[#B86D35] h-10"
             >
               {processingPayment ? (
                 <>
@@ -1311,16 +1310,19 @@ export default function DeveloperDashboard() {
                   Processing...
                 </>
               ) : selectedPlan ? (
-                `Pay ${CURRENCY_SYMBOLS[developer.currency] || '₦'}${selectedPlan.price.toLocaleString()}`
+                <>
+                  <Lock className="h-3.5 w-3.5 mr-2" />
+                  Pay {CURRENCY_SYMBOLS[developer.currency] || '₦'}{selectedPlan.price.toLocaleString()}
+                </>
               ) : (
-                'Select a Plan'
+                'Select a Package'
               )}
             </Button>
-          </DialogFooter>
-          
-          <p className="text-[10px] text-center text-muted-foreground">
-            Secure payment powered by Paystack. Credits are added instantly after payment.
-          </p>
+            <p className="text-[10px] text-center text-muted-foreground flex items-center justify-center gap-1">
+              <Shield className="h-3 w-3" />
+              Secure payment powered by Paystack
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
