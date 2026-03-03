@@ -111,49 +111,64 @@ export default function SignupPage() {
   const handleSignupStep1 = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('[v0] Signup Step 1 - Starting validation')
+    console.log('[v0] Form data:', { fullName, email, country, phoneNumber, referralSource, promoCode, captchaToken: !!captchaToken })
+    
     if (!fullName.trim() || !email.trim() || !password.trim()) {
+      console.log('[v0] Validation failed: Missing required fields')
       toast.error('Please fill in all fields')
       return
     }
 
     if (password.length < 8) {
+      console.log('[v0] Validation failed: Password too short')
       toast.error('Password must be at least 8 characters')
       return
     }
 
     if (!captchaToken) {
+      console.log('[v0] Validation failed: No CAPTCHA token')
       toast.error('Please verify you are not a robot')
       return
     }
 
+    console.log('[v0] Validation passed, sending request to /api/developers/auth/request-otp')
     setLoading(true)
     try {
+      const requestBody = {
+        fullName,
+        email,
+        password,
+        country,
+        currency: selectedCountry.currency,
+        phoneNumber: phoneNumber ? `${selectedCountry.dialCode}${phoneNumber}` : '',
+        captchaToken,
+        referralSource,
+        promoCode: promoCode.toUpperCase().trim(),
+      }
+      console.log('[v0] Request body (without password):', { ...requestBody, password: '[REDACTED]' })
+      
       const res = await fetch('/api/developers/auth/request-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName,
-          email,
-          password,
-          country,
-          currency: selectedCountry.currency,
-          phoneNumber: phoneNumber ? `${selectedCountry.dialCode}${phoneNumber}` : '',
-          captchaToken,
-          referralSource,
-          promoCode: promoCode.toUpperCase().trim(),
-        }),
+        body: JSON.stringify(requestBody),
       })
 
+      console.log('[v0] Response status:', res.status)
       const data = await res.json()
+      console.log('[v0] Response data:', data)
 
       if (res.ok) {
+        console.log('[v0] OTP request successful, moving to verification step')
         setStep('verification')
         setTimer(600)
         toast.success('Verification code sent to your email')
       } else {
+        console.log('[v0] OTP request failed:', data.error)
         toast.error(data.error || 'Failed to send verification code')
       }
-    } catch {
+    } catch (err) {
+      console.error('[v0] Signup error:', err)
       toast.error('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -163,6 +178,9 @@ export default function SignupPage() {
   const verifyOTP = useCallback(async (otpCode: string) => {
     if (loading || otpCode.length !== 6) return
 
+    console.log('[v0] Verify OTP - Starting verification for:', email)
+    console.log('[v0] OTP code length:', otpCode.length)
+    
     setLoading(true)
     try {
       const res = await fetch('/api/developers/auth/verify-otp', {
@@ -171,18 +189,23 @@ export default function SignupPage() {
         body: JSON.stringify({ email, otp: otpCode }),
       })
 
+      console.log('[v0] Verify OTP response status:', res.status)
       const data = await res.json()
+      console.log('[v0] Verify OTP response data:', data)
 
       if (res.ok) {
+        console.log('[v0] OTP verification successful!')
         setApiKey(data.apiKey || '')
         setBonusCredits(data.bonusCredits || null)
         setStep('complete')
         toast.success('Account created successfully!')
       } else {
+        console.log('[v0] OTP verification failed:', data.error)
         toast.error(data.error || 'Invalid verification code')
         setOtp('')
       }
-    } catch {
+    } catch (err) {
+      console.error('[v0] Verify OTP error:', err)
       toast.error('Something went wrong. Please try again.')
       setOtp('')
     } finally {
