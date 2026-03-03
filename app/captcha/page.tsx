@@ -187,8 +187,97 @@ export default function CaptchaPage() {
         </div>
       </section>
       
-      {/* Comparison Table */}
+      {/* How It Works */}
       <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            custom={0}
+            variants={fadeUp}
+            className="text-center mb-10 sm:mb-12"
+          >
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">How <span className="text-primary">Pictura</span>CAPTCHA Works</h2>
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+              Advanced bot detection powered by behavioral analysis and multiple challenge types
+            </p>
+          </motion.div>
+          
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              {
+                step: '1',
+                title: 'Behavioral Analysis',
+                desc: 'We analyze mouse movements, typing patterns, scroll behavior, and interaction timing to detect bot-like patterns.',
+                icon: Eye,
+              },
+              {
+                step: '2', 
+                title: 'Risk Assessment',
+                desc: 'Our AI calculates a risk score. Low-risk users pass automatically, while suspicious behavior triggers a challenge.',
+                icon: Shield,
+              },
+              {
+                step: '3',
+                title: 'Smart Challenges',
+                desc: 'Multiple challenge types: math, patterns, image selection, text recognition, and slider puzzles - randomly selected.',
+                icon: Lock,
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.step}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                custom={i}
+                variants={fadeUp}
+                className="relative"
+              >
+                <div className="rounded-xl border border-border bg-card p-6 h-full">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                      {item.step}
+                    </div>
+                    <item.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground text-lg mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            custom={3}
+            variants={fadeUp}
+            className="mt-10 rounded-xl border border-primary/20 bg-primary/5 p-6 sm:p-8"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Shield className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground text-lg">Security Features</h3>
+                <ul className="mt-2 grid sm:grid-cols-2 gap-x-8 gap-y-1 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary flex-shrink-0" /> Cooldown after 3 failed attempts</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary flex-shrink-0" /> Token expiration (5 minutes)</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary flex-shrink-0" /> Domain verification</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary flex-shrink-0" /> Rate limiting per IP</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary flex-shrink-0" /> Mouse velocity analysis</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary flex-shrink-0" /> Keystroke timing detection</li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+      
+      {/* Comparison Table */}
+      <section className="py-12 sm:py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.div
             initial="hidden"
