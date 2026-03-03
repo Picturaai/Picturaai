@@ -13,12 +13,18 @@ import { toast } from 'sonner'
 
 export default function CaptchaLoginPage() {
   const router = useRouter()
+  const [mode, setMode] = useState<'choose' | 'email'>('choose')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [captchaVerified, setCaptchaVerified] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePicturaLogin = () => {
+    // Redirect to developer login with return URL
+    router.push('/developers/login?redirect=/captcha/dashboard')
+  }
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!captchaVerified) {
@@ -58,85 +64,124 @@ export default function CaptchaLoginPage() {
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
       
-      <div className="mx-auto max-w-md px-4 sm:px-6 pt-24 sm:pt-32 pb-16">
+      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
+          className="w-full max-w-sm"
         >
-          {/* Header */}
+          {/* Header - Centered */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 mb-4 shadow-lg shadow-primary/20">
-              <PicturaIcon size={28} className="text-primary-foreground" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">Sign in to CAPTCHA</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              Sign in to <span className="text-primary">CAPTCHA</span>
+            </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Use your Pictura developer account
+              Manage your sites and view analytics
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {mode === 'choose' ? (
+            <div className="space-y-4">
+              {/* Sign in with Pictura Button - Social login style */}
+              <button
+                onClick={handlePicturaLogin}
+                className="w-full h-12 rounded-xl border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-foreground font-medium flex items-center justify-center gap-3 transition-colors"
+              >
+                <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                  <PicturaIcon size={14} className="text-primary-foreground" />
+                </div>
+                <span>Continue with <span className="text-primary font-semibold">Pictura</span></span>
+              </button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-background px-3 text-muted-foreground">or</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setMode('email')}
+                className="w-full h-12 rounded-xl border border-border bg-card hover:bg-muted/50 text-foreground font-medium flex items-center justify-center gap-2 transition-colors"
+              >
+                Continue with Email
+                <ArrowRight className="h-4 w-4" />
+              </button>
+
+              <p className="text-xs text-center text-muted-foreground mt-6">
+                Don't have an account?{' '}
+                <Link href="/developers/signup" className="text-primary hover:underline font-medium">
+                  Create one
+                </Link>
+              </p>
+            </div>
+          ) : (
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full h-11 px-4 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
+              <button
+                onClick={() => setMode('choose')}
+                className="text-sm text-muted-foreground hover:text-foreground mb-6 flex items-center gap-1"
+              >
+                <ArrowRight className="h-3 w-3 rotate-180" />
+                Back
+              </button>
+
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full h-11 px-4 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full h-11 px-4 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <SmartCaptcha 
+                    onVerify={() => setCaptchaVerified(true)} 
+                    size="compact"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || !captchaVerified}
+                  className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    'Sign In'
+                  )}
+                </button>
+              </form>
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full h-11 px-4 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              />
-            </div>
-
-            <div className="pt-2">
-              <SmartCaptcha 
-                onVerify={() => setCaptchaVerified(true)} 
-                size="compact"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !captchaVerified}
-              className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Links */}
-          <div className="mt-6 text-center space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
-              <Link href="/developers/signup" className="text-primary hover:underline font-medium">
-                Create a Pictura account
-              </Link>
-            </p>
-            <Link href="/captcha" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-              Back to PicturaCAPTCHA
-            </Link>
-          </div>
+          <Link 
+            href="/captcha" 
+            className="block text-center text-sm text-muted-foreground hover:text-primary transition-colors mt-6"
+          >
+            Back to PicturaCAPTCHA
+          </Link>
         </motion.div>
       </div>
       
