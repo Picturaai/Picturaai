@@ -4,11 +4,37 @@ import { hashPassword } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
+// Fal AI - High quality image generation
+async function generateWithFal(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.FAL_KEY
+  if (!apiKey) throw new Error('Fal not configured')
+
+  const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Key ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: prompt.trim(),
+      image_size: { width: Math.min(width, 1024), height: Math.min(height, 1024) },
+      num_images: 1,
+    }),
+  })
+
+  if (!response.ok) throw new Error('Fal generation failed')
+
+  const data = await response.json()
+  if (data.images?.[0]?.url) return data.images[0].url
+  throw new Error('No image from Fal')
+}
+
 // Pictura AI Image Generation Engine (Internal)
-// Uses multiple providers with automatic failover
+// Uses multiple providers with automatic failover - Stability first for best quality
 async function generateWithPicturaEngine(prompt: string, width: number, height: number): Promise<string> {
   const providers = [
     generateWithStability,
+    generateWithFal,
     generateWithLeonardo,
     generateWithZyLabs,
   ]

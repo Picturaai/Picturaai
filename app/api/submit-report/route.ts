@@ -20,23 +20,33 @@ interface ReportData {
   captchaToken?: string
 }
 
-// PicturaCAPTCHA token validation (basic check - token format)
+// PicturaCAPTCHA token validation - supports both new base64 JSON and legacy string format
 function verifyCaptchaToken(token: string): boolean {
-  // PicturaCAPTCHA tokens start with 'pictura_' and contain verification info
-  if (!token || !token.startsWith('pictura_')) {
-    return false
-  }
-  // Token format: pictura_timestamp_sitekey_random_verified
-  const parts = token.split('_')
-  if (parts.length < 4) return false
+  if (!token) return false
   
-  // Check if token is not expired (5 minute validity)
-  const timestamp = parseInt(parts[1], 10)
-  if (isNaN(timestamp) || Date.now() - timestamp > 5 * 60 * 1000) {
-    return false
+  // Try base64 JSON format first (new format)
+  try {
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+    // Check timestamp (5 minute validity)
+    if (!decoded.t || Date.now() - decoded.t > 5 * 60 * 1000) {
+      return false
+    }
+    // Check verification flag
+    return decoded.v === true
+  } catch {
+    // Legacy format: pictura_timestamp_sitekey_random_verified
+    if (!token.startsWith('pictura_')) return false
+    
+    const parts = token.split('_')
+    if (parts.length < 4) return false
+    
+    const timestamp = parseInt(parts[1], 10)
+    if (isNaN(timestamp) || Date.now() - timestamp > 5 * 60 * 1000) {
+      return false
+    }
+    
+    return token.endsWith('_verified') || token.includes('step')
   }
-  
-  return token.endsWith('_verified')
 }
 
 function generateTicketId(): string {

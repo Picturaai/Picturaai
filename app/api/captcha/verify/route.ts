@@ -27,14 +27,30 @@ export async function POST(req: NextRequest) {
       }, { status: 401 })
     }
 
-    // Decode and verify token
+    // Decode and verify token - supports both base64 JSON and legacy string format
     try {
-      const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+      let decoded: { t: number; s?: string; v: boolean; i?: number; steps?: number; r?: string }
+      
+      // Try base64 JSON first (new format)
+      try {
+        decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+      } catch {
+        // Legacy format: pictura_timestamp_sitekey_random_verified
+        if (token.startsWith('pictura_') && token.endsWith('_verified')) {
+          const parts = token.split('_')
+          decoded = {
+            t: parseInt(parts[1], 10),
+            s: parts[2],
+            v: true
+          }
+        } else {
+          throw new Error('Invalid token format')
+        }
+      }
       
       // Check token age (max 5 minutes)
       const tokenAge = Date.now() - decoded.t
       if (tokenAge > 5 * 60 * 1000) {
-        // Track failed verification
         await sql`
           UPDATE captcha_sites 
           SET challenges_failed = COALESCE(challenges_failed, 0) + 1
@@ -69,7 +85,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: true,
         hostname: site[0].domain,
-        challenge_ts: new Date(decoded.t).toISOString()
+        challenge_ts: new Date(decoded.t).toISOString(),
+        interactions: decoded.i || 0,
+        steps_completed: decoded.steps || 1
       })
     } catch {
       return NextResponse.json({ 

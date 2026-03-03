@@ -329,7 +329,15 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
       setTimeout(() => {
         isVerifiedRef.current = true
         setStatus('verified')
-        const token = `pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}_verified`
+        // Generate a base64-encoded token with verification data for server-side validation
+        const tokenData = {
+          t: Date.now(),           // Timestamp
+          s: siteKey,              // Site key
+          i: interactionsRef.current, // Interaction count
+          v: true,                 // Verified
+          r: Math.random().toString(36).substr(2, 9) // Random nonce
+        }
+        const token = Buffer.from(JSON.stringify(tokenData)).toString('base64')
         onVerify?.(token)
       }, 600)
     }, 800)
@@ -376,7 +384,16 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
       setTimeout(() => { 
         isVerifiedRef.current = true
         setStatus('verified')
-        const token = `pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}_${requiredSteps}step`
+        // Generate a base64-encoded token with full verification data
+        const tokenData = {
+          t: Date.now(),
+          s: siteKey,
+          i: interactionsRef.current,
+          v: true,
+          steps: requiredSteps,
+          r: Math.random().toString(36).substr(2, 9)
+        }
+        const token = Buffer.from(JSON.stringify(tokenData)).toString('base64')
         onVerify?.(token) 
       }, 800)
     }

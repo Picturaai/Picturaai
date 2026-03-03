@@ -114,43 +114,37 @@ async function generateWithLeonardo(prompt: string): Promise<string> {
   throw new Error('Leonardo generation timed out')
 }
 
-async function generateWithMistral(prompt: string): Promise<string> {
-  const apiKey = process.env.MISTRAL_API_KEY
-  if (!apiKey) throw new Error('Mistral API key not configured')
+// Fal AI - High quality image generation
+async function generateWithFal(prompt: string): Promise<string> {
+  const apiKey = process.env.FAL_KEY
+  if (!apiKey) throw new Error('Fal API key not configured')
 
-  const response = await fetch('https://api.mistral.ai/v1/images/generations', {
+  const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      'Authorization': `Key ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'pixtral-large-latest',
       prompt: prompt.trim(),
-      size: '1024x1024',
+      image_size: 'square_hd',
+      num_images: 1,
     }),
   })
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('[v0] Mistral API error:', response.status, errorText)
-    throw new Error('Mistral generation failed')
+    console.error('Fal API error:', response.status, errorText)
+    throw new Error('Fal generation failed')
   }
 
   const data = await response.json()
   
-  // Mistral returns base64 encoded image
-  if (data.data && data.data[0]) {
-    const imageData = data.data[0]
-    if (imageData.b64_json) {
-      return `data:image/png;base64,${imageData.b64_json}`
-    }
-    if (imageData.url) {
-      return imageData.url
-    }
+  if (data.images && data.images[0]?.url) {
+    return data.images[0].url
   }
   
-  throw new Error('Could not extract image from Mistral response')
+  throw new Error('Could not extract image from Fal response')
 }
 
 function extractImageUrl(data: Record<string, unknown>): string {
@@ -197,10 +191,12 @@ export async function POST(request: Request) {
     }
 
     // Generate based on selected model with automatic fallback
+    // Pictura 1.5 Turbo uses Stability/Fal for best quality
+    // Pictura 1.0 uses ZyLabs as default for faster generation
     let imageUrl: string
     const providers = model === 'pi-1.5-turbo' 
-      ? [generateWithStability, generateWithLeonardo, generateWithMistral, generateWithZyLabs]
-      : [generateWithZyLabs, generateWithMistral, generateWithStability, generateWithLeonardo]
+      ? [generateWithStability, generateWithFal, generateWithLeonardo, generateWithZyLabs]
+      : [generateWithZyLabs, generateWithFal, generateWithStability, generateWithLeonardo]
     
     let lastError: Error | null = null
     for (const provider of providers) {
