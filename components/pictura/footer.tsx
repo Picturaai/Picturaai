@@ -31,7 +31,7 @@ export function Footer() {
             <Link href="/models" className="text-sm text-foreground/70 transition-colors hover:text-primary">Models</Link>
             <Link href="/api-docs" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               API
-              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">SOON</span>
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary">BETA</span>
             </Link>
             <Link href="/pricing" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               Pricing

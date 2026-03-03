@@ -108,8 +108,8 @@ console.log(response.url)`,
       <Navbar />
       <main className="min-h-screen bg-background">
         {/* Hero Section */}
-        <section className="border-b border-border/40 bg-gradient-to-b from-primary/5 to-background pt-32 pb-20">
-          <div className="mx-auto max-w-6xl px-4">
+        <section className="border-b border-border/40 bg-gradient-to-b from-primary/5 to-background pt-20 sm:pt-32 pb-16 sm:pb-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <motion.div
               initial="hidden"
               animate="visible"
@@ -117,16 +117,13 @@ console.log(response.url)`,
               variants={fadeUp}
               className="text-center mb-16"
             >
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 mb-6">
-                <div className="flex items-center gap-1.5">
-                  <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-xs font-semibold text-primary">Now Available in Beta</span>
-                </div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 mb-6">
+                <span className="text-xs font-semibold text-primary">✓ Now Available in Beta</span>
               </div>
-              <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 text-balance">
                 Pictura API Documentation
               </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-balance">
+              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-balance px-2">
                 Integrate powerful AI image generation directly into your applications with our robust REST API and official SDKs.
               </p>
             </motion.div>
@@ -137,16 +134,16 @@ console.log(response.url)`,
               animate="visible"
               custom={1}
               variants={fadeUp}
-              className="grid grid-cols-3 gap-4 sm:gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
             >
               {[
                 { label: 'API Endpoints', value: '10+' },
                 { label: 'Response Time', value: '<500ms' },
                 { label: 'Beta Users', value: '5,000+' },
               ].map((stat) => (
-                <div key={stat.label} className="rounded-lg border border-border/40 bg-card p-4 text-center">
-                  <div className="text-2xl sm:text-3xl font-bold text-primary">{stat.value}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground mt-1">{stat.label}</div>
+                <div key={stat.label} className="rounded-lg border border-border/40 bg-card p-6 sm:p-8 text-center">
+                  <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-2">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
                 </div>
               ))}
             </motion.div>
@@ -435,8 +432,8 @@ console.log(response.url)`,
         </section>
 
         {/* Final CTA */}
-        <section className="py-20 bg-gradient-to-b from-background to-primary/5">
-          <div className="mx-auto max-w-4xl px-4 text-center">
+        <section className="py-16 sm:py-20 bg-gradient-to-b from-background to-primary/5">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
             <motion.div
               initial="hidden"
               whileInView="visible"
@@ -444,8 +441,8 @@ console.log(response.url)`,
               custom={7}
               variants={fadeUp}
             >
-              <h2 className="text-3xl font-bold text-foreground mb-4">Ready to Build?</h2>
-              <p className="text-lg text-muted-foreground mb-8 text-balance">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">Ready to Build?</h2>
+              <p className="text-base sm:text-lg text-muted-foreground mb-8 text-balance">
                 Join thousands of developers using Pictura API to power their applications
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
