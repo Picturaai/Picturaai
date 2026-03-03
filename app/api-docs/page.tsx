@@ -70,13 +70,12 @@ console.log(response.url)`,
     
     try {
       // Call actual image generation API
-      const res = await fetch('/api/studio/generate', {
+      const res = await fetch('/api/generate/text-to-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: prompt,
           model: 'pi-1.5-turbo',
-          size: '512x512',
         }),
       })
       
