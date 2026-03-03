@@ -4,39 +4,190 @@ import { hashPassword } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
-// Fal AI - High quality image generation
+// Mistral AI - Primary provider for Pictura 1.5
+async function generateWithMistral(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.MISTRAL_API_KEY
+  if (!apiKey) throw new Error('Mistral not configured')
+
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'pixtral-large-latest',
+      messages: [{ role: 'user', content: `Generate an image (${width}x${height}): ${prompt.trim()}` }],
+      tools: [{ type: 'image_generation' }],
+      tool_choice: 'auto',
+    }),
+  })
+
+  if (!response.ok) throw new Error('Mistral generation failed')
+  const data = await response.json()
+  const toolCalls = data.choices?.[0]?.message?.tool_calls
+  if (toolCalls?.[0]?.function?.output) return toolCalls[0].function.output
+  throw new Error('No image from Mistral')
+}
+
+// OpenAI DALL-E 3
+async function generateWithOpenAI(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) throw new Error('OpenAI not configured')
+
+  const size = width === height ? '1024x1024' : width > height ? '1792x1024' : '1024x1792'
+  const response = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'dall-e-3', prompt: prompt.trim(), n: 1, size }),
+  })
+
+  if (!response.ok) throw new Error('OpenAI generation failed')
+  const data = await response.json()
+  if (data.data?.[0]?.url) return data.data[0].url
+  throw new Error('No image from OpenAI')
+}
+
+// Replicate
+async function generateWithReplicate(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.REPLICATE_API_TOKEN
+  if (!apiKey) throw new Error('Replicate not configured')
+
+  const response = await fetch('https://api.replicate.com/v1/predictions', {
+    method: 'POST',
+    headers: { 'Authorization': `Token ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ version: 'black-forest-labs/flux-schnell', input: { prompt: prompt.trim(), width, height } }),
+  })
+  if (!response.ok) throw new Error('Replicate failed')
+  const prediction = await response.json()
+  
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 1000))
+    const res = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, { headers: { 'Authorization': `Token ${apiKey}` } })
+    const s = await res.json()
+    if (s.status === 'succeeded' && s.output) return Array.isArray(s.output) ? s.output[0] : s.output
+    if (s.status === 'failed') throw new Error('Replicate failed')
+  }
+  throw new Error('Replicate timed out')
+}
+
+// Together AI
+async function generateWithTogether(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.TOGETHER_API_KEY
+  if (!apiKey) throw new Error('Together not configured')
+
+  const response = await fetch('https://api.together.xyz/v1/images/generations', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'black-forest-labs/FLUX.1-schnell-Free', prompt: prompt.trim(), width, height, n: 1 }),
+  })
+  if (!response.ok) throw new Error('Together failed')
+  const data = await response.json()
+  if (data.data?.[0]?.url) return data.data[0].url
+  throw new Error('No image from Together')
+}
+
+// Fireworks AI
+async function generateWithFireworks(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.FIREWORKS_API_KEY
+  if (!apiKey) throw new Error('Fireworks not configured')
+
+  const response = await fetch('https://api.fireworks.ai/inference/v1/images/generations', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'accounts/fireworks/models/flux-1-schnell-fp8', prompt: prompt.trim(), n: 1, size: `${width}x${height}` }),
+  })
+  if (!response.ok) throw new Error('Fireworks failed')
+  const data = await response.json()
+  if (data.data?.[0]?.url) return data.data[0].url
+  throw new Error('No image from Fireworks')
+}
+
+// DeepInfra
+async function generateWithDeepInfra(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.DEEPINFRA_API_KEY
+  if (!apiKey) throw new Error('DeepInfra not configured')
+
+  const response = await fetch('https://api.deepinfra.com/v1/inference/black-forest-labs/FLUX-1-schnell', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt.trim(), width, height }),
+  })
+  if (!response.ok) throw new Error('DeepInfra failed')
+  const data = await response.json()
+  if (data.images?.[0]) return data.images[0]
+  throw new Error('No image from DeepInfra')
+}
+
+// Fal AI
 async function generateWithFal(prompt: string, width: number, height: number): Promise<string> {
   const apiKey = process.env.FAL_KEY
   if (!apiKey) throw new Error('Fal not configured')
 
   const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
     method: 'POST',
-    headers: {
-      'Authorization': `Key ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      prompt: prompt.trim(),
-      image_size: { width: Math.min(width, 1024), height: Math.min(height, 1024) },
-      num_images: 1,
-    }),
+    headers: { 'Authorization': `Key ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt.trim(), image_size: { width, height }, num_images: 1 }),
   })
-
-  if (!response.ok) throw new Error('Fal generation failed')
-
+  if (!response.ok) throw new Error('Fal failed')
   const data = await response.json()
   if (data.images?.[0]?.url) return data.images[0].url
   throw new Error('No image from Fal')
 }
 
+// HuggingFace
+async function generateWithHuggingFace(prompt: string): Promise<string> {
+  const apiKey = process.env.HUGGINGFACE_API_KEY
+  if (!apiKey) throw new Error('HuggingFace not configured')
+
+  const response = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ inputs: prompt.trim() }),
+  })
+  if (!response.ok) throw new Error('HuggingFace failed')
+  const imageBlob = await response.arrayBuffer()
+  return `data:image/png;base64,${Buffer.from(imageBlob).toString('base64')}`
+}
+
+// BFL (Black Forest Labs)
+async function generateWithBFL(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.BFL_API_KEY
+  if (!apiKey) throw new Error('BFL not configured')
+
+  const response = await fetch('https://api.bfl.ml/v1/flux-pro-1.1', {
+    method: 'POST',
+    headers: { 'X-Key': apiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt.trim(), width, height }),
+  })
+  if (!response.ok) throw new Error('BFL failed')
+  const { id } = await response.json()
+  
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 1000))
+    const res = await fetch(`https://api.bfl.ml/v1/get_result?id=${id}`, { headers: { 'X-Key': apiKey } })
+    const result = await res.json()
+    if (result.status === 'Ready' && result.result?.sample) return result.result.sample
+  }
+  throw new Error('BFL timed out')
+}
+
 // Pictura AI Image Generation Engine (Internal)
-// Uses multiple providers with automatic failover - Stability first for best quality
+// Uses all 12 providers with automatic failover - Mistral first for best quality
 async function generateWithPicturaEngine(prompt: string, width: number, height: number): Promise<string> {
   const providers = [
-    generateWithStability,
-    generateWithFal,
-    generateWithLeonardo,
-    generateWithZyLabs,
+    generateWithMistral,      // Mistral AI (primary)
+    generateWithStability,    // Stability AI SD3
+    generateWithOpenAI,       // OpenAI DALL-E 3
+    generateWithBFL,          // Black Forest Labs Flux Pro
+    generateWithReplicate,    // Replicate
+    generateWithLeonardo,     // Leonardo AI
+    generateWithFal,          // Fal AI
+    generateWithTogether,     // Together AI
+    generateWithFireworks,    // Fireworks AI
+    generateWithDeepInfra,    // DeepInfra
+    (p: string) => generateWithHuggingFace(p), // HuggingFace (no size param)
+    generateWithZyLabs,       // ZyLabs
   ]
   
   for (const provider of providers) {

@@ -114,6 +114,182 @@ async function generateWithLeonardo(prompt: string): Promise<string> {
   throw new Error('Leonardo generation timed out')
 }
 
+// Mistral AI - Image generation via Agents API
+async function generateWithMistral(prompt: string): Promise<string> {
+  const apiKey = process.env.MISTRAL_API_KEY
+  if (!apiKey) throw new Error('Mistral API key not configured')
+
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'pixtral-large-latest',
+      messages: [{ role: 'user', content: `Generate an image: ${prompt.trim()}` }],
+      tools: [{ type: 'image_generation' }],
+      tool_choice: 'auto',
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Mistral API error:', response.status, errorText)
+    throw new Error('Mistral generation failed')
+  }
+
+  const data = await response.json()
+  // Extract image from tool call response
+  const toolCalls = data.choices?.[0]?.message?.tool_calls
+  if (toolCalls && toolCalls[0]?.function?.output) {
+    return toolCalls[0].function.output
+  }
+  throw new Error('Could not extract image from Mistral response')
+}
+
+// OpenAI DALL-E 3
+async function generateWithOpenAI(prompt: string): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) throw new Error('OpenAI API key not configured')
+
+  const response = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'dall-e-3',
+      prompt: prompt.trim(),
+      n: 1,
+      size: '1024x1024',
+      quality: 'standard',
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('OpenAI API error:', response.status, errorText)
+    throw new Error('OpenAI generation failed')
+  }
+
+  const data = await response.json()
+  if (data.data?.[0]?.url) return data.data[0].url
+  throw new Error('Could not extract image from OpenAI response')
+}
+
+// Replicate - Flux and other models
+async function generateWithReplicate(prompt: string): Promise<string> {
+  const apiKey = process.env.REPLICATE_API_TOKEN
+  if (!apiKey) throw new Error('Replicate API key not configured')
+
+  const response = await fetch('https://api.replicate.com/v1/predictions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Token ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      version: 'black-forest-labs/flux-schnell',
+      input: { prompt: prompt.trim(), aspect_ratio: '1:1' },
+    }),
+  })
+
+  if (!response.ok) throw new Error('Replicate creation failed')
+  
+  const prediction = await response.json()
+  
+  // Poll for completion
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 1000))
+    const statusRes = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
+      headers: { 'Authorization': `Token ${apiKey}` },
+    })
+    const status = await statusRes.json()
+    if (status.status === 'succeeded' && status.output) {
+      return Array.isArray(status.output) ? status.output[0] : status.output
+    }
+    if (status.status === 'failed') throw new Error('Replicate generation failed')
+  }
+  throw new Error('Replicate generation timed out')
+}
+
+// Together AI
+async function generateWithTogether(prompt: string): Promise<string> {
+  const apiKey = process.env.TOGETHER_API_KEY
+  if (!apiKey) throw new Error('Together API key not configured')
+
+  const response = await fetch('https://api.together.xyz/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'black-forest-labs/FLUX.1-schnell-Free',
+      prompt: prompt.trim(),
+      width: 1024,
+      height: 1024,
+      n: 1,
+    }),
+  })
+
+  if (!response.ok) throw new Error('Together generation failed')
+  const data = await response.json()
+  if (data.data?.[0]?.url) return data.data[0].url
+  throw new Error('Could not extract image from Together response')
+}
+
+// Fireworks AI
+async function generateWithFireworks(prompt: string): Promise<string> {
+  const apiKey = process.env.FIREWORKS_API_KEY
+  if (!apiKey) throw new Error('Fireworks API key not configured')
+
+  const response = await fetch('https://api.fireworks.ai/inference/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'accounts/fireworks/models/flux-1-schnell-fp8',
+      prompt: prompt.trim(),
+      n: 1,
+      size: '1024x1024',
+    }),
+  })
+
+  if (!response.ok) throw new Error('Fireworks generation failed')
+  const data = await response.json()
+  if (data.data?.[0]?.url) return data.data[0].url
+  throw new Error('Could not extract image from Fireworks response')
+}
+
+// DeepInfra
+async function generateWithDeepInfra(prompt: string): Promise<string> {
+  const apiKey = process.env.DEEPINFRA_API_KEY
+  if (!apiKey) throw new Error('DeepInfra API key not configured')
+
+  const response = await fetch('https://api.deepinfra.com/v1/inference/black-forest-labs/FLUX-1-schnell', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: prompt.trim(),
+      width: 1024,
+      height: 1024,
+    }),
+  })
+
+  if (!response.ok) throw new Error('DeepInfra generation failed')
+  const data = await response.json()
+  if (data.images?.[0]) return data.images[0]
+  throw new Error('Could not extract image from DeepInfra response')
+}
+
 // Fal AI - High quality image generation
 async function generateWithFal(prompt: string): Promise<string> {
   const apiKey = process.env.FAL_KEY
@@ -132,19 +308,65 @@ async function generateWithFal(prompt: string): Promise<string> {
     }),
   })
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error('Fal API error:', response.status, errorText)
-    throw new Error('Fal generation failed')
-  }
-
+  if (!response.ok) throw new Error('Fal generation failed')
   const data = await response.json()
-  
-  if (data.images && data.images[0]?.url) {
-    return data.images[0].url
-  }
-  
+  if (data.images?.[0]?.url) return data.images[0].url
   throw new Error('Could not extract image from Fal response')
+}
+
+// Hugging Face Inference API
+async function generateWithHuggingFace(prompt: string): Promise<string> {
+  const apiKey = process.env.HUGGINGFACE_API_KEY
+  if (!apiKey) throw new Error('HuggingFace API key not configured')
+
+  const response = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ inputs: prompt.trim() }),
+  })
+
+  if (!response.ok) throw new Error('HuggingFace generation failed')
+  
+  const imageBlob = await response.arrayBuffer()
+  return `data:image/png;base64,${Buffer.from(imageBlob).toString('base64')}`
+}
+
+// BFL (Black Forest Labs) - Direct Flux API
+async function generateWithBFL(prompt: string): Promise<string> {
+  const apiKey = process.env.BFL_API_KEY
+  if (!apiKey) throw new Error('BFL API key not configured')
+
+  const response = await fetch('https://api.bfl.ml/v1/flux-pro-1.1', {
+    method: 'POST',
+    headers: {
+      'X-Key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: prompt.trim(),
+      width: 1024,
+      height: 1024,
+    }),
+  })
+
+  if (!response.ok) throw new Error('BFL creation failed')
+  const { id } = await response.json()
+  
+  // Poll for result
+  for (let i = 0; i < 60; i++) {
+    await new Promise(r => setTimeout(r, 1000))
+    const resultRes = await fetch(`https://api.bfl.ml/v1/get_result?id=${id}`, {
+      headers: { 'X-Key': apiKey },
+    })
+    const result = await resultRes.json()
+    if (result.status === 'Ready' && result.result?.sample) {
+      return result.result.sample
+    }
+  }
+  throw new Error('BFL generation timed out')
 }
 
 function extractImageUrl(data: Record<string, unknown>): string {
@@ -191,12 +413,39 @@ export async function POST(request: Request) {
     }
 
     // Generate based on selected model with automatic fallback
-    // Pictura 1.5 Turbo uses Stability/Fal for best quality
-    // Pictura 1.0 uses ZyLabs as default for faster generation
+    // Pictura 1.5 Turbo uses Mistral first for best quality, then premium providers
+    // Pictura 1.0 uses free/fast providers first
+    // All 10 providers are tried in order - just add the API key to enable
     let imageUrl: string
     const providers = model === 'pi-1.5-turbo' 
-      ? [generateWithStability, generateWithFal, generateWithLeonardo, generateWithZyLabs]
-      : [generateWithZyLabs, generateWithFal, generateWithStability, generateWithLeonardo]
+      ? [
+          generateWithMistral,     // Mistral AI (primary for 1.5)
+          generateWithStability,   // Stability AI SD3
+          generateWithOpenAI,      // OpenAI DALL-E 3
+          generateWithBFL,         // Black Forest Labs Flux Pro
+          generateWithReplicate,   // Replicate
+          generateWithLeonardo,    // Leonardo AI
+          generateWithFal,         // Fal AI
+          generateWithTogether,    // Together AI
+          generateWithFireworks,   // Fireworks AI
+          generateWithDeepInfra,   // DeepInfra
+          generateWithHuggingFace, // HuggingFace
+          generateWithZyLabs,      // ZyLabs
+        ]
+      : [
+          generateWithZyLabs,      // ZyLabs (fast, free tier)
+          generateWithTogether,    // Together AI (free tier)
+          generateWithDeepInfra,   // DeepInfra
+          generateWithHuggingFace, // HuggingFace
+          generateWithFal,         // Fal AI
+          generateWithFireworks,   // Fireworks AI
+          generateWithReplicate,   // Replicate
+          generateWithMistral,     // Mistral AI
+          generateWithStability,   // Stability AI
+          generateWithLeonardo,    // Leonardo AI
+          generateWithOpenAI,      // OpenAI DALL-E 3
+          generateWithBFL,         // Black Forest Labs
+        ]
     
     let lastError: Error | null = null
     for (const provider of providers) {
