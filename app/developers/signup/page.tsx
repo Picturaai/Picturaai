@@ -97,6 +97,7 @@ export default function SignupPage() {
           email,
           password,
           country,
+          currency: selectedCountry.currency,
           phoneNumber: `${selectedCountry.dialCode}${phoneNumber}`,
         }),
       })
