@@ -11,16 +11,17 @@ import {
   EyeOff,
   Plus,
   LogOut,
-  TrendingUp,
-  Zap,
-  DollarSign,
-  Settings,
+  CreditCard,
   BarChart3,
-  AlertCircle,
-  CheckCircle2,
+  FileText,
+  Settings,
   Loader2,
+  Check,
+  ExternalLink,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 interface DeveloperData {
   id: string
@@ -49,6 +50,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set())
   const [creatingKey, setCreatingKey] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'keys' | 'usage'>('overview')
 
   useEffect(() => {
     const token = localStorage.getItem('developerToken')
@@ -102,7 +104,7 @@ export default function DashboardPage() {
           ...developer,
           apiKeys: [...developer.apiKeys, newKey],
         })
-        toast.success('API key created')
+        toast.success('API key created successfully')
       } else {
         toast.error('Failed to create API key')
       }
@@ -147,207 +149,376 @@ export default function DashboardPage() {
     return null
   }
 
+  const currencySymbol = developer.currency === 'NGN' ? '₦' : developer.currency === 'USD' ? '$' : developer.currency
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/40 bg-card/50 sticky top-0 z-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-base sm:text-lg font-bold text-foreground">Developer Dashboard</h1>
-            <p className="text-xs text-muted-foreground">{developer.email}</p>
+      {/* Sidebar */}
+      <aside className="fixed inset-y-0 left-0 w-64 border-r border-border bg-card hidden lg:block">
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="p-6 border-b border-border">
+            <Link href="/" className="flex items-center gap-2">
+              <PicturaIcon size={24} className="text-primary" />
+              <span className="font-semibold text-foreground">Pictura</span>
+            </Link>
           </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-1">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'overview' 
+                  ? 'bg-primary/10 text-primary' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              <BarChart3 className="h-4 w-4" />
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('keys')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'keys' 
+                  ? 'bg-primary/10 text-primary' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              <Key className="h-4 w-4" />
+              API Keys
+            </button>
+            <button
+              onClick={() => setActiveTab('usage')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'usage' 
+                  ? 'bg-primary/10 text-primary' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              <CreditCard className="h-4 w-4" />
+              Usage & Billing
+            </button>
+            <Link
+              href="/api-docs"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            >
+              <FileText className="h-4 w-4" />
+              Documentation
+              <ExternalLink className="h-3 w-3 ml-auto" />
+            </Link>
+          </nav>
+
+          {/* User section */}
+          <div className="p-4 border-t border-border">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-medium text-primary">
+                  {developer.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{developer.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{developer.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-secondary text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Mobile header */}
+      <header className="lg:hidden sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
+        <div className="flex items-center justify-between px-4 py-3">
+          <Link href="/" className="flex items-center gap-2">
+            <PicturaIcon size={20} className="text-primary" />
+            <span className="font-semibold text-foreground">Pictura</span>
+          </Link>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary text-foreground text-xs font-medium hover:bg-secondary/80 transition-colors"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground"
           >
-            <LogOut className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Logout</span>
+            <LogOut className="h-5 w-5" />
           </button>
+        </div>
+        <div className="flex items-center gap-1 px-4 pb-3 overflow-x-auto">
+          {['overview', 'keys', 'usage'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as typeof activeTab)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                activeTab === tab
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {/* Credits Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-lg border border-border/40 bg-card p-4 sm:p-5"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-1.5 rounded-md bg-primary/10">
-                <DollarSign className="h-4 w-4 text-primary" />
-              </div>
-              {developer.creditsBalance < 10 && (
-                <AlertCircle className="h-3.5 w-3.5 text-orange-500" />
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mb-0.5">Available Credits</p>
-            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-1">
-              {developer.creditsBalance} {developer.currency}
-            </h2>
-            <p className="text-[10px] text-muted-foreground">
-              {developer.creditsBalance < 50
-                ? 'Low balance'
-                : 'Good balance'}
+      {/* Main content */}
+      <main className="lg:pl-64">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+          {/* Page header */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-foreground">
+              {activeTab === 'overview' && 'Dashboard'}
+              {activeTab === 'keys' && 'API Keys'}
+              {activeTab === 'usage' && 'Usage & Billing'}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {activeTab === 'overview' && 'Overview of your Pictura API usage'}
+              {activeTab === 'keys' && 'Manage your API keys for authentication'}
+              {activeTab === 'usage' && 'Monitor your usage and manage billing'}
             </p>
-          </motion.div>
-
-          {/* Requests Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="rounded-lg border border-border/40 bg-card p-4 sm:p-5"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-1.5 rounded-md bg-primary/10">
-                <BarChart3 className="h-4 w-4 text-primary" />
-              </div>
-              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-            </div>
-            <p className="text-xs text-muted-foreground mb-0.5">Total Requests</p>
-            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-1">{developer.usage.totalRequests}</h2>
-            <p className="text-[10px] text-muted-foreground">This month: {developer.usage.thisMonth}</p>
-          </motion.div>
-
-          {/* Usage Trend */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="rounded-lg border border-border/40 bg-card p-4 sm:p-5"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="p-1.5 rounded-md bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mb-0.5">Month-over-Month</p>
-            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-1">
-              {developer.usage.lastMonth > 0
-                ? Math.round(
-                    ((developer.usage.thisMonth - developer.usage.lastMonth) /
-                      developer.usage.lastMonth) *
-                      100
-                  )
-                : 0}
-              %
-            </h2>
-            <p className="text-xs text-muted-foreground">Change from last month</p>
-          </motion.div>
-        </div>
-
-        {/* API Keys Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="rounded-xl border border-border/40 bg-card p-6"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-foreground">API Keys</h2>
-              <p className="text-sm text-muted-foreground">Manage your API keys for authentication</p>
-            </div>
-            <button
-              onClick={handleCreateKey}
-              disabled={creatingKey}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              <Plus className="h-4 w-4" />
-              Create Key
-            </button>
           </div>
 
-          {developer.apiKeys.length === 0 ? (
-            <div className="text-center py-8">
-              <Key className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground">No API keys yet. Create one to get started.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {developer.apiKeys.map((key) => (
-                <div
-                  key={key.id}
-                  className="p-4 rounded-lg border border-border/40 bg-background/50 hover:border-border/60 transition-colors"
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              {/* Stats */}
+              <div className="grid sm:grid-cols-3 gap-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-6 rounded-xl border border-border bg-card"
                 >
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-foreground text-sm mb-1">{key.name}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        Created {new Date(key.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right text-xs text-muted-foreground">
-                      <p className="font-medium text-foreground">{key.requests_count}</p>
-                      <p>requests</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 bg-background rounded-lg p-3 mb-3 border border-border/40">
-                    <code className="flex-1 text-xs font-mono text-foreground/70 truncate">
-                      {visibleKeys.has(key.id) ? key.key : key.key.substring(0, 10) + '...'}
-                    </code>
-                    <button
-                      onClick={() => toggleKeyVisibility(key.id)}
-                      className="p-1 hover:bg-secondary rounded transition-colors"
-                      title="Toggle visibility"
-                    >
-                      {visibleKeys.has(key.id) ? (
-                        <EyeOff className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => copyToClipboard(key.key)}
-                      className="p-1 hover:bg-secondary rounded transition-colors"
-                      title="Copy to clipboard"
-                    >
-                      <Copy className="h-4 w-4 text-muted-foreground" />
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground">
-                    {key.last_used
-                      ? `Last used ${new Date(key.last_used).toLocaleDateString()}`
-                      : 'Never used'}
+                  <p className="text-sm text-muted-foreground mb-1">Available Credits</p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {currencySymbol}{developer.creditsBalance.toLocaleString()}
                   </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    ~{Math.floor(developer.creditsBalance / (developer.currency === 'NGN' ? 5 : 0.01))} images
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="p-6 rounded-xl border border-border bg-card"
+                >
+                  <p className="text-sm text-muted-foreground mb-1">This Month</p>
+                  <p className="text-2xl font-bold text-foreground">{developer.usage.thisMonth.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground mt-1">API requests</p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="p-6 rounded-xl border border-border bg-card"
+                >
+                  <p className="text-sm text-muted-foreground mb-1">Total Requests</p>
+                  <p className="text-2xl font-bold text-foreground">{developer.usage.totalRequests.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground mt-1">All time</p>
+                </motion.div>
+              </div>
+
+              {/* Quick actions */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Link
+                  href="/api-docs"
+                  className="p-6 rounded-xl border border-border bg-card hover:border-primary/50 transition-colors group"
+                >
+                  <FileText className="h-5 w-5 text-primary mb-3" />
+                  <h3 className="font-semibold text-foreground mb-1">Documentation</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Learn how to integrate Pictura API into your application
+                  </p>
+                </Link>
+
+                <button
+                  onClick={() => setActiveTab('keys')}
+                  className="p-6 rounded-xl border border-border bg-card hover:border-primary/50 transition-colors text-left group"
+                >
+                  <Key className="h-5 w-5 text-primary mb-3" />
+                  <h3 className="font-semibold text-foreground mb-1">API Keys</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Create and manage your API keys
+                  </p>
+                </button>
+              </div>
+
+              {/* Recent keys */}
+              {developer.apiKeys.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground mb-4">Recent API Keys</h2>
+                  <div className="space-y-3">
+                    {developer.apiKeys.slice(0, 2).map((key) => (
+                      <div
+                        key={key.id}
+                        className="flex items-center justify-between p-4 rounded-xl border border-border bg-card"
+                      >
+                        <div>
+                          <p className="font-medium text-foreground">{key.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Created {new Date(key.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-medium text-foreground">{key.requests_count}</p>
+                          <p className="text-sm text-muted-foreground">requests</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           )}
-        </motion.div>
 
-        {/* Quick Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-          <Link
-            href="/api/docs"
-            className="p-6 rounded-xl border border-border/40 bg-card hover:border-primary/50 transition-all group"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="font-semibold text-foreground">API Documentation</h3>
-              <Zap className="h-5 w-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Learn how to integrate Pictura into your application
-            </p>
-          </Link>
+          {/* API Keys Tab */}
+          {activeTab === 'keys' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <p className="text-muted-foreground">
+                  {developer.apiKeys.length} key{developer.apiKeys.length !== 1 ? 's' : ''} created
+                </p>
+                <button
+                  onClick={handleCreateKey}
+                  disabled={creatingKey}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {creatingKey ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  Create New Key
+                </button>
+              </div>
 
-          <Link
-            href="/developers/dashboard/settings"
-            className="p-6 rounded-xl border border-border/40 bg-card hover:border-primary/50 transition-all group"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="font-semibold text-foreground">Account Settings</h3>
-              <Settings className="h-5 w-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              {developer.apiKeys.length === 0 ? (
+                <div className="text-center py-12 rounded-xl border border-dashed border-border">
+                  <Key className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <h3 className="font-semibold text-foreground mb-1">No API keys yet</h3>
+                  <p className="text-muted-foreground mb-4">Create your first API key to get started</p>
+                  <button
+                    onClick={handleCreateKey}
+                    disabled={creatingKey}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create API Key
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {developer.apiKeys.map((key) => (
+                    <motion.div
+                      key={key.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-5 rounded-xl border border-border bg-card"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{key.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Created {new Date(key.created_at).toLocaleDateString()} · {key.requests_count} requests
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary/50 border border-border">
+                        <code className="flex-1 text-sm font-mono text-foreground truncate">
+                          {visibleKeys.has(key.id) ? key.key : key.key.substring(0, 12) + '••••••••••••••••'}
+                        </code>
+                        <button
+                          onClick={() => toggleKeyVisibility(key.id)}
+                          className="p-2 rounded-md hover:bg-secondary transition-colors"
+                          title="Toggle visibility"
+                        >
+                          {visibleKeys.has(key.id) ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => copyToClipboard(key.key)}
+                          className="p-2 rounded-md hover:bg-secondary transition-colors"
+                          title="Copy"
+                        >
+                          <Copy className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground mt-3">
+                        {key.last_used
+                          ? `Last used ${new Date(key.last_used).toLocaleDateString()}`
+                          : 'Never used'}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Manage your profile and security settings
-            </p>
-          </Link>
+          )}
+
+          {/* Usage Tab */}
+          {activeTab === 'usage' && (
+            <div className="space-y-6">
+              {/* Current balance */}
+              <div className="p-6 rounded-xl border border-border bg-card">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Current Balance</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {currencySymbol}{developer.creditsBalance.toLocaleString()}
+                    </p>
+                    <p className="text-muted-foreground mt-1">
+                      Approximately {Math.floor(developer.creditsBalance / (developer.currency === 'NGN' ? 5 : 0.01)).toLocaleString()} images remaining
+                    </p>
+                  </div>
+                  <Link
+                    href="/developers/dashboard/billing"
+                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    Add Credits
+                  </Link>
+                </div>
+              </div>
+
+              {/* Usage stats */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="p-6 rounded-xl border border-border bg-card">
+                  <p className="text-sm text-muted-foreground mb-1">This Month</p>
+                  <p className="text-2xl font-bold text-foreground">{developer.usage.thisMonth.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground mt-1">requests</p>
+                </div>
+                <div className="p-6 rounded-xl border border-border bg-card">
+                  <p className="text-sm text-muted-foreground mb-1">Last Month</p>
+                  <p className="text-2xl font-bold text-foreground">{developer.usage.lastMonth.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground mt-1">requests</p>
+                </div>
+              </div>
+
+              {/* Pricing info */}
+              <div className="p-6 rounded-xl border border-border bg-secondary/30">
+                <h3 className="font-semibold text-foreground mb-3">Pricing</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Per image generation</span>
+                    <span className="font-medium text-foreground">{currencySymbol}{developer.currency === 'NGN' ? '5' : '0.01'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Rate limit</span>
+                    <span className="font-medium text-foreground">10 requests/min</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

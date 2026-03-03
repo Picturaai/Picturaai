@@ -709,7 +709,7 @@ export function Landing() {
                     { feature: 'Max Resolution', pictura: '1024px', dalle: '1024px', midjourney: '1024px', stable: '1024px', nano: '1024px' },
                     { feature: 'Image-to-Image', pictura: true, dalle: false, midjourney: true, stable: true, nano: true },
                     { feature: 'No Sign-Up', pictura: true, dalle: false, midjourney: false, stable: true, nano: false },
-                    { feature: 'API Access', pictura: 'Soon', dalle: true, midjourney: false, stable: true, nano: true },
+                    { feature: 'API Access', pictura: true, dalle: true, midjourney: false, stable: true, nano: true },
                     { feature: 'Safety Filter', pictura: true, dalle: true, midjourney: true, stable: 'Optional', nano: true },
                     { feature: 'Open Source', pictura: 'Planned', dalle: false, midjourney: false, stable: true, nano: false },
                     { feature: 'Daily Free Tier', pictura: '5 images', dalle: 'None', midjourney: 'None', stable: 'Unlimited*', nano: 'Limited' },
