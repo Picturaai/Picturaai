@@ -289,9 +289,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
         {/* Header */}
         <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <PicturaIcon size={14} className="text-primary-foreground" />
-            </div>
+            <PicturaIcon size={24} />
             <span className="font-semibold text-sm"><span className="text-primary">Pictura</span><span className="text-foreground">CAPTCHA</span></span>
           </div>
           <span className="text-[10px] text-muted-foreground font-medium">Secure</span>
@@ -455,9 +453,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
             {/* Verified */}
             {status === 'verified' && (
               <motion.div key="verified" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
-                <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                  <Check className="h-4 w-4 text-primary-foreground" />
-                </div>
+                <Check className="h-6 w-6 text-primary" strokeWidth={3} />
                 <span className="text-sm font-medium text-primary">Verified</span>
               </motion.div>
             )}

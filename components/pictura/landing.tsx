@@ -840,9 +840,7 @@ export function Landing() {
             >
               <div className="w-full max-w-xs rounded-xl border border-border bg-card shadow-lg overflow-hidden">
                 <div className="p-4 border-b border-border/50 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                    <PicturaIcon size={16} className="text-primary-foreground" />
-                  </div>
+                  <PicturaIcon size={28} />
                   <div>
                     <div className="text-sm font-semibold text-foreground"><span className="text-primary">Pictura</span>CAPTCHA</div>
                     <div className="text-[10px] text-muted-foreground">Verify you are human</div>
