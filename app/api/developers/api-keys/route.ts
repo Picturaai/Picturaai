@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
-import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 
 const sql = neon(process.env.DATABASE_URL!)
 
-function verifyToken(token: string): { developerId: string } | null {
+async function verifySession(token: string): Promise<{ developerId: string } | null> {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as {
-      developerId: string
-    }
-    return decoded
+    const sessions = await sql`
+      SELECT developer_id FROM developer_sessions
+      WHERE session_token = ${token} AND expires_at > now()
+    `
+    if (sessions.length === 0) return null
+    return { developerId: sessions[0].developer_id }
   } catch {
     return null
   }
@@ -28,9 +29,9 @@ export async function POST(req: NextRequest) {
     }
 
     const token = authHeader.substring(7)
-    const decoded = verifyToken(token)
+    const session = await verifySession(token)
 
-    if (!decoded) {
+    if (!session) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     const keys = await sql`
       INSERT INTO api_keys (developer_id, name, api_key)
-      VALUES (${decoded.developerId}, ${name}, ${apiKey})
+      VALUES (${session.developerId}, ${name}, ${apiKey})
       RETURNING id, name, api_key, created_at
     `
 
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
       requests_count: 0,
     })
   } catch (error) {
-    console.error('[v0] API key creation error:', error)
+    console.error('API key creation error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

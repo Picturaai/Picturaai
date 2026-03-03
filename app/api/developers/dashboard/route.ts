@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
-import jwt from 'jsonwebtoken'
 
 const sql = neon(process.env.DATABASE_URL!)
 
-function verifyToken(token: string): { developerId: string } | null {
+async function verifySession(token: string): Promise<{ developerId: string } | null> {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as {
-      developerId: string
-    }
-    return decoded
+    const sessions = await sql`
+      SELECT developer_id FROM developer_sessions
+      WHERE session_token = ${token} AND expires_at > now()
+    `
+    if (sessions.length === 0) return null
+    return { developerId: sessions[0].developer_id }
   } catch {
     return null
   }
@@ -23,9 +24,9 @@ export async function GET(req: NextRequest) {
     }
 
     const token = authHeader.substring(7)
-    const decoded = verifyToken(token)
+    const session = await verifySession(token)
 
-    if (!decoded) {
+    if (!session) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
     const developers = await sql`
       SELECT id, email, full_name, credits_balance, currency
       FROM developers
-      WHERE id = ${decoded.developerId}
+      WHERE id = ${session.developerId}
     `
 
     if (developers.length === 0) {
@@ -86,7 +87,7 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('[v0] Dashboard error:', error)
+    console.error('Dashboard error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

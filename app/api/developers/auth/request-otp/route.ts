@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
-import { sendEmail, generateOTP, getOTPEmailTemplate } from '@/lib/email'
+import { sendOTPEmail, generateOTP } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         fullName,
         country,
         phoneNumber,
-        password, // In production, this should be hashed
+        password,
       })})
       ON CONFLICT (email) DO UPDATE SET
         otp = ${otp},
@@ -37,11 +37,7 @@ export async function POST(req: NextRequest) {
     `
 
     // Send OTP email
-    const emailResult = await sendEmail({
-      to: email.toLowerCase(),
-      subject: 'Verify your Pictura API Developer Account',
-      html: getOTPEmailTemplate(otp, fullName),
-    })
+    const emailResult = await sendOTPEmail(email.toLowerCase(), fullName, otp)
 
     if (!emailResult.success) {
       return NextResponse.json(
@@ -55,7 +51,7 @@ export async function POST(req: NextRequest) {
       message: 'OTP sent to email',
     })
   } catch (error) {
-    console.error('[v0] OTP request error:', error)
+    console.error('OTP request error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
