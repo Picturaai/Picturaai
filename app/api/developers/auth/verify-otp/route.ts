@@ -51,7 +51,31 @@ export async function POST(req: NextRequest) {
 
     // Get credits for currency (100 free images equivalent)
     const currency = record.currency || 'USD'
-    const credits = CURRENCY_CREDITS[currency] || CURRENCY_CREDITS['USD']
+    let credits = CURRENCY_CREDITS[currency] || CURRENCY_CREDITS['USD']
+    let bonusCredits = 0
+    let promoCodeUsed = ''
+
+    // Check for promo code and apply bonus credits
+    if (record.promo_code) {
+      const promoResult = await sql`
+        SELECT * FROM promo_codes 
+        WHERE code = ${record.promo_code.toUpperCase()} 
+        AND is_active = true 
+        AND (max_uses IS NULL OR uses_count < max_uses)
+        AND (expires_at IS NULL OR expires_at > NOW())
+      `
+      
+      if (promoResult.length > 0) {
+        const promo = promoResult[0]
+        bonusCredits = promo.bonus_credits
+        promoCodeUsed = promo.code
+        
+        // Increment promo code usage
+        await sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE id = ${promo.id}`
+      }
+    }
+
+    const totalCredits = credits + bonusCredits
 
     // Create developer account
     const developer = await sql`
@@ -63,7 +87,10 @@ export async function POST(req: NextRequest) {
         country_code,
         currency,
         credits_balance,
-        email_verified
+        email_verified,
+        referral_source,
+        promo_code_used,
+        bonus_credits
       )
       VALUES (
         ${record.full_name},
@@ -72,8 +99,11 @@ export async function POST(req: NextRequest) {
         ${record.phone || ''},
         ${record.country_code || 'US'},
         ${currency},
-        ${credits},
-        true
+        ${totalCredits},
+        true,
+        ${record.referral_source || ''},
+        ${promoCodeUsed},
+        ${bonusCredits}
       )
       RETURNING id, email, name, credits_balance, currency
     `
@@ -93,7 +123,7 @@ export async function POST(req: NextRequest) {
       VALUES (${dev.id}, ${keyHash}, ${apiKey.slice(0, 12)}, 'Default Key')
     `
 
-    // Log credit transaction
+    // Log credit transaction for base credits
     await sql`
       INSERT INTO credit_transactions (
         developer_id,
@@ -110,6 +140,26 @@ export async function POST(req: NextRequest) {
         ${credits}
       )
     `
+
+    // Log bonus credits if promo code was used
+    if (bonusCredits > 0) {
+      await sql`
+        INSERT INTO credit_transactions (
+          developer_id,
+          type,
+          amount,
+          description,
+          balance_after
+        )
+        VALUES (
+          ${dev.id},
+          'promo_bonus',
+          ${bonusCredits},
+          ${`Promo code ${promoCodeUsed} - Bonus credits`},
+          ${totalCredits}
+        )
+      `
+    }
 
     // Mark OTP as verified and delete
     await sql`DELETE FROM otp_verification WHERE email = ${email.toLowerCase()}`
@@ -128,9 +178,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Account created successfully! Welcome to Pictura.',
+      message: bonusCredits > 0 
+        ? `Account created! Welcome bonus + ${bonusCredits} promo credits applied!` 
+        : 'Account created successfully! Welcome to Pictura.',
       sessionToken,
       apiKey, // Shown once - won't be displayed again
+      bonusCredits: bonusCredits > 0 ? bonusCredits.toString() : null,
+      promoCode: promoCodeUsed || null,
       developer: {
         id: dev.id,
         name: dev.name,

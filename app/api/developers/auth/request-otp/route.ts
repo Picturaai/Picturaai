@@ -6,7 +6,7 @@ const sql = neon(process.env.DATABASE_URL!)
 
 export async function POST(req: NextRequest) {
   try {
-    const { fullName, email, password, country, phoneNumber, currency } = await req.json()
+    const { fullName, email, password, country, phoneNumber, currency, referralSource, promoCode } = await req.json()
 
     if (!fullName || !email || !password || !country) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     // Store OTP in database
     await sql`
       INSERT INTO otp_verification (
-        email, otp_code, full_name, phone, country_code, currency, password_hash, expires_at
+        email, otp_code, full_name, phone, country_code, currency, password_hash, expires_at, referral_source, promo_code
       ) VALUES (
         ${email.toLowerCase()}, 
         ${otp}, 
@@ -37,7 +37,9 @@ export async function POST(req: NextRequest) {
         ${country}, 
         ${currency || 'USD'},
         ${passwordHash},
-        ${otpExpires}
+        ${otpExpires},
+        ${referralSource || ''},
+        ${promoCode || ''}
       )
     `
 
