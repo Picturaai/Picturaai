@@ -45,7 +45,8 @@ export default function LoginPage() {
       const data = await res.json()
 
       if (res.ok) {
-        localStorage.setItem('developerToken', data.token)
+        localStorage.setItem('pictura_session', data.token)
+        localStorage.setItem('pictura_developer', JSON.stringify(data.developer))
         router.push('/developers/dashboard')
         toast.success('Welcome back!')
       } else {

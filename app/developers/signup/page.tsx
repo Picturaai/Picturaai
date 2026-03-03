@@ -298,10 +298,20 @@ export default function SignupPage() {
       const data = await res.json()
 
       if (res.ok) {
+        // Store session token
+        if (data.sessionToken) {
+          localStorage.setItem('pictura_session', data.sessionToken)
+          localStorage.setItem('pictura_developer', JSON.stringify(data.developer))
+        }
         setApiKey(data.apiKey || '')
         setBonusCredits(data.bonusCredits || null)
         setStep('complete')
         toast.success('Account created successfully!')
+        
+        // Redirect to dashboard after 3 seconds
+        setTimeout(() => {
+          window.location.href = '/developers/dashboard'
+        }, 3000)
       } else {
         toast.error(data.error || 'Invalid verification code')
         setOtp('')

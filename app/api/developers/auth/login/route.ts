@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
     expiresAt.setDate(expiresAt.getDate() + 30)
     
     await sql`
-      INSERT INTO developer_sessions (developer_id, token, expires_at, created_at)
-      VALUES (${developer.id}, ${token}, ${expiresAt.toISOString()}, NOW())
+      INSERT INTO developer_sessions (developer_id, session_token, expires_at)
+      VALUES (${developer.id}, ${token}, ${expiresAt.toISOString()})
     `
 
     return NextResponse.json({
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('[v0] Login error:', error)
+    console.error('Login error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

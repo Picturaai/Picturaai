@@ -51,7 +51,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'keys' | 'usage'>('overview')
 
   useEffect(() => {
-    const token = localStorage.getItem('developerToken')
+    const token = localStorage.getItem('pictura_session')
     if (!token) {
       router.push('/developers/login')
       return
@@ -64,7 +64,8 @@ export default function DashboardPage() {
         })
 
         if (!res.ok) {
-          localStorage.removeItem('developerToken')
+          localStorage.removeItem('pictura_session')
+          localStorage.removeItem('pictura_developer')
           router.push('/developers/login')
           return
         }
@@ -86,7 +87,7 @@ export default function DashboardPage() {
 
     setCreatingKey(true)
     try {
-      const token = localStorage.getItem('developerToken')
+      const token = localStorage.getItem('pictura_session')
       const res = await fetch('/api/developers/api-keys', {
         method: 'POST',
         headers: {
@@ -114,7 +115,8 @@ export default function DashboardPage() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('developerToken')
+    localStorage.removeItem('pictura_session')
+    localStorage.removeItem('pictura_developer')
     router.push('/developers/login')
   }
 

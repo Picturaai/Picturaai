@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 
     // Get API keys
     const apiKeys = await sql`
-      SELECT id, name, api_key, created_at, last_used_at, requests_count
+      SELECT id, name, key_prefix, created_at, last_used_at, requests_count
       FROM api_keys
       WHERE developer_id = ${developer.id}
       ORDER BY created_at DESC
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
         SUM(CASE WHEN created_at >= date_trunc('month', now()) THEN 1 ELSE 0 END) as this_month,
         SUM(CASE WHEN created_at >= ${lastMonth} AND created_at < date_trunc('month', now()) THEN 1 ELSE 0 END) as last_month,
         COUNT(*) as total
-      FROM api_requests
+      FROM api_usage
       WHERE developer_id = ${developer.id}
     `
 
@@ -70,12 +70,12 @@ export async function GET(req: NextRequest) {
       id: developer.id,
       email: developer.email,
       name: developer.full_name,
-      creditsBalance: developer.credits_balance,
-      currency: developer.currency,
+      creditsBalance: parseFloat(developer.credits_balance) || 0,
+      currency: developer.currency || 'USD',
       apiKeys: apiKeys.map((k) => ({
         id: k.id,
         name: k.name,
-        key: k.api_key,
+        key: k.key_prefix + '••••••••••••',
         created_at: k.created_at,
         last_used: k.last_used_at,
         requests_count: k.requests_count || 0,
