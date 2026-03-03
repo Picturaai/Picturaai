@@ -184,7 +184,7 @@ export async function POST(request: Request) {
 
     // Check rate limit using session ID
     const sessionId = await getOrCreateSessionId()
-    const rateLimitInfo = getRateLimitInfo(sessionId)
+    const rateLimitInfo = await getRateLimitInfo(sessionId)
 
     if (rateLimitInfo.remaining <= 0) {
       return NextResponse.json(
@@ -249,8 +249,8 @@ export async function POST(request: Request) {
     })
 
     // Increment usage after successful generation
-    incrementUsage(sessionId)
-    const updatedRateLimitInfo = getRateLimitInfo(sessionId)
+    await incrementUsage(sessionId)
+    const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
 
     return NextResponse.json({
       url: blob.url,
