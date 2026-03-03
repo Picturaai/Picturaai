@@ -167,13 +167,75 @@ print(image.url)`,
   }
 
   const endpoints = [
-    { method: 'POST', path: '/v1/images/generate', title: 'Generate Image', desc: 'Create from text prompt' },
-    { method: 'POST', path: '/v1/images/edit', title: 'Edit Image', desc: 'Modify with AI' },
-    { method: 'POST', path: '/v1/images/variations', title: 'Variations', desc: 'Generate variations' },
-    { method: 'GET', path: '/v1/images/{id}', title: 'Get Image', desc: 'Retrieve details' },
-    { method: 'GET', path: '/v1/models', title: 'List Models', desc: 'Available models' },
-    { method: 'GET', path: '/v1/usage', title: 'Usage', desc: 'Check credits' },
+    { 
+      method: 'POST', 
+      path: '/v1/generate', 
+      title: 'Generate Image', 
+      desc: 'Create images from text prompts using Pictura AI models',
+      params: [
+        { name: 'prompt', type: 'string', required: true, desc: 'Text description of the image' },
+        { name: 'model', type: 'string', required: false, desc: 'Model ID (pi-1.5-turbo, pi-1.0). Default: pi-1.5-turbo' },
+        { name: 'style', type: 'string', required: false, desc: 'Style preset (photorealistic, anime, oil-painting, etc.)' },
+        { name: 'width', type: 'number', required: false, desc: 'Image width (256-1536). Default: 1024' },
+        { name: 'height', type: 'number', required: false, desc: 'Image height (256-1536). Default: 1024' },
+      ],
+      response: { imageUrl: 'string', id: 'string', model: 'string', creditsUsed: 'number' }
+    },
+    { 
+      method: 'POST', 
+      path: '/v1/batch', 
+      title: 'Batch Generation', 
+      desc: 'Generate multiple images in parallel (up to 10-50 based on tier)',
+      params: [
+        { name: 'prompts', type: 'string[]', required: true, desc: 'Array of text prompts' },
+        { name: 'model', type: 'string', required: false, desc: 'Model ID for all images' },
+        { name: 'style', type: 'string', required: false, desc: 'Style preset for all images' },
+      ],
+      response: { jobId: 'string', status: 'string', images: 'array' }
+    },
+    { 
+      method: 'POST', 
+      path: '/v1/enhance-prompt', 
+      title: 'Enhance Prompt', 
+      desc: 'AI-powered prompt enhancement for better results',
+      params: [
+        { name: 'prompt', type: 'string', required: true, desc: 'Original prompt to enhance' },
+        { name: 'style', type: 'string', required: false, desc: 'Target style for enhancement' },
+      ],
+      response: { enhancedPrompt: 'string', suggestions: 'string[]' }
+    },
+    { 
+      method: 'POST', 
+      path: '/v1/remove-background', 
+      title: 'Remove Background', 
+      desc: 'Remove background from images using AI',
+      params: [
+        { name: 'image', type: 'string', required: true, desc: 'Image URL or base64 data' },
+      ],
+      response: { imageUrl: 'string', creditsUsed: 'number' }
+    },
+    { 
+      method: 'POST', 
+      path: '/v1/upscale', 
+      title: 'Upscale Image', 
+      desc: 'Upscale images 2x-4x using AI super-resolution',
+      params: [
+        { name: 'image', type: 'string', required: true, desc: 'Image URL or base64 data' },
+        { name: 'scale', type: 'number', required: false, desc: 'Scale factor (2 or 4). Default: 2' },
+      ],
+      response: { imageUrl: 'string', width: 'number', height: 'number', creditsUsed: 'number' }
+    },
+    { 
+      method: 'GET', 
+      path: '/v1/models', 
+      title: 'List Models', 
+      desc: 'Get available AI models and their capabilities',
+      params: [],
+      response: { models: '[{ id, name, description, creditCost }]' }
+    },
   ]
+
+  const [expandedEndpoint, setExpandedEndpoint] = useState<string | null>(null)
 
   const fadeUp = {
     hidden: { opacity: 0, y: 15 },
@@ -388,32 +450,155 @@ print(image.url)`,
               viewport={{ once: true }}
               variants={fadeUp}
             >
-              <div className="flex items-center gap-2 mb-5">
-                <FileCode className="h-4 w-4 text-primary" />
-                <h2 className="text-base sm:text-lg font-semibold text-foreground">API Reference</h2>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <FileCode className="h-4 w-4 text-primary" />
+                  <h2 className="text-base sm:text-lg font-semibold text-foreground">API Reference</h2>
+                </div>
+                <span className="text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded">Base URL: https://api.picturaai.sbs</span>
               </div>
-              <div className="grid sm:grid-cols-2 gap-2">
+              
+              <div className="space-y-2">
                 {endpoints.map((ep, i) => (
                   <motion.div
                     key={ep.path}
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.2, delay: i * 0.03 }}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border/30 bg-card/30 hover:bg-card/60 hover:border-border/50 transition-all cursor-pointer group"
+                    className="rounded-lg border border-border/40 bg-card/50 overflow-hidden"
                   >
-                    <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-semibold ${
-                      ep.method === 'POST' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {ep.method}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <code className="text-xs text-foreground font-mono block truncate">{ep.path}</code>
-                      <span className="text-[10px] text-muted-foreground">{ep.desc}</span>
-                    </div>
-                    <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" />
+                    {/* Endpoint Header */}
+                    <button
+                      onClick={() => setExpandedEndpoint(expandedEndpoint === ep.path ? null : ep.path)}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-muted/30 transition-all"
+                    >
+                      <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-semibold ${
+                        ep.method === 'POST' ? 'bg-primary/10 text-primary' : 'bg-blue-500/10 text-blue-600'
+                      }`}>
+                        {ep.method}
+                      </span>
+                      <div className="flex-1 min-w-0 text-left">
+                        <code className="text-xs text-foreground font-mono">{ep.path}</code>
+                        <span className="text-[10px] text-muted-foreground ml-2">{ep.title}</span>
+                      </div>
+                      <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
+                        expandedEndpoint === ep.path ? 'rotate-90' : ''
+                      }`} />
+                    </button>
+                    
+                    {/* Expanded Details */}
+                    {expandedEndpoint === ep.path && (
+                      <div className="border-t border-border/30 bg-muted/20 p-4 space-y-4">
+                        <p className="text-xs text-muted-foreground">{ep.desc}</p>
+                        
+                        {/* Parameters */}
+                        {ep.params && ep.params.length > 0 && (
+                          <div>
+                            <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Request Parameters</h4>
+                            <div className="rounded-lg border border-border/30 overflow-hidden">
+                              <table className="w-full text-xs">
+                                <thead className="bg-muted/50">
+                                  <tr>
+                                    <th className="text-left p-2 font-medium text-foreground">Name</th>
+                                    <th className="text-left p-2 font-medium text-foreground">Type</th>
+                                    <th className="text-left p-2 font-medium text-foreground hidden sm:table-cell">Required</th>
+                                    <th className="text-left p-2 font-medium text-foreground">Description</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/30">
+                                  {ep.params.map((param) => (
+                                    <tr key={param.name} className="hover:bg-muted/30">
+                                      <td className="p-2 font-mono text-primary">{param.name}</td>
+                                      <td className="p-2 text-muted-foreground">{param.type}</td>
+                                      <td className="p-2 hidden sm:table-cell">
+                                        {param.required ? (
+                                          <span className="text-[9px] bg-red-500/10 text-red-600 px-1.5 py-0.5 rounded">required</span>
+                                        ) : (
+                                          <span className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">optional</span>
+                                        )}
+                                      </td>
+                                      <td className="p-2 text-muted-foreground">{param.desc}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Response */}
+                        {ep.response && (
+                          <div>
+                            <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Response</h4>
+                            <div className="rounded-lg bg-zinc-950 p-3 overflow-x-auto">
+                              <pre className="text-[11px] text-green-400 font-mono">
+{`{
+  "success": true,
+  "data": ${JSON.stringify(ep.response, null, 4).split('\n').join('\n  ')}
+}`}
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Example cURL */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Example Request</h4>
+                            <button
+                              onClick={() => {
+                                const example = ep.method === 'GET' 
+                                  ? `curl "https://api.picturaai.sbs${ep.path}" -H "Authorization: Bearer YOUR_API_KEY"`
+                                  : `curl -X POST "https://api.picturaai.sbs${ep.path}" -H "Authorization: Bearer YOUR_API_KEY" -H "Content-Type: application/json" -d '${JSON.stringify(
+                                      ep.params?.reduce((acc, p) => ({ ...acc, [p.name]: p.type === 'string' ? 'example' : p.type === 'number' ? 1024 : ['example'] }), {}) || {}
+                                    )}'`
+                                handleCopy(example, ep.path)
+                              }}
+                              className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
+                            >
+                              {copiedSnippet === ep.path ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
+                              Copy
+                            </button>
+                          </div>
+                          <div className="rounded-lg bg-zinc-950 p-3 overflow-x-auto">
+                            <pre className="text-[11px] text-zinc-300 font-mono whitespace-pre-wrap break-all">
+{ep.method === 'GET' 
+  ? `curl "https://api.picturaai.sbs${ep.path}" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`
+  : `curl -X POST "https://api.picturaai.sbs${ep.path}" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify(
+      ep.params?.filter(p => p.required).reduce((acc, p) => ({ 
+        ...acc, 
+        [p.name]: p.type === 'string' ? (p.name === 'prompt' ? 'A beautiful sunset over mountains' : p.name === 'image' ? 'https://example.com/image.jpg' : 'example') : p.type === 'number' ? 1024 : p.type === 'string[]' ? ['prompt 1', 'prompt 2'] : 'value' 
+      }), {}) || {},
+      null, 2
+    )}'`}
+                            </pre>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 ))}
+              </div>
+              
+              {/* Authentication Note */}
+              <div className="mt-6 p-4 rounded-lg border border-primary/20 bg-primary/5">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground mb-1">Authentication</h4>
+                    <p className="text-xs text-muted-foreground">
+                      All API requests require authentication. Include your API key in the Authorization header:
+                    </p>
+                    <code className="text-[11px] font-mono text-primary bg-primary/10 px-2 py-1 rounded mt-2 inline-block">
+                      Authorization: Bearer pk_live_your_api_key
+                    </code>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>
