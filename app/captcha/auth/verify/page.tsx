@@ -1,40 +1,45 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, CheckCircle2, XCircle, UserPlus, LogIn } from 'lucide-react'
+import { Loader2, CheckCircle2, XCircle, UserPlus, LogIn, Shield } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
-type VerifyStatus = 'checking' | 'verifying' | 'syncing' | 'success' | 'no-account' | 'error'
+type VerifyStatus = 'checking' | 'found' | 'syncing' | 'success' | 'no-account' | 'error'
 
 export default function CaptchaAuthVerifyPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from') || 'login' // Track where user came from
+  
   const [status, setStatus] = useState<VerifyStatus>('checking')
   const [userName, setUserName] = useState<string>('')
+  const [userEmail, setUserEmail] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     const verifyAccount = async () => {
       try {
-        // Step 1: Check if user is logged in
+        // Step 1: Check if user has a session
         setStatus('checking')
-        await new Promise(resolve => setTimeout(resolve, 600))
+        await new Promise(resolve => setTimeout(resolve, 800))
         
         const sessionRes = await fetch('/api/developers/auth/session')
         const sessionData = await sessionRes.json()
 
         if (!sessionRes.ok || !sessionData.developer) {
-          // Not logged in - show create account prompt
+          // Not logged in - show no account message
           setStatus('no-account')
           return
         }
 
-        // Step 2: User is logged in, verify their details
-        setStatus('verifying')
-        setUserName(sessionData.developer.name?.split(' ')[0] || '')
-        await new Promise(resolve => setTimeout(resolve, 800))
+        // Step 2: Account found - show user info
+        setStatus('found')
+        setUserName(sessionData.developer.name || '')
+        setUserEmail(sessionData.developer.email || '')
+        await new Promise(resolve => setTimeout(resolve, 1500))
 
         // Step 3: Sync with CAPTCHA service
         setStatus('syncing')
@@ -48,11 +53,11 @@ export default function CaptchaAuthVerifyPage() {
           throw new Error('Failed to sync account')
         }
 
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise(resolve => setTimeout(resolve, 600))
         
         // Step 4: Success - redirect to dashboard
         setStatus('success')
-        await new Promise(resolve => setTimeout(resolve, 1200))
+        await new Promise(resolve => setTimeout(resolve, 1000))
         router.push('/captcha/dashboard')
 
       } catch (error) {
@@ -65,41 +70,50 @@ export default function CaptchaAuthVerifyPage() {
     verifyAccount()
   }, [router])
 
+  const handleNoAccount = () => {
+    // Redirect based on where they came from
+    if (from === 'signup') {
+      router.push('/developers/signup?redirect=/captcha/auth/verify')
+    } else {
+      router.push('/captcha/login')
+    }
+  }
+
   const getStatusContent = () => {
     switch (status) {
       case 'checking':
         return {
-          icon: <Loader2 className="h-6 w-6 text-primary animate-spin" />,
+          icon: <Loader2 className="h-6 w-6 sm:h-7 sm:w-7 text-primary animate-spin" />,
           title: 'Checking Account',
-          subtitle: 'Looking for your Pictura account...'
+          subtitle: 'Looking for your Pictura developer account...'
         }
-      case 'verifying':
+      case 'found':
         return {
-          icon: <Loader2 className="h-6 w-6 text-primary animate-spin" />,
-          title: userName ? `Welcome back, ${userName}!` : 'Verifying Details',
-          subtitle: 'Confirming your account information...'
+          icon: <PicturaIcon size={24} />,
+          title: 'Account Found!',
+          subtitle: `Fetching your details, ${userName.split(' ')[0] || 'developer'}...`
         }
       case 'syncing':
         return {
-          icon: <Loader2 className="h-6 w-6 text-primary animate-spin" />,
-          title: 'Almost There',
+          icon: <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-primary animate-pulse" />,
+          title: 'Linking Account',
           subtitle: 'Setting up your CAPTCHA dashboard...'
         }
       case 'success':
         return {
-          icon: <CheckCircle2 className="h-6 w-6 text-primary" />,
+          icon: <CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />,
           title: 'All Set!',
           subtitle: 'Redirecting to your dashboard...'
         }
       case 'no-account':
         return {
-          icon: <PicturaIcon size={24} />,
+          icon: <XCircle className="h-6 w-6 sm:h-7 sm:w-7 text-muted-foreground" />,
           title: 'No Account Found',
-          subtitle: 'Create a free Pictura account to continue'
+          subtitle: 'We couldn\'t find a Pictura developer account'
         }
       case 'error':
         return {
-          icon: <XCircle className="h-6 w-6 text-destructive" />,
+          icon: <XCircle className="h-6 w-6 sm:h-7 sm:w-7 text-destructive" />,
           title: 'Verification Failed',
           subtitle: errorMessage
         }
@@ -107,18 +121,20 @@ export default function CaptchaAuthVerifyPage() {
   }
 
   const content = getStatusContent()
+  const progressSteps = ['checking', 'found', 'syncing', 'success']
+  const currentIndex = progressSteps.indexOf(status)
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
       
-      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4">
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 sm:px-6 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-sm w-full"
+          className="w-full max-w-[340px] sm:max-w-sm"
         >
-          <div className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-sm">
             <AnimatePresence mode="wait">
               <motion.div
                 key={status}
@@ -129,28 +145,34 @@ export default function CaptchaAuthVerifyPage() {
                 className="text-center"
               >
                 {/* Icon */}
-                <div className="h-14 w-14 mx-auto rounded-xl bg-muted/50 flex items-center justify-center mb-5">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 mx-auto rounded-xl bg-muted/50 flex items-center justify-center mb-4 sm:mb-5">
                   {content.icon}
                 </div>
 
                 {/* Title & Subtitle */}
-                <h1 className="text-lg font-semibold text-foreground mb-1">
+                <h1 className="text-base sm:text-lg font-semibold text-foreground mb-1">
                   {content.title}
                 </h1>
-                <p className="text-sm text-muted-foreground mb-6">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-5 sm:mb-6">
                   {content.subtitle}
                 </p>
 
+                {/* User info when found */}
+                {status === 'found' && userEmail && (
+                  <div className="mb-5 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                    <p className="text-xs text-muted-foreground">Signed in as</p>
+                    <p className="text-sm font-medium text-foreground truncate">{userEmail}</p>
+                  </div>
+                )}
+
                 {/* Progress indicator for loading states */}
-                {['checking', 'verifying', 'syncing', 'success'].includes(status) && (
+                {currentIndex >= 0 && status !== 'no-account' && status !== 'error' && (
                   <div className="flex justify-center gap-1.5 mb-2">
-                    {['checking', 'verifying', 'syncing', 'success'].map((step, i) => (
+                    {progressSteps.map((step, i) => (
                       <div
                         key={step}
-                        className={`h-1 w-8 rounded-full transition-colors ${
-                          ['checking', 'verifying', 'syncing', 'success'].indexOf(status) >= i
-                            ? 'bg-primary'
-                            : 'bg-muted'
+                        className={`h-1 w-6 sm:w-8 rounded-full transition-colors ${
+                          currentIndex >= i ? 'bg-primary' : 'bg-muted'
                         }`}
                       />
                     ))}
@@ -159,36 +181,42 @@ export default function CaptchaAuthVerifyPage() {
 
                 {/* No Account Actions */}
                 {status === 'no-account' && (
-                  <div className="space-y-3 mt-6">
+                  <div className="space-y-3 mt-5 sm:mt-6">
                     <button
                       onClick={() => router.push('/developers/signup?redirect=/captcha/auth/verify')}
-                      className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                      className="w-full h-10 sm:h-11 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                     >
                       <UserPlus className="h-4 w-4" />
                       Create Free Account
                     </button>
                     <button
                       onClick={() => router.push('/developers/login?redirect=/captcha/auth/verify')}
-                      className="w-full h-11 rounded-xl border border-border bg-background text-foreground font-medium hover:bg-muted/50 transition-colors flex items-center justify-center gap-2"
+                      className="w-full h-10 sm:h-11 rounded-xl border-2 border-primary/20 bg-primary/5 text-foreground text-sm font-medium hover:bg-primary/10 transition-colors flex items-center justify-center gap-2"
                     >
                       <LogIn className="h-4 w-4" />
                       Sign In Instead
+                    </button>
+                    <button
+                      onClick={handleNoAccount}
+                      className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors pt-2"
+                    >
+                      Back to {from === 'signup' ? 'signup' : 'login'}
                     </button>
                   </div>
                 )}
 
                 {/* Error Actions */}
                 {status === 'error' && (
-                  <div className="space-y-3 mt-6">
+                  <div className="space-y-3 mt-5 sm:mt-6">
                     <button
                       onClick={() => window.location.reload()}
-                      className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+                      className="w-full h-10 sm:h-11 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
                     >
                       Try Again
                     </button>
                     <button
                       onClick={() => router.push('/captcha')}
-                      className="w-full h-11 rounded-xl border border-border bg-background text-foreground font-medium hover:bg-muted/50 transition-colors"
+                      className="w-full h-10 sm:h-11 rounded-xl border border-border bg-background text-foreground text-sm font-medium hover:bg-muted/50 transition-colors"
                     >
                       Back to CAPTCHA
                     </button>
@@ -199,7 +227,7 @@ export default function CaptchaAuthVerifyPage() {
           </div>
 
           {/* Footer */}
-          <p className="text-center text-xs text-muted-foreground mt-4">
+          <p className="text-center text-[11px] sm:text-xs text-muted-foreground mt-4">
             <span className="text-primary">Pictura</span>CAPTCHA is free forever
           </p>
         </motion.div>

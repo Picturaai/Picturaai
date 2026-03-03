@@ -27,7 +27,7 @@ export default function CaptchaSignupPage() {
 
   const handlePicturaSignup = () => {
     // First check if user already has an account via verify flow
-    router.push('/captcha/auth/verify')
+    router.push('/captcha/auth/verify?from=signup')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,7 +102,7 @@ export default function CaptchaSignupPage() {
                 {/* Sign up with Pictura Button - Social login style */}
                 <button
                   onClick={handlePicturaSignup}
-                  className="w-full h-12 rounded-xl border border-border bg-card hover:bg-muted/50 text-foreground font-medium flex items-center justify-center gap-3 transition-colors"
+                  className="w-full h-12 rounded-xl border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 text-foreground font-medium flex items-center justify-center gap-3 transition-colors"
                 >
                   <PicturaIcon size={20} />
                   <span>Continue with <span className="text-primary font-semibold">Pictura</span></span>
