@@ -8,12 +8,14 @@ import { ArrowRight, Loader2, Mail, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { SmartCaptcha } from '@/components/pictura/smart-captcha'
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,12 +25,21 @@ export default function LoginPage() {
       return
     }
 
+    if (!captchaToken) {
+      toast.error('Please verify you are not a robot')
+      return
+    }
+
     setLoading(true)
     try {
       const res = await fetch('/api/developers/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.toLowerCase(), password }),
+        body: JSON.stringify({ 
+          email: email.toLowerCase(), 
+          password,
+          captchaToken 
+        }),
       })
 
       const data = await res.json()
@@ -36,9 +47,9 @@ export default function LoginPage() {
       if (res.ok) {
         localStorage.setItem('developerToken', data.token)
         router.push('/developers/dashboard')
-        toast.success('Login successful')
+        toast.success('Welcome back!')
       } else {
-        toast.error(data.error || 'Login failed')
+        toast.error(data.error || 'Invalid credentials')
       }
     } catch {
       toast.error('An error occurred')
@@ -50,23 +61,21 @@ export default function LoginPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-background pt-32 sm:pt-40 pb-20">
-        <div className="mx-auto max-w-md px-6">
+      <main className="min-h-screen bg-background pt-28 pb-16">
+        <div className="mx-auto max-w-md px-5">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="text-center mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Developer Login</h1>
-              <p className="text-muted-foreground">Access your Pictura API dashboard</p>
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-semibold text-foreground mb-1.5">Welcome back</h1>
+              <p className="text-sm text-muted-foreground">Sign in to your developer account</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  Email Address
-                </label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
@@ -74,15 +83,13 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="w-full h-11 pl-10 pr-4 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  Password
-                </label>
+                <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
@@ -90,15 +97,20 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full h-11 pl-10 pr-4 rounded-lg bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
               </div>
 
+              {/* Smart CAPTCHA */}
+              <SmartCaptcha 
+                onVerify={(token) => setCaptchaToken(token)} 
+              />
+
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full h-11 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                disabled={loading || !captchaToken}
+                className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -107,15 +119,15 @@ export default function LoginPage() {
                   </>
                 ) : (
                   <>
-                    Sign In
+                    Sign in
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </button>
 
-              <p className="text-center text-sm text-muted-foreground pt-2">
+              <p className="text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}
-                <Link href="/developers/signup" className="text-primary hover:underline font-medium">
+                <Link href="/developers/signup" className="text-primary hover:underline">
                   Sign up
                 </Link>
               </p>
