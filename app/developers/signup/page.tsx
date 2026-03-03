@@ -346,6 +346,9 @@ export default function SignupPage() {
                     We sent a 6-digit code to
                   </p>
                   <p className="text-sm font-medium text-foreground">{email}</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Can't find it? Check your spam or junk folder.
+                  </p>
                 </div>
 
                 <div>

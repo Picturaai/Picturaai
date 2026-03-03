@@ -15,14 +15,16 @@ export const emailTemplates = {
                     <!-- Header with Logo -->
                     <tr style="background-color: #fafaf8;">
                         <td align="center" style="padding: 40px 20px;">
-                            <div style="display: inline-flex; align-items: center; gap: 8px;">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#c77d4a"/>
-                                    <path d="M2 17L12 22L22 17" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M2 12L12 17L22 12" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span style="font-size: 24px; font-weight: 700; color: #1a1a1a;">Pictura</span>
-                            </div>
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="width: 36px; height: 36px; background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 8px; text-align: center; vertical-align: middle;">
+                                        <span style="color: white; font-size: 20px; font-weight: bold;">P</span>
+                                    </td>
+                                    <td style="padding-left: 12px;">
+                                        <span style="font-size: 26px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
@@ -84,14 +86,16 @@ export const emailTemplates = {
                     <!-- Header -->
                     <tr style="background: linear-gradient(135deg, #f8f7f4 0%, #fafaf8 100%);">
                         <td align="center" style="padding: 40px 20px;">
-                            <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px;">
-                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#c77d4a"/>
-                                    <path d="M2 17L12 22L22 17" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M2 12L12 17L22 12" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span style="font-size: 28px; font-weight: 700; color: #1a1a1a;">Pictura</span>
-                            </div>
+                            <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 20px;">
+                                <tr>
+                                    <td style="width: 40px; height: 40px; background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 10px; text-align: center; vertical-align: middle;">
+                                        <span style="color: white; font-size: 24px; font-weight: bold;">P</span>
+                                    </td>
+                                    <td style="padding-left: 12px;">
+                                        <span style="font-size: 30px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
+                                    </td>
+                                </tr>
+                            </table>
                             <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Welcome to the Platform</h1>
                         </td>
                     </tr>
@@ -164,14 +168,16 @@ export const emailTemplates = {
                     <!-- Header -->
                     <tr style="background-color: #fafaf8;">
                         <td align="center" style="padding: 40px 20px;">
-                            <div style="display: inline-flex; align-items: center; gap: 8px;">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#c77d4a"/>
-                                    <path d="M2 17L12 22L22 17" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M2 12L12 17L22 12" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                <span style="font-size: 24px; font-weight: 700; color: #1a1a1a;">Pictura</span>
-                            </div>
+                            <table cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="width: 36px; height: 36px; background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 8px; text-align: center; vertical-align: middle;">
+                                        <span style="color: white; font-size: 20px; font-weight: bold;">P</span>
+                                    </td>
+                                    <td style="padding-left: 12px;">
+                                        <span style="font-size: 26px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
@@ -231,14 +237,16 @@ export const emailTemplates = {
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td align="left">
-                                        <div style="display: inline-flex; align-items: center; gap: 8px;">
-                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#c77d4a"/>
-                                                <path d="M2 17L12 22L22 17" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M2 12L12 17L22 12" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            <span style="font-size: 22px; font-weight: 700; color: #1a1a1a;">Pictura</span>
-                                        </div>
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="width: 32px; height: 32px; background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 6px; text-align: center; vertical-align: middle;">
+                                                    <span style="color: white; font-size: 18px; font-weight: bold;">P</span>
+                                                </td>
+                                                <td style="padding-left: 10px;">
+                                                    <span style="font-size: 22px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">Pictura</span>
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </td>
                                     <td align="right">
                                         <p style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">INVOICE</p>

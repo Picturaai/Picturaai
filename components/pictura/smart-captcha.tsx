@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, RefreshCw, Loader2, Layers } from 'lucide-react'
+import { Check, RefreshCw, Loader2 } from 'lucide-react'
+
+// Pictura Logo Component
+const PicturaLogo = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" className={className}>
+    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor"/>
+    <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+)
 
 type ChallengeType = 'math' | 'pattern' | 'word' | 'sequence' | 'emoji' | 'color'
 
@@ -200,7 +209,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             </div>
             <span className="text-sm text-foreground">I&apos;m not a robot</span>
             <div className="ml-auto flex items-center gap-2">
-              <Layers size={16} className="text-primary" />
+              <PicturaLogo size={16} className="text-primary" />
               <span className="text-xs text-muted-foreground font-medium">PicturaCAPTCHA</span>
             </div>
           </motion.button>
@@ -217,7 +226,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-primary/5 border-b border-primary/10">
               <div className="flex items-center gap-2">
-                <Layers size={18} className="text-primary" />
+                <PicturaLogo size={18} className="text-primary" />
                 <span className="text-sm font-medium text-foreground">Security Verification</span>
               </div>
               <button type="button" onClick={startChallenge} className="p-1.5 rounded-md hover:bg-primary/10 transition-colors" title="Get new challenge">
@@ -285,7 +294,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             <Loader2 className="w-5 h-5 text-primary animate-spin" />
             <span className="text-sm text-muted-foreground">Verifying...</span>
             <div className="ml-auto flex items-center gap-2">
-              <Layers size={16} className="text-primary" />
+              <PicturaLogo size={16} className="text-primary" />
               <span className="text-xs text-muted-foreground">PicturaCAPTCHA</span>
             </div>
           </motion.div>
@@ -304,7 +313,7 @@ export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
             </div>
             <span className="text-sm text-foreground font-medium">Verification complete</span>
             <div className="ml-auto flex items-center gap-2">
-              <Layers size={16} className="text-primary" />
+              <PicturaLogo size={16} className="text-primary" />
               <span className="text-xs text-muted-foreground">PicturaCAPTCHA</span>
             </div>
           </motion.div>
