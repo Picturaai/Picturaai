@@ -1,5 +1,6 @@
 'use client'
 
+// SmartCaptcha - Advanced CAPTCHA with multiple challenge types
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
