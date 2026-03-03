@@ -1,5 +1,5 @@
 // Pictura AI Email Templates - Clean, Vercel-inspired design
-// Brand color: #C4A484 (warm tan)
+// Brand color: #C27D4F (terracotta/rust - matches oklch(0.62 0.14 45))
 
 export const emailTemplates = {
   otp: (name: string, otp: string) => `
@@ -20,7 +20,7 @@ export const emailTemplates = {
                         <td style="padding: 0 20px 32px 20px;">
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                    <td style="width: 32px; height: 32px; background-color: #C27D4F; border-radius: 6px; text-align: center; vertical-align: middle;">
                                         <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                     </td>
                                     <td style="padding-left: 10px;">
@@ -98,7 +98,7 @@ export const emailTemplates = {
                         <td style="padding: 0 20px 32px 20px;">
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                    <td style="width: 32px; height: 32px; background-color: #C27D4F; border-radius: 6px; text-align: center; vertical-align: middle;">
                                         <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                     </td>
                                     <td style="padding-left: 10px;">
@@ -124,7 +124,7 @@ export const emailTemplates = {
                                         <!-- Credits Box -->
                                         <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 32px 0;">
                                             <tr>
-                                                <td style="background-color: #C4A484; border-radius: 6px; padding: 24px; text-align: center;">
+                                                <td style="background-color: #C27D4F; border-radius: 6px; padding: 24px; text-align: center;">
                                                     <p style="margin: 0 0 4px 0; font-size: 12px; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 0.5px;">Your Balance</p>
                                                     <p style="margin: 0; font-size: 32px; font-weight: 700; color: #fff;">${credits} ${currency}</p>
                                                 </td>
@@ -139,7 +139,7 @@ export const emailTemplates = {
                                                 <td style="padding: 16px; background-color: #fafafa; border: 1px solid #eaeaea; border-radius: 6px; margin-bottom: 8px;">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
-                                                            <td style="width: 24px; height: 24px; background-color: #C4A484; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">1</td>
+                                                            <td style="width: 24px; height: 24px; background-color: #C27D4F; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">1</td>
                                                             <td style="padding-left: 12px; font-size: 14px; color: #000;">Create your first API key in the dashboard</td>
                                                         </tr>
                                                     </table>
@@ -150,7 +150,7 @@ export const emailTemplates = {
                                                 <td style="padding: 16px; background-color: #fafafa; border: 1px solid #eaeaea; border-radius: 6px;">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
-                                                            <td style="width: 24px; height: 24px; background-color: #C4A484; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">2</td>
+                                                            <td style="width: 24px; height: 24px; background-color: #C27D4F; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">2</td>
                                                             <td style="padding-left: 12px; font-size: 14px; color: #000;">Read the API documentation</td>
                                                         </tr>
                                                     </table>
@@ -161,7 +161,7 @@ export const emailTemplates = {
                                                 <td style="padding: 16px; background-color: #fafafa; border: 1px solid #eaeaea; border-radius: 6px;">
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
-                                                            <td style="width: 24px; height: 24px; background-color: #C4A484; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">3</td>
+                                                            <td style="width: 24px; height: 24px; background-color: #C27D4F; border-radius: 50%; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 600; color: #fff;">3</td>
                                                             <td style="padding-left: 12px; font-size: 14px; color: #000;">Start generating images with your app</td>
                                                         </tr>
                                                     </table>
@@ -218,7 +218,7 @@ export const emailTemplates = {
                         <td style="padding: 0 20px 32px 20px;">
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                    <td style="width: 32px; height: 32px; background-color: #C27D4F; border-radius: 6px; text-align: center; vertical-align: middle;">
                                         <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                     </td>
                                     <td style="padding-left: 10px;">
@@ -303,7 +303,7 @@ export const emailTemplates = {
                                     <td>
                                         <table cellpadding="0" cellspacing="0">
                                             <tr>
-                                                <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                                <td style="width: 32px; height: 32px; background-color: #C27D4F; border-radius: 6px; text-align: center; vertical-align: middle;">
                                                     <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                                 </td>
                                                 <td style="padding-left: 10px;">
@@ -408,7 +408,7 @@ export const emailTemplates = {
                         <td style="padding: 0 20px 32px 20px;">
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width: 32px; height: 32px; background-color: #C4A484; border-radius: 6px; text-align: center; vertical-align: middle;">
+                                    <td style="width: 32px; height: 32px; background-color: #C27D4F; border-radius: 6px; text-align: center; vertical-align: middle;">
                                         <span style="color: white; font-size: 18px; font-weight: 600;">P</span>
                                     </td>
                                     <td style="padding-left: 10px;">
