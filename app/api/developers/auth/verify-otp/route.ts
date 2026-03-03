@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
-import bcrypt from 'bcryptjs'
-import { sendEmail, getWelcomeEmailTemplate } from '@/lib/email'
+import { hashPassword, sendWelcomeEmail } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -48,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = hashPassword(password)
 
     // Get credits for country
     const credits = CURRENCY_CREDITS[country] || CURRENCY_CREDITS['US']

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import { hashPassword, verifyPassword, generateToken } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -27,21 +26,23 @@ export async function POST(req: NextRequest) {
     const developer = developers[0]
 
     // Verify password
-    const passwordMatch = await bcrypt.compare(password, developer.password_hash)
+    const passwordMatch = verifyPassword(password, developer.password_hash)
 
     if (!passwordMatch) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        developerId: developer.id,
-        email: developer.email,
-      },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '30d' }
-    )
+    // Generate session token
+    const token = generateToken(32)
+    
+    // Store session token with expiry (30 days)
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 30)
+    
+    await sql`
+      INSERT INTO developer_sessions (developer_id, token, expires_at, created_at)
+      VALUES (${developer.id}, ${token}, ${expiresAt.toISOString()}, NOW())
+    `
 
     return NextResponse.json({
       success: true,
