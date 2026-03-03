@@ -80,8 +80,8 @@ export function Footer() {
 
           <div className="flex flex-col gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Services</span>
-            <Link href="/captcha" className="flex items-center gap-2 text-sm transition-colors hover:text-primary">
-              <span className="text-primary">Pictura</span><span className="text-foreground/70">CAPTCHA</span>
+            <Link href="/captcha" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
+              PicturaCAPTCHA
               <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary font-semibold">NEW</span>
             </Link>
             <Link href="/captcha/docs" className="text-sm text-foreground/70 transition-colors hover:text-primary">CAPTCHA Docs</Link>
