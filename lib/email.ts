@@ -21,12 +21,16 @@ export interface SendEmailOptions {
 
 export async function sendEmail(options: SendEmailOptions) {
   try {
+    console.log('[v0] Sending email to:', options.to, 'subject:', options.subject)
+    console.log('[v0] SMTP config - user:', process.env.ZEPTO_MAIL_USERNAME ? 'SET' : 'NOT SET', 'pass:', process.env.ZEPTO_MAIL_PASSWORD ? 'SET' : 'NOT SET')
+    
     const result = await transporter.sendMail({
-      from: options.from || `Pictura API <noreply@picturaai.sbs>`,
+      from: options.from || `Pictura <noreply@picturaai.sbs>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
     })
+    console.log('[v0] Email sent successfully, messageId:', result.messageId)
     return { success: true, messageId: result.messageId }
   } catch (error) {
     console.error('[v0] Email send error:', error)

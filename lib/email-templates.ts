@@ -15,7 +15,14 @@ export const emailTemplates = {
                     <!-- Header with Logo -->
                     <tr style="background-color: #fafaf8;">
                         <td align="center" style="padding: 40px 20px;">
-                            <img src="https://picturaai.sbs/logo.png" alt="Pictura AI" width="120" height="40" style="display: block; max-width: 100%;">
+                            <div style="display: inline-flex; align-items: center; gap: 8px;">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#c77d4a"/>
+                                    <path d="M2 17L12 22L22 17" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 12L12 17L22 12" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span style="font-size: 24px; font-weight: 700; color: #1a1a1a;">Pictura</span>
+                            </div>
                         </td>
                     </tr>
                     
@@ -77,8 +84,15 @@ export const emailTemplates = {
                     <!-- Header -->
                     <tr style="background: linear-gradient(135deg, #f8f7f4 0%, #fafaf8 100%);">
                         <td align="center" style="padding: 40px 20px;">
-                            <img src="https://picturaai.sbs/logo.png" alt="Pictura AI" width="120" height="40" style="display: block; max-width: 100%; margin-bottom: 20px;">
-                            <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #1a1a1a;">Welcome to Pictura AI</h1>
+                            <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#c77d4a"/>
+                                    <path d="M2 17L12 22L22 17" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 12L12 17L22 12" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span style="font-size: 28px; font-weight: 700; color: #1a1a1a;">Pictura</span>
+                            </div>
+                            <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #1a1a1a;">Welcome to the Platform</h1>
                         </td>
                     </tr>
                     
@@ -150,7 +164,14 @@ export const emailTemplates = {
                     <!-- Header -->
                     <tr style="background-color: #fafaf8;">
                         <td align="center" style="padding: 40px 20px;">
-                            <img src="https://picturaai.sbs/logo.png" alt="Pictura AI" width="120" height="40" style="display: block; max-width: 100%;">
+                            <div style="display: inline-flex; align-items: center; gap: 8px;">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#c77d4a"/>
+                                    <path d="M2 17L12 22L22 17" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 12L12 17L22 12" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <span style="font-size: 24px; font-weight: 700; color: #1a1a1a;">Pictura</span>
+                            </div>
                         </td>
                     </tr>
                     
@@ -210,7 +231,14 @@ export const emailTemplates = {
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td align="left">
-                                        <img src="https://picturaai.sbs/logo.png" alt="Pictura AI" width="120" height="40" style="display: block;">
+                                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#c77d4a"/>
+                                                <path d="M2 17L12 22L22 17" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M2 12L12 17L22 12" stroke="#c77d4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <span style="font-size: 22px; font-weight: 700; color: #1a1a1a;">Pictura</span>
+                                        </div>
                                     </td>
                                     <td align="right">
                                         <p style="margin: 0; font-size: 24px; font-weight: 700; color: #1a1a1a;">INVOICE</p>

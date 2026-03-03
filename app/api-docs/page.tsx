@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Code2, Zap, Shield, Globe, Terminal, Copy, Check, ChevronRight } from 'lucide-react'
+import { ArrowRight, Code2, Clock, Shield, Globe, Terminal, Copy, Check, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
@@ -182,7 +182,7 @@ console.log(response.url)`,
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-10">Built for developers</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { icon: Zap, title: 'Fast Generation', desc: 'Images generated in under 10 seconds with optimized infrastructure' },
+                { icon: Clock, title: 'Fast Generation', desc: 'Images generated in under 10 seconds with optimized infrastructure' },
                 { icon: Shield, title: 'Secure by Default', desc: 'API key authentication, rate limiting, and encrypted requests' },
                 { icon: Globe, title: '99.9% Uptime', desc: 'Reliable infrastructure you can depend on for production apps' },
                 { icon: Code2, title: 'Official SDKs', desc: 'First-class Python and Node.js libraries with TypeScript support' },
