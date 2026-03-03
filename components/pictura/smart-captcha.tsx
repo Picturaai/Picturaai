@@ -253,6 +253,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   // Behavior tracking
   const interactionsRef = useRef(0)
   const hasStartedRef = useRef(false)
+  const isVerifiedRef = useRef(false)
   
   useEffect(() => {
     const track = () => { interactionsRef.current++ }
@@ -312,7 +313,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   }, [])
   
   const startChallenge = useCallback(() => {
-    if (status === 'cooldown' || status === 'verified' || status === 'verifying') return
+    if (status === 'cooldown' || status === 'verified' || status === 'verifying' || isVerifiedRef.current || hasStartedRef.current) return
     
     hasStartedRef.current = true
     setStatus('analyzing')
@@ -369,6 +370,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     } else {
       setStatus('verifying')
       setTimeout(() => { 
+        isVerifiedRef.current = true
         setStatus('verified')
         const token = `pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}_${requiredSteps}step`
         onVerify?.(token) 
