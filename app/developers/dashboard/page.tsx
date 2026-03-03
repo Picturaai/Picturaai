@@ -114,11 +114,7 @@ export default function DeveloperDashboard() {
 
   const fetchDashboard = useCallback(async () => {
     try {
-      console.log('[v0] Dashboard - Fetching dashboard data...')
-      
-      // Get token from localStorage as fallback
       const localToken = localStorage.getItem('pictura_session')
-      console.log('[v0] Dashboard - Local token found:', !!localToken)
       
       const headers: HeadersInit = {}
       if (localToken) {
@@ -129,14 +125,10 @@ export default function DeveloperDashboard() {
         credentials: 'include',
         headers,
       })
-
-      console.log('[v0] Dashboard - Response status:', res.status)
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
-        console.log('[v0] Dashboard - Error response:', errorData)
         if (res.status === 401) {
-          console.log('[v0] Dashboard - Unauthorized, clearing local storage and redirecting to login')
           localStorage.removeItem('pictura_session')
           localStorage.removeItem('pictura_developer')
           window.location.href = '/developers/login'
@@ -147,16 +139,13 @@ export default function DeveloperDashboard() {
       }
 
       const data = await res.json()
-      console.log('[v0] Dashboard - Data loaded successfully for:', data.email)
       setDeveloper(data)
       
-      // Check if first time user (show onboarding)
       const hasSeenOnboarding = localStorage.getItem('pictura_onboarding_complete')
       if (!hasSeenOnboarding && data.apiKeys?.length <= 1) {
         setShowOnboarding(true)
       }
-    } catch (err) {
-      console.error('[v0] Dashboard - Fetch error:', err)
+    } catch {
       toast.error('Failed to load dashboard')
     } finally {
       setLoading(false)

@@ -325,16 +325,11 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     
     // Simplified flow: auto-verify most users without challenges
     setTimeout(() => {
-      console.log('[v0] CAPTCHA - Interactions:', interactionsRef.current)
-      
-      // Auto-verify all users - captcha is for UX/deterrence not real security
-      // Real security is handled server-side
       setStatus('verifying')
       setTimeout(() => {
         isVerifiedRef.current = true
         setStatus('verified')
         const token = `pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}_verified`
-        console.log('[v0] CAPTCHA - Verified, token:', token.substring(0, 20))
         onVerify?.(token)
       }, 600)
     }, 800)

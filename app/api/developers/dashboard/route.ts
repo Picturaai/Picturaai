@@ -5,46 +5,29 @@ const sql = neon(process.env.DATABASE_URL!)
 
 async function verifySession(token: string): Promise<{ developerId: string } | null> {
   try {
-    console.log('[v0] verifySession - Looking up token prefix:', token.substring(0, 8))
     const sessions = await sql`
       SELECT developer_id, expires_at FROM developer_sessions
       WHERE session_token = ${token}
     `
-    console.log('[v0] verifySession - Found sessions:', sessions.length)
     
-    if (sessions.length === 0) {
-      console.log('[v0] verifySession - No session found for token')
-      return null
-    }
+    if (sessions.length === 0) return null
     
     const session = sessions[0]
     const expiresAt = new Date(session.expires_at)
-    const now = new Date()
     
-    console.log('[v0] verifySession - Session expires:', expiresAt, 'now:', now, 'expired:', expiresAt <= now)
+    if (expiresAt <= new Date()) return null
     
-    if (expiresAt <= now) {
-      console.log('[v0] verifySession - Session expired')
-      return null
-    }
-    
-    console.log('[v0] verifySession - Valid session for developer:', session.developer_id)
     return { developerId: session.developer_id }
-  } catch (err) {
-    console.error('[v0] verifySession - Error:', err)
+  } catch {
     return null
   }
 }
 
 function getTokenFromRequest(req: NextRequest): string | null {
-  // First try cookie
   const cookieToken = req.cookies.get('pictura_session')?.value
-  console.log('[v0] getTokenFromRequest - Cookie token found:', !!cookieToken)
   if (cookieToken) return cookieToken
   
-  // Then try Authorization header (for localStorage fallback)
   const authHeader = req.headers.get('authorization')
-  console.log('[v0] getTokenFromRequest - Auth header found:', !!authHeader)
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7)
   }
@@ -55,18 +38,14 @@ function getTokenFromRequest(req: NextRequest): string | null {
 export async function GET(req: NextRequest) {
   try {
     const token = getTokenFromRequest(req)
-    console.log('[v0] Dashboard API - token found:', token ? 'yes' : 'no')
     
     if (!token) {
-      console.log('[v0] Dashboard API - No token, returning 401')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const session = await verifySession(token)
-    console.log('[v0] Dashboard API - session verification result:', session ? 'valid' : 'invalid')
     
     if (!session) {
-      console.log('[v0] Dashboard API - Invalid/expired session')
       return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
 

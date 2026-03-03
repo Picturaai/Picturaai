@@ -3,30 +3,30 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Loader2, CheckCircle2, XCircle, UserPlus, LogIn, Shield } from 'lucide-react'
+import { Loader2, CheckCircle2, XCircle, UserPlus, LogIn, Shield, Mail, User } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
-type VerifyStatus = 'checking' | 'found' | 'syncing' | 'success' | 'no-account' | 'error'
+type VerifyStatus = 'checking' | 'approval' | 'syncing' | 'success' | 'no-account' | 'error'
 
 function VerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const from = searchParams.get('from') || 'login' // Track where user came from
+  const from = searchParams.get('from') || 'login'
   
   const [status, setStatus] = useState<VerifyStatus>('checking')
   const [userName, setUserName] = useState<string>('')
   const [userEmail, setUserEmail] = useState<string>('')
+  const [developerId, setDeveloperId] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState('')
+  const [isApproving, setIsApproving] = useState(false)
 
   useEffect(() => {
-    const verifyAccount = async () => {
+    const checkAccount = async () => {
       try {
-        // Step 1: Check if user has a session
         setStatus('checking')
         await new Promise(resolve => setTimeout(resolve, 800))
         
-        // Get token from localStorage as fallback
         const localToken = localStorage.getItem('pictura_session')
         const headers: HeadersInit = {}
         if (localToken) {
@@ -39,37 +39,16 @@ function VerifyContent() {
         })
         const sessionData = await sessionRes.json()
 
-        // Check if user is authenticated
         if (!sessionData.authenticated || !sessionData.developer) {
-          // Not logged in - show no account message
           setStatus('no-account')
           return
         }
 
-        // Step 2: Account found - show user info
-        setStatus('found')
+        // Account found - show approval screen
         setUserName(sessionData.developer.name || '')
         setUserEmail(sessionData.developer.email || '')
-        await new Promise(resolve => setTimeout(resolve, 1500))
-
-        // Step 3: Sync with CAPTCHA service
-        setStatus('syncing')
-        const syncRes = await fetch('/api/captcha/auth/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ developerId: sessionData.developer.id })
-        })
-
-        if (!syncRes.ok) {
-          throw new Error('Failed to sync account')
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 600))
-        
-        // Step 4: Success - redirect to dashboard
-        setStatus('success')
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        router.push('/captcha/dashboard')
+        setDeveloperId(sessionData.developer.id || sessionData.developer.developer_id)
+        setStatus('approval')
 
       } catch (error) {
         console.error('Verification error:', error)
@@ -78,11 +57,53 @@ function VerifyContent() {
       }
     }
 
-    verifyAccount()
-  }, [router])
+    checkAccount()
+  }, [])
+
+  const handleApprove = async () => {
+    if (!developerId) return
+    
+    setIsApproving(true)
+    try {
+      setStatus('syncing')
+      
+      const localToken = localStorage.getItem('pictura_session')
+      const headers: HeadersInit = { 'Content-Type': 'application/json' }
+      if (localToken) {
+        headers['Authorization'] = `Bearer ${localToken}`
+      }
+      
+      const syncRes = await fetch('/api/captcha/auth/sync', {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({ developerId })
+      })
+
+      if (!syncRes.ok) {
+        throw new Error('Failed to link account')
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      setStatus('success')
+      await new Promise(resolve => setTimeout(resolve, 1200))
+      window.location.href = '/captcha/dashboard'
+
+    } catch (error) {
+      console.error('Linking error:', error)
+      setStatus('error')
+      setErrorMessage('Failed to link your account. Please try again.')
+    } finally {
+      setIsApproving(false)
+    }
+  }
+
+  const handleDecline = () => {
+    router.push('/captcha')
+  }
 
   const handleNoAccount = () => {
-    // Redirect based on where they came from
     if (from === 'signup') {
       router.push('/developers/signup?redirect=/captcha/auth/verify')
     } else {
@@ -98,11 +119,11 @@ function VerifyContent() {
           title: 'Checking Account',
           subtitle: 'Looking for your Pictura developer account...'
         }
-      case 'found':
+      case 'approval':
         return {
           icon: <PicturaIcon size={24} />,
-          title: 'Account Found!',
-          subtitle: `Fetching your details, ${userName.split(' ')[0] || 'developer'}...`
+          title: 'Link Your Account',
+          subtitle: 'Approve access to use PicturaCAPTCHA'
         }
       case 'syncing':
         return {
@@ -112,9 +133,9 @@ function VerifyContent() {
         }
       case 'success':
         return {
-          icon: <CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />,
-          title: 'All Set!',
-          subtitle: 'Redirecting to your dashboard...'
+          icon: <CheckCircle2 className="h-6 w-6 sm:h-7 sm:w-7 text-[#C87941]" />,
+          title: 'Successfully Linked!',
+          subtitle: 'Welcome email sent. Redirecting...'
         }
       case 'no-account':
         return {
@@ -125,14 +146,14 @@ function VerifyContent() {
       case 'error':
         return {
           icon: <XCircle className="h-6 w-6 sm:h-7 sm:w-7 text-destructive" />,
-          title: 'Verification Failed',
+          title: 'Linking Failed',
           subtitle: errorMessage
         }
     }
   }
 
   const content = getStatusContent()
-  const progressSteps = ['checking', 'found', 'syncing', 'success']
+  const progressSteps = ['checking', 'approval', 'syncing', 'success']
   const currentIndex = progressSteps.indexOf(status)
 
   return (
@@ -168,22 +189,67 @@ function VerifyContent() {
                   {content.subtitle}
                 </p>
 
-                {/* User info when found */}
-                {status === 'found' && userEmail && (
-                  <div className="mb-5 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                    <p className="text-xs text-muted-foreground">Signed in as</p>
-                    <p className="text-sm font-medium text-foreground truncate">{userEmail}</p>
+                {/* Approval Screen with User Info */}
+                {status === 'approval' && userEmail && (
+                  <div className="space-y-4">
+                    {/* User Card */}
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-[#C87941]/10 to-[#C87941]/5 border border-[#C87941]/20">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-[#C87941] text-white flex items-center justify-center text-sm font-semibold">
+                          {userName?.charAt(0).toUpperCase() || 'D'}
+                        </div>
+                        <div className="text-left min-w-0 flex-1">
+                          <p className="text-sm font-medium text-foreground truncate">{userName || 'Developer'}</p>
+                          <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+                        </div>
+                      </div>
+                      <div className="pt-3 border-t border-[#C87941]/10 space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Shield className="h-3.5 w-3.5 text-[#C87941]" />
+                          <span>Access to PicturaCAPTCHA dashboard</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Mail className="h-3.5 w-3.5 text-[#C87941]" />
+                          <span>Welcome email will be sent</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Approval Buttons */}
+                    <div className="space-y-2">
+                      <button
+                        onClick={handleApprove}
+                        disabled={isApproving}
+                        className="w-full h-10 sm:h-11 rounded-xl bg-[#C87941] text-white text-sm font-medium hover:bg-[#B86D35] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {isApproving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <CheckCircle2 className="h-4 w-4" />
+                            Approve & Continue
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={handleDecline}
+                        disabled={isApproving}
+                        className="w-full h-10 sm:h-11 rounded-xl border border-border bg-background text-foreground text-sm font-medium hover:bg-muted/50 transition-colors disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 )}
 
                 {/* Progress indicator for loading states */}
-                {currentIndex >= 0 && status !== 'no-account' && status !== 'error' && (
+                {currentIndex >= 0 && status !== 'no-account' && status !== 'error' && status !== 'approval' && (
                   <div className="flex justify-center gap-1.5 mb-2">
                     {progressSteps.map((step, i) => (
                       <div
                         key={step}
                         className={`h-1 w-6 sm:w-8 rounded-full transition-colors ${
-                          currentIndex >= i ? 'bg-primary' : 'bg-muted'
+                          currentIndex >= i ? 'bg-[#C87941]' : 'bg-muted'
                         }`}
                       />
                     ))}
