@@ -341,6 +341,54 @@ export default function SignupPage() {
                       className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     />
                   </div>
+                  {/* Password Strength Indicator */}
+                  {password.length > 0 && (
+                    <div className="mt-2">
+                      <div className="flex gap-1 mb-1">
+                        {[1, 2, 3, 4].map((level) => {
+                          const strength = 
+                            (password.length >= 8 ? 1 : 0) +
+                            (/[A-Z]/.test(password) ? 1 : 0) +
+                            (/[0-9]/.test(password) ? 1 : 0) +
+                            (/[^A-Za-z0-9]/.test(password) ? 1 : 0)
+                          return (
+                            <div
+                              key={level}
+                              className={`h-1 flex-1 rounded-full transition-colors ${
+                                level <= strength
+                                  ? strength === 1
+                                    ? 'bg-destructive'
+                                    : strength === 2
+                                      ? 'bg-orange-500'
+                                      : strength === 3
+                                        ? 'bg-primary/70'
+                                        : 'bg-primary'
+                                  : 'bg-border'
+                              }`}
+                            />
+                          )
+                        })}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        {password.length < 8
+                          ? 'Password must be at least 8 characters'
+                          : (() => {
+                              const strength = 
+                                (password.length >= 8 ? 1 : 0) +
+                                (/[A-Z]/.test(password) ? 1 : 0) +
+                                (/[0-9]/.test(password) ? 1 : 0) +
+                                (/[^A-Za-z0-9]/.test(password) ? 1 : 0)
+                              return strength === 1
+                                ? 'Weak - Add uppercase, numbers, or symbols'
+                                : strength === 2
+                                  ? 'Fair - Add more variety'
+                                  : strength === 3
+                                    ? 'Good - Almost there!'
+                                    : 'Strong password'
+                            })()}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* How did you hear about us */}
@@ -431,8 +479,20 @@ export default function SignupPage() {
                     We sent a 6-digit code to
                   </p>
                   <p className="text-sm font-medium text-foreground">{email}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep('info')
+                      setOtp('')
+                      setCaptchaToken(null)
+                      setTimer(0)
+                    }}
+                    className="text-xs text-primary hover:underline mt-1"
+                  >
+                    Change email address
+                  </button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Can't find it? Check your spam or junk folder.
+                    Can&apos;t find it? Check your spam or junk folder.
                   </p>
                 </div>
 
