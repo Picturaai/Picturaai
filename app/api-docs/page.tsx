@@ -211,8 +211,8 @@ console.log(response.url)`,
         </section>
 
         {/* Code Example */}
-        <section className="border-b border-border/40 py-20 bg-card/50">
-          <div className="mx-auto max-w-6xl px-4">
+        <section className="border-b border-border/40 py-12 sm:py-20 bg-card/50">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
             <motion.div
               initial="hidden"
               whileInView="visible"
@@ -221,50 +221,54 @@ console.log(response.url)`,
               variants={fadeUp}
               className="mb-12"
             >
-              <h2 className="text-2xl font-bold text-foreground mb-3">Quick Start Example</h2>
-              <p className="text-muted-foreground">Choose your preferred language and integrate in minutes</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2 sm:mb-3">Quick Start Example</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">Choose your preferred language and integrate in minutes</p>
             </motion.div>
 
             <div className="rounded-xl border border-border/40 overflow-hidden bg-background">
               {/* Tab Bar */}
-              <div className="flex items-center gap-1 border-b border-border/40 p-4 bg-card">
-                {(['python', 'node', 'curl'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      activeTab === tab
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {tab === 'python' && 'Python'}
-                    {tab === 'node' && 'Node.js'}
-                    {tab === 'curl' && 'cURL'}
-                  </button>
-                ))}
+              <div className="flex flex-wrap items-center gap-2 border-b border-border/40 p-3 sm:p-4 bg-card">
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                  {(['python', 'node', 'curl'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                        activeTab === tab
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {tab === 'python' && 'Python'}
+                      {tab === 'node' && 'Node.js'}
+                      {tab === 'curl' && 'cURL'}
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={handleCopy}
-                  className="ml-auto inline-flex items-center gap-2 px-3 py-2 rounded-md bg-secondary text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="ml-auto inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-md bg-secondary text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {copied ? (
                     <>
-                      <Check className="h-4 w-4 text-primary" />
-                      Copied
+                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                      <span className="hidden sm:inline">Copied</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="h-4 w-4" />
-                      Copy
+                      <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="hidden sm:inline">Copy</span>
                     </>
                   )}
                 </button>
               </div>
 
               {/* Code */}
-              <pre className="p-6 overflow-x-auto text-sm leading-relaxed text-foreground bg-background">
-                {codeSnippets[activeTab]}
-              </pre>
+              <div className="overflow-x-auto">
+                <pre className="p-4 sm:p-6 text-xs sm:text-sm leading-relaxed text-foreground bg-background min-w-0 whitespace-pre-wrap break-all sm:whitespace-pre sm:break-normal">
+                  {codeSnippets[activeTab]}
+                </pre>
+              </div>
             </div>
           </div>
         </section>
