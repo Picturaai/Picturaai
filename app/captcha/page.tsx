@@ -22,14 +22,20 @@ export default function CaptchaPage() {
   const [copied, setCopied] = useState(false)
   const [demoVerified, setDemoVerified] = useState(false)
   
-  const codeSnippet = `<script src="https://captcha.picturaai.sbs/api.js" async defer></script>
+  const codeSnippet = `<!-- 1. Add the script -->
+<script src="https://captcha.picturaai.sbs/api.js" async defer></script>
 
+<!-- 2. Add the CAPTCHA container -->
 <div id="pictura-captcha" data-sitekey="YOUR_SITE_KEY"></div>
 
+<!-- 3. Handle verification -->
 <script>
   function onCaptchaVerify(token) {
-    // Send token to your server for verification
-    console.log('Verified:', token)
+    // Send token to your server
+    fetch('/api/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token })
+    })
   }
 </script>`
 
@@ -59,8 +65,8 @@ export default function CaptchaPage() {
               variants={fadeUp}
             >
               <div className="flex items-center gap-2 mb-4">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/10 px-3 py-1 text-xs font-medium text-green-600">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                   100% Free Forever
                 </span>
               </div>
@@ -68,7 +74,7 @@ export default function CaptchaPage() {
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
                 PicturaCAPTCHA
               </h1>
-              <p className="mt-4 text-xl text-muted-foreground">
+              <p className="mt-4 text-lg text-muted-foreground">
                 A free, privacy-first CAPTCHA service that protects your website from bots without annoying your users.
               </p>
               
@@ -90,15 +96,15 @@ export default function CaptchaPage() {
               
               <div className="mt-8 flex items-center gap-6 text-sm text-muted-foreground">
                 <span className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-primary" />
                   No limits
                 </span>
                 <span className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-primary" />
                   No tracking
                 </span>
                 <span className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
+                  <Check className="h-4 w-4 text-primary" />
                   No ads
                 </span>
               </div>
@@ -123,10 +129,10 @@ export default function CaptchaPage() {
                     <motion.p 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mt-4 text-sm text-green-600 flex items-center gap-2"
+                      className="mt-4 text-sm text-primary flex items-center gap-2"
                     >
                       <CheckCircle2 className="h-4 w-4" />
-                      Successfully verified! See how easy that was?
+                      Verified! See how easy that was?
                     </motion.p>
                   )}
                 </div>
@@ -233,28 +239,28 @@ export default function CaptchaPage() {
                     <td className="py-4 px-4 font-medium text-foreground">{row.feature}</td>
                     <td className="py-4 px-4 text-center">
                       {typeof row.pictura === 'boolean' ? (
-                        row.pictura ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">-</span>
+                        row.pictura ? <Check className="h-5 w-5 text-primary mx-auto" /> : <span className="text-muted-foreground">-</span>
                       ) : (
                         <span className="text-primary font-medium">{row.pictura}</span>
                       )}
                     </td>
                     <td className="py-4 px-4 text-center">
                       {typeof row.recaptcha === 'boolean' ? (
-                        row.recaptcha ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">-</span>
+                        row.recaptcha ? <Check className="h-5 w-5 text-primary mx-auto" /> : <span className="text-muted-foreground">-</span>
                       ) : (
                         <span className="text-muted-foreground">{row.recaptcha}</span>
                       )}
                     </td>
                     <td className="py-4 px-4 text-center">
                       {typeof row.hcaptcha === 'boolean' ? (
-                        row.hcaptcha ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">-</span>
+                        row.hcaptcha ? <Check className="h-5 w-5 text-primary mx-auto" /> : <span className="text-muted-foreground">-</span>
                       ) : (
                         <span className="text-muted-foreground">{row.hcaptcha}</span>
                       )}
                     </td>
                     <td className="py-4 px-4 text-center">
                       {typeof row.turnstile === 'boolean' ? (
-                        row.turnstile ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : <span className="text-muted-foreground">-</span>
+                        row.turnstile ? <Check className="h-5 w-5 text-primary mx-auto" /> : <span className="text-muted-foreground">-</span>
                       ) : (
                         <span className="text-muted-foreground">{row.turnstile}</span>
                       )}
@@ -315,19 +321,41 @@ export default function CaptchaPage() {
               custom={1}
               variants={fadeUp}
             >
-              <div className="rounded-xl border border-border bg-[#1a1a1a] overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 bg-[#252525] border-b border-border">
-                  <span className="text-sm text-muted-foreground">index.html</span>
+              <div className="rounded-xl border border-border bg-[#0d0d0d] overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 bg-[#171717] border-b border-border/50">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+                      <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+                      <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+                    </div>
+                    <span className="text-xs text-muted-foreground ml-2">index.html</span>
+                  </div>
                   <button
                     onClick={copyCode}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <pre className="p-4 text-sm text-gray-300 overflow-x-auto">
-                  <code>{codeSnippet}</code>
+                <pre className="p-4 text-sm overflow-x-auto font-mono">
+                  <code className="text-[#e6e6e6]">
+                    <span className="text-[#6a9955]">{'<!-- 1. Add the script -->'}</span>{'\n'}
+                    <span className="text-[#808080]">{'<'}</span><span className="text-[#569cd6]">script</span> <span className="text-[#9cdcfe]">src</span><span className="text-[#808080]">=</span><span className="text-[#ce9178]">"https://captcha.picturaai.sbs/api.js"</span> <span className="text-[#569cd6]">async defer</span><span className="text-[#808080]">{'></'}</span><span className="text-[#569cd6]">script</span><span className="text-[#808080]">{'>'}</span>{'\n\n'}
+                    <span className="text-[#6a9955]">{'<!-- 2. Add the CAPTCHA container -->'}</span>{'\n'}
+                    <span className="text-[#808080]">{'<'}</span><span className="text-[#569cd6]">div</span> <span className="text-[#9cdcfe]">id</span><span className="text-[#808080]">=</span><span className="text-[#ce9178]">"pictura-captcha"</span> <span className="text-[#9cdcfe]">data-sitekey</span><span className="text-[#808080]">=</span><span className="text-[#ce9178]">"YOUR_SITE_KEY"</span><span className="text-[#808080]">{'></'}</span><span className="text-[#569cd6]">div</span><span className="text-[#808080]">{'>'}</span>{'\n\n'}
+                    <span className="text-[#6a9955]">{'<!-- 3. Handle verification -->'}</span>{'\n'}
+                    <span className="text-[#808080]">{'<'}</span><span className="text-[#569cd6]">script</span><span className="text-[#808080]">{'>'}</span>{'\n'}
+                    {'  '}<span className="text-[#569cd6]">function</span> <span className="text-[#dcdcaa]">onCaptchaVerify</span><span className="text-[#808080]">(</span><span className="text-[#9cdcfe]">token</span><span className="text-[#808080]">)</span> <span className="text-[#808080]">{'{'}</span>{'\n'}
+                    {'    '}<span className="text-[#6a9955]">// Send token to your server</span>{'\n'}
+                    {'    '}<span className="text-[#dcdcaa]">fetch</span><span className="text-[#808080]">(</span><span className="text-[#ce9178]">'/api/verify'</span><span className="text-[#808080]">,</span> <span className="text-[#808080]">{'{'}</span>{'\n'}
+                    {'      '}<span className="text-[#9cdcfe]">method</span><span className="text-[#808080]">:</span> <span className="text-[#ce9178]">'POST'</span><span className="text-[#808080]">,</span>{'\n'}
+                    {'      '}<span className="text-[#9cdcfe]">body</span><span className="text-[#808080]">:</span> <span className="text-[#569cd6]">JSON</span><span className="text-[#808080]">.</span><span className="text-[#dcdcaa]">stringify</span><span className="text-[#808080]">({'{'}</span> <span className="text-[#9cdcfe]">token</span> <span className="text-[#808080]">{'}'})</span>{'\n'}
+                    {'    '}<span className="text-[#808080]">{'}'})</span>{'\n'}
+                    {'  '}<span className="text-[#808080]">{'}'}</span>{'\n'}
+                    <span className="text-[#808080]">{'</'}</span><span className="text-[#569cd6]">script</span><span className="text-[#808080]">{'>'}</span>
+                  </code>
                 </pre>
               </div>
             </motion.div>

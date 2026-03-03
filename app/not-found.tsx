@@ -12,7 +12,7 @@ export default function NotFound() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 flex items-center justify-center px-4 py-20">
+      <main className="flex-1 flex items-center justify-center px-6 py-20">
         <div className="max-w-lg w-full text-center">
           {/* Animated 404 */}
           <motion.div
@@ -81,7 +81,7 @@ export default function NotFound() {
             <div className="grid grid-cols-2 gap-3">
               <Link
                 href="/studio"
-                className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors group"
+                className="flex items-center gap-3 p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors group"
               >
                 <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <ImageIcon className="h-5 w-5 text-primary" />
@@ -93,7 +93,7 @@ export default function NotFound() {
               </Link>
               <Link
                 href="/models"
-                className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors group"
+                className="flex items-center gap-3 p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors group"
               >
                 <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Search className="h-5 w-5 text-primary" />
@@ -106,25 +106,25 @@ export default function NotFound() {
             </div>
           </motion.div>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons - Made bigger */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-3"
+            className="flex flex-col sm:flex-row gap-4"
           >
             <Link
               href="/"
-              className="flex-1 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 h-14 px-8 rounded-xl bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90 transition-colors"
             >
-              <Home className="h-4 w-4" />
+              <Home className="h-5 w-5" />
               Go Home
             </Link>
             <button
               onClick={() => window.history.back()}
-              className="flex-1 inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl border border-border bg-card text-foreground font-semibold hover:bg-secondary/50 transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-2 h-14 px-8 rounded-xl border border-border bg-card text-foreground text-base font-semibold hover:bg-secondary/50 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-5 w-5" />
               Go Back
             </button>
           </motion.div>

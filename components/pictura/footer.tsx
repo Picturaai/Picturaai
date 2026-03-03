@@ -29,28 +29,31 @@ export function Footer() {
             </p>
             
             {/* Social Links */}
-            <div className="mt-4 flex items-center gap-3">
-              <a 
-                href="https://x.com/GetPicturaAI" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/5 text-foreground/70 transition-colors hover:bg-primary/10 hover:text-primary"
-                aria-label="Follow us on X"
-              >
-                <XIcon />
-              </a>
-              <a 
-                href="https://t.me/picturaai_bot" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-foreground/5 text-foreground/70 transition-colors hover:bg-primary/10 hover:text-primary"
-                aria-label="Join our Telegram"
-              >
-                <TelegramIcon />
-              </a>
+            <div className="mt-5">
+              <p className="text-xs font-medium text-muted-foreground mb-3">Follow us on social media</p>
+              <div className="flex items-center gap-3">
+                <a 
+                  href="https://x.com/GetPicturaAI" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                  aria-label="Follow us on X"
+                >
+                  <XIcon className="h-4 w-4" />
+                </a>
+                <a 
+                  href="https://t.me/picturaai_bot" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                  aria-label="Join our Telegram"
+                >
+                  <TelegramIcon className="h-4 w-4" />
+                </a>
+              </div>
             </div>
             
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-5 flex items-center gap-2">
               <span className="flex h-3.5 w-5 overflow-hidden rounded-sm" aria-label="Nigerian flag">
                 <span className="w-1/3 bg-[#008751]" />
                 <span className="w-1/3 bg-[#FFFFFF] border-y border-border/30" />
@@ -79,8 +82,9 @@ export function Footer() {
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Services</span>
             <Link href="/captcha" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
               PicturaCAPTCHA
-              <span className="rounded bg-green-500/10 px-1.5 py-0.5 font-mono text-[10px] text-green-600">FREE</span>
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary font-semibold">NEW</span>
             </Link>
+            <Link href="/captcha/docs" className="text-sm text-foreground/70 transition-colors hover:text-primary">CAPTCHA Docs</Link>
           </div>
 
           <div className="flex flex-col gap-3">
