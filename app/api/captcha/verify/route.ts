@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
-import crypto from 'crypto'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -16,10 +15,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify secret key exists
-    const secretHash = crypto.createHash('sha256').update(secret).digest('hex')
     const site = await sql`
       SELECT id, domain FROM captcha_sites 
-      WHERE secret_hash = ${secretHash}
+      WHERE secret_key = ${secret}
     `
 
     if (site.length === 0) {
@@ -36,6 +34,12 @@ export async function POST(req: NextRequest) {
       // Check token age (max 5 minutes)
       const tokenAge = Date.now() - decoded.t
       if (tokenAge > 5 * 60 * 1000) {
+        // Track failed verification
+        await sql`
+          UPDATE captcha_sites 
+          SET challenges_failed = COALESCE(challenges_failed, 0) + 1
+          WHERE id = ${site[0].id}
+        `
         return NextResponse.json({ 
           success: false, 
           error: 'Token expired' 
@@ -44,6 +48,11 @@ export async function POST(req: NextRequest) {
 
       // Check if verification passed
       if (!decoded.v) {
+        await sql`
+          UPDATE captcha_sites 
+          SET challenges_failed = COALESCE(challenges_failed, 0) + 1
+          WHERE id = ${site[0].id}
+        `
         return NextResponse.json({ 
           success: false, 
           error: 'Verification not completed' 
@@ -53,8 +62,7 @@ export async function POST(req: NextRequest) {
       // Log successful verification
       await sql`
         UPDATE captcha_sites 
-        SET verifications = verifications + 1, 
-            last_verification = NOW() 
+        SET challenges_solved = COALESCE(challenges_solved, 0) + 1
         WHERE id = ${site[0].id}
       `
 

@@ -22,7 +22,7 @@ const sections = [
   { id: 'security', label: 'Security', icon: Shield },
 ]
 
-function CodeBlock({ code, language = 'html', filename }: { code: string; language?: string; filename?: string }) {
+function CodeBlock({ code, filename }: { code: string; filename?: string }) {
   const [copied, setCopied] = useState(false)
   
   const copyCode = () => {
@@ -33,25 +33,25 @@ function CodeBlock({ code, language = 'html', filename }: { code: string; langua
   
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden my-4">
-      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-muted/50 border-b border-border">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2 bg-muted/50 border-b border-border">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-            <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
-            <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
+            <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-red-400" />
+            <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-yellow-400" />
+            <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-primary/60" />
           </div>
-          {filename && <span className="text-xs text-muted-foreground ml-2">{filename}</span>}
+          {filename && <span className="text-[10px] sm:text-xs text-muted-foreground ml-2">{filename}</span>}
         </div>
         <button
           onClick={copyCode}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           {copied ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
-          {copied ? 'Copied!' : 'Copy'}
+          <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
         </button>
       </div>
-      <pre className="p-3 sm:p-4 text-sm overflow-x-auto bg-background">
-        <code className="text-foreground font-mono text-xs leading-relaxed">{code}</code>
+      <pre className="p-3 sm:p-4 overflow-x-auto bg-background">
+        <code className="text-foreground font-mono text-[10px] sm:text-xs leading-relaxed">{code}</code>
       </pre>
     </div>
   )
@@ -61,25 +61,35 @@ export default function CaptchaDocsPage() {
   const [activeSection, setActiveSection] = useState('getting-started')
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
       
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-20 sm:pt-24 pb-12 sm:pb-16">
-        <div className="flex items-center gap-4 mb-6 sm:mb-8">
-          <Link href="/captcha" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            Back to PicturaCAPTCHA
-          </Link>
-        </div>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-20 sm:pt-24 pb-12 sm:pb-16">
+        <Link href="/captcha" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-6">
+          <ArrowLeft className="h-4 w-4" />
+          Back to PicturaCAPTCHA
+        </Link>
         
-        <div className="grid lg:grid-cols-[220px_1fr] gap-6 lg:gap-10">
-          {/* Sidebar */}
-          <aside className="hidden lg:block">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+          {/* Sidebar - Mobile dropdown */}
+          <div className="lg:hidden">
+            <select 
+              value={activeSection}
+              onChange={(e) => {
+                setActiveSection(e.target.value)
+                document.getElementById(e.target.value)?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground text-sm"
+            >
+              {sections.map((section) => (
+                <option key={section.id} value={section.id}>{section.label}</option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Sidebar - Desktop */}
+          <aside className="hidden lg:block lg:w-52 flex-shrink-0">
             <nav className="sticky top-24 space-y-1">
-              <div className="flex items-center gap-2 mb-6">
-                <PicturaIcon size={24} />
-                <span className="font-semibold text-foreground">Documentation</span>
-              </div>
               {sections.map((section) => (
                 <a
                   key={section.id}
@@ -99,35 +109,35 @@ export default function CaptchaDocsPage() {
           </aside>
           
           {/* Main Content */}
-          <main className="min-w-0">
+          <main className="flex-1 min-w-0">
             <motion.div initial="hidden" animate="visible" variants={fadeUp}>
               {/* Hero */}
-              <div className="mb-10 pb-8 border-b border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-                    <PicturaIcon size={24} className="text-primary-foreground" />
+              <div className="mb-8 sm:mb-10 pb-6 sm:pb-8 border-b border-border">
+                <div className="flex items-start sm:items-center gap-4 mb-4">
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+                    <PicturaIcon size={28} className="text-primary-foreground" />
                   </div>
                   <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Documentation</h1>
-                    <p className="text-sm text-muted-foreground">PicturaCAPTCHA Integration Guide</p>
+                    <p className="text-sm text-muted-foreground mt-1">PicturaCAPTCHA Integration Guide</p>
                   </div>
                 </div>
-                <p className="text-muted-foreground max-w-2xl">
-                  Everything you need to integrate PicturaCAPTCHA into your website or application. Get started in under 5 minutes.
+                <p className="text-sm sm:text-base text-muted-foreground max-w-2xl">
+                  Everything you need to integrate PicturaCAPTCHA into your website. Get started in under 5 minutes with our simple API.
                 </p>
               </div>
               
               {/* Getting Started */}
-              <section id="getting-started" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-semibold text-foreground mb-4">Getting Started</h2>
-                <p className="text-muted-foreground mb-4">
-                  PicturaCAPTCHA is a free, privacy-first CAPTCHA service. Get started in under 5 minutes.
+              <section id="getting-started" className="mb-10 sm:mb-12 scroll-mt-24">
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Getting Started</h2>
+                <p className="text-sm sm:text-base text-muted-foreground mb-4">
+                  PicturaCAPTCHA is completely free with no limits. Follow these steps to get started:
                 </p>
                 
-                <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 mb-6">
-                  <h3 className="font-semibold text-foreground mb-2">Quick Start</h3>
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 sm:p-5 mb-6">
+                  <h3 className="font-semibold text-foreground mb-3">Quick Start</h3>
                   <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                    <li>Get your free site key from <Link href="/captcha/signup" className="text-primary hover:underline">the signup page</Link></li>
+                    <li>Get your free site key from <Link href="/captcha/dashboard" className="text-primary hover:underline">the dashboard</Link></li>
                     <li>Add the script tag to your HTML</li>
                     <li>Add the CAPTCHA container element</li>
                     <li>Verify tokens on your server</li>
@@ -136,12 +146,12 @@ export default function CaptchaDocsPage() {
               </section>
               
               {/* Installation */}
-              <section id="installation" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-semibold text-foreground mb-4">Installation</h2>
+              <section id="installation" className="mb-10 sm:mb-12 scroll-mt-24">
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Installation</h2>
                 
-                <h3 className="text-lg font-medium text-foreground mb-3">HTML/JavaScript</h3>
-                <p className="text-muted-foreground mb-4">
-                  Add the following script tag to your HTML page, preferably in the {"<head>"} section:
+                <h3 className="text-base sm:text-lg font-medium text-foreground mb-3">HTML/JavaScript</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add this script to your page:
                 </p>
                 
                 <CodeBlock 
@@ -149,38 +159,32 @@ export default function CaptchaDocsPage() {
                   code={`<script src="https://captcha.picturaai.sbs/api.js" async defer></script>`}
                 />
                 
-                <p className="text-muted-foreground mb-4">
-                  Then add the CAPTCHA container where you want it to appear:
+                <p className="text-sm text-muted-foreground mb-4">
+                  Then add the CAPTCHA container:
                 </p>
                 
                 <CodeBlock 
-                  filename="index.html"
+                  filename="form.html"
                   code={`<form id="myForm">
-  <!-- Your form fields -->
-  <input type="email" name="email" placeholder="Email" />
+  <input type="email" name="email" />
   
-  <!-- PicturaCAPTCHA container -->
+  <!-- PicturaCAPTCHA -->
   <div id="pictura-captcha" 
        data-sitekey="YOUR_SITE_KEY"
-       data-callback="onCaptchaVerify">
+       data-callback="onVerify">
   </div>
   
   <button type="submit">Submit</button>
 </form>
 
 <script>
-  function onCaptchaVerify(token) {
-    console.log('CAPTCHA verified:', token);
-    // You can now submit your form
+  function onVerify(token) {
+    console.log('Verified:', token);
   }
 </script>`}
                 />
                 
-                <h3 className="text-lg font-medium text-foreground mb-3 mt-8">NPM Package</h3>
-                <p className="text-muted-foreground mb-4">
-                  For React, Vue, and other frameworks, install our npm package:
-                </p>
-                
+                <h3 className="text-base sm:text-lg font-medium text-foreground mb-3 mt-6">NPM Package</h3>
                 <CodeBlock 
                   filename="terminal"
                   code={`npm install @pictura/captcha`}
@@ -188,237 +192,144 @@ export default function CaptchaDocsPage() {
               </section>
               
               {/* Configuration */}
-              <section id="configuration" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-semibold text-foreground mb-4">Configuration</h2>
-                <p className="text-muted-foreground mb-4">
-                  Customize PicturaCAPTCHA using data attributes:
-                </p>
+              <section id="configuration" className="mb-10 sm:mb-12 scroll-mt-24">
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Configuration</h2>
                 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Attribute</th>
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Type</th>
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Default</th>
-                        <th className="text-left py-3 px-4 font-semibold text-foreground">Description</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      <tr>
-                        <td className="py-3 px-4"><code className="text-primary">data-sitekey</code></td>
-                        <td className="py-3 px-4 text-muted-foreground">string</td>
-                        <td className="py-3 px-4 text-muted-foreground">required</td>
-                        <td className="py-3 px-4 text-muted-foreground">Your site key</td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 px-4"><code className="text-primary">data-callback</code></td>
-                        <td className="py-3 px-4 text-muted-foreground">string</td>
-                        <td className="py-3 px-4 text-muted-foreground">-</td>
-                        <td className="py-3 px-4 text-muted-foreground">Function name called on success</td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 px-4"><code className="text-primary">data-size</code></td>
-                        <td className="py-3 px-4 text-muted-foreground">string</td>
-                        <td className="py-3 px-4 text-muted-foreground">normal</td>
-                        <td className="py-3 px-4 text-muted-foreground">compact, normal, or invisible</td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 px-4"><code className="text-primary">data-theme</code></td>
-                        <td className="py-3 px-4 text-muted-foreground">string</td>
-                        <td className="py-3 px-4 text-muted-foreground">auto</td>
-                        <td className="py-3 px-4 text-muted-foreground">light, dark, or auto</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="min-w-[500px] px-4 sm:px-0">
+                    <table className="w-full text-sm border border-border rounded-lg overflow-hidden">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="text-left py-2 px-3 font-semibold text-foreground text-xs sm:text-sm">Attribute</th>
+                          <th className="text-left py-2 px-3 font-semibold text-foreground text-xs sm:text-sm">Default</th>
+                          <th className="text-left py-2 px-3 font-semibold text-foreground text-xs sm:text-sm">Description</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        <tr>
+                          <td className="py-2 px-3"><code className="text-primary text-xs">data-sitekey</code></td>
+                          <td className="py-2 px-3 text-muted-foreground text-xs">required</td>
+                          <td className="py-2 px-3 text-muted-foreground text-xs">Your site key</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-3"><code className="text-primary text-xs">data-callback</code></td>
+                          <td className="py-2 px-3 text-muted-foreground text-xs">-</td>
+                          <td className="py-2 px-3 text-muted-foreground text-xs">Success callback function</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-3"><code className="text-primary text-xs">data-size</code></td>
+                          <td className="py-2 px-3 text-muted-foreground text-xs">normal</td>
+                          <td className="py-2 px-3 text-muted-foreground text-xs">compact, normal, invisible</td>
+                        </tr>
+                        <tr>
+                          <td className="py-2 px-3"><code className="text-primary text-xs">data-theme</code></td>
+                          <td className="py-2 px-3 text-muted-foreground text-xs">auto</td>
+                          <td className="py-2 px-3 text-muted-foreground text-xs">light, dark, auto</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                
-                <CodeBlock 
-                  filename="example.html"
-                  code={`<div id="pictura-captcha" 
-     data-sitekey="pk_live_xxxxx"
-     data-callback="onVerify"
-     data-size="compact"
-     data-theme="dark">
-</div>`}
-                />
               </section>
               
               {/* Server Verification */}
-              <section id="server-verification" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-semibold text-foreground mb-4">Server Verification</h2>
-                <p className="text-muted-foreground mb-4">
-                  Always verify the CAPTCHA token on your server. Never trust client-side validation alone.
+              <section id="server-verification" className="mb-10 sm:mb-12 scroll-mt-24">
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Server Verification</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Always verify tokens on your server:
                 </p>
                 
-                <h3 className="text-lg font-medium text-foreground mb-3">API Endpoint</h3>
                 <CodeBlock 
-                  filename="request"
-                  code={`POST https://captcha.picturaai.sbs/api/verify
-Content-Type: application/json
+                  filename="verify.js"
+                  code={`const res = await fetch('https://captcha.picturaai.sbs/api/verify', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    secret: process.env.CAPTCHA_SECRET,
+    token: captchaToken
+  })
+});
 
-{
-  "secret": "YOUR_SECRET_KEY",
-  "token": "CAPTCHA_TOKEN_FROM_CLIENT",
-  "remoteip": "USER_IP_ADDRESS" // optional
-}`}
-                />
-                
-                <h3 className="text-lg font-medium text-foreground mb-3 mt-6">Response</h3>
-                <CodeBlock 
-                  filename="response"
-                  code={`{
-  "success": true,
-  "challenge_ts": "2024-01-15T12:00:00Z",
-  "hostname": "example.com"
-}`}
-                />
-                
-                <h3 className="text-lg font-medium text-foreground mb-3 mt-6">Node.js Example</h3>
-                <CodeBlock 
-                  filename="server.js"
-                  code={`const express = require('express');
-const app = express();
-
-app.post('/api/contact', async (req, res) => {
-  const { captchaToken, email, message } = req.body;
-  
-  // Verify CAPTCHA
-  const verifyRes = await fetch('https://captcha.picturaai.sbs/api/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      secret: process.env.CAPTCHA_SECRET_KEY,
-      token: captchaToken
-    })
-  });
-  
-  const verification = await verifyRes.json();
-  
-  if (!verification.success) {
-    return res.status(400).json({ error: 'CAPTCHA verification failed' });
-  }
-  
-  // Process the form...
-  res.json({ success: true });
-});`}
+const { success } = await res.json();
+if (!success) throw new Error('CAPTCHA failed');`}
                 />
               </section>
               
-              {/* Framework Guides */}
-              <section id="frameworks" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-semibold text-foreground mb-4">Framework Guides</h2>
+              {/* Frameworks */}
+              <section id="frameworks" className="mb-10 sm:mb-12 scroll-mt-24">
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Framework Guides</h2>
                 
-                <h3 className="text-lg font-medium text-foreground mb-3">React</h3>
+                <h3 className="text-base sm:text-lg font-medium text-foreground mb-3">React</h3>
                 <CodeBlock 
-                  filename="ContactForm.tsx"
+                  filename="Form.tsx"
                   code={`import { PicturaCaptcha } from '@pictura/captcha/react';
 
-function ContactForm() {
+function Form() {
   const [token, setToken] = useState('');
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!token) return alert('Please complete the CAPTCHA');
-    
-    // Submit form with token
-    await fetch('/api/contact', {
-      method: 'POST',
-      body: JSON.stringify({ token, ...formData })
-    });
-  };
   
   return (
     <form onSubmit={handleSubmit}>
-      <input type="email" name="email" />
-      <textarea name="message" />
-      
       <PicturaCaptcha
         sitekey="YOUR_SITE_KEY"
-        onVerify={(token) => setToken(token)}
-        size="normal"
+        onVerify={setToken}
       />
-      
-      <button type="submit">Send</button>
+      <button type="submit">Submit</button>
     </form>
   );
 }`}
                 />
                 
-                <h3 className="text-lg font-medium text-foreground mb-3 mt-8">Next.js (App Router)</h3>
+                <h3 className="text-base sm:text-lg font-medium text-foreground mb-3 mt-6">Next.js API Route</h3>
                 <CodeBlock 
                   filename="app/api/verify/route.ts"
-                  code={`import { NextRequest, NextResponse } from 'next/server';
-
-export async function POST(req: NextRequest) {
+                  code={`export async function POST(req: Request) {
   const { token } = await req.json();
   
   const res = await fetch('https://captcha.picturaai.sbs/api/verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      secret: process.env.CAPTCHA_SECRET_KEY,
+      secret: process.env.CAPTCHA_SECRET,
       token
     })
   });
   
   const data = await res.json();
-  
-  if (!data.success) {
-    return NextResponse.json({ error: 'Invalid CAPTCHA' }, { status: 400 });
-  }
-  
-  return NextResponse.json({ success: true });
+  return Response.json({ success: data.success });
 }`}
                 />
               </section>
               
               {/* Security */}
-              <section id="security" className="mb-12 scroll-mt-24">
-                <h2 className="text-2xl font-semibold text-foreground mb-4">Security Best Practices</h2>
+              <section id="security" className="mb-10 sm:mb-12 scroll-mt-24">
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-4">Security</h2>
                 
-                <div className="space-y-4">
-                  <div className="bg-card border border-border rounded-xl p-5">
-                    <h3 className="font-semibold text-foreground mb-2">Keep your secret key secure</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Never expose your secret key in client-side code. Always verify tokens on your server.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-card border border-border rounded-xl p-5">
-                    <h3 className="font-semibold text-foreground mb-2">Verify every submission</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Always verify the CAPTCHA token before processing any form submission or API request.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-card border border-border rounded-xl p-5">
-                    <h3 className="font-semibold text-foreground mb-2">Tokens are single-use</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Each token can only be verified once. After verification, the token becomes invalid.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-card border border-border rounded-xl p-5">
-                    <h3 className="font-semibold text-foreground mb-2">Tokens expire</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Tokens expire after 5 minutes. If verification fails due to expiration, ask the user to complete a new challenge.
-                    </p>
-                  </div>
+                <div className="grid gap-3">
+                  {[
+                    { title: 'Keep secrets secure', desc: 'Never expose your secret key in client code.' },
+                    { title: 'Verify every request', desc: 'Always verify tokens before processing forms.' },
+                    { title: 'Single-use tokens', desc: 'Each token can only be verified once.' },
+                    { title: 'Token expiration', desc: 'Tokens expire after 5 minutes.' },
+                  ].map((item) => (
+                    <div key={item.title} className="bg-card border border-border rounded-xl p-4">
+                      <h3 className="font-semibold text-foreground text-sm mb-1">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </div>
+                  ))}
                 </div>
               </section>
               
               {/* CTA */}
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 text-center">
-                <h3 className="text-lg font-semibold text-foreground mb-2">Need help?</h3>
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-5 sm:p-6 text-center">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">Need help?</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Join our Telegram community for support and updates.
+                  Join our community for support.
                 </p>
                 <a 
                   href="https://t.me/picturaai_bot"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
                 >
                   Join Telegram
                 </a>
