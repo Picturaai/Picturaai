@@ -29,7 +29,8 @@ function VerifyContent() {
         const sessionRes = await fetch('/api/developers/auth/session')
         const sessionData = await sessionRes.json()
 
-        if (!sessionRes.ok || !sessionData.developer) {
+        // Check if user is authenticated
+        if (!sessionData.authenticated || !sessionData.developer) {
           // Not logged in - show no account message
           setStatus('no-account')
           return
