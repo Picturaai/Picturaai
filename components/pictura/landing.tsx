@@ -769,6 +769,126 @@ export function Landing() {
         </div>
       </section>
 
+      {/* PicturaCAPTCHA Section */}
+      <section className="border-t border-border/40 bg-gradient-to-b from-primary/[0.02] to-transparent py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={0}
+            variants={fadeUp}
+            className="mx-auto max-w-3xl text-center"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              <Shield className="h-3 w-3" />
+              New Product
+            </span>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+              Introducing PicturaCAPTCHA
+            </h2>
+            <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto">
+              A free, privacy-first bot protection service. No tracking, no fees, no limits.
+              Protect your forms and APIs with intelligent human verification.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={1}
+            variants={fadeUp}
+            className="mt-12 grid gap-8 md:grid-cols-2 max-w-4xl mx-auto"
+          >
+            {/* Left: Features */}
+            <div className="space-y-4">
+              {[
+                { title: '100% Free Forever', desc: 'No pricing tiers, no hidden fees. Free for everyone.' },
+                { title: 'Privacy First', desc: 'No tracking cookies, no data collection. Your users stay private.' },
+                { title: 'Multiple Challenge Types', desc: 'Math, patterns, words, sequences - keeps bots guessing.' },
+                { title: 'Easy Integration', desc: 'Add with just 3 lines of code. Works everywhere.' },
+              ].map((f, i) => (
+                <motion.div
+                  key={f.title}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  custom={i + 2}
+                  variants={fadeUp}
+                  className="flex gap-4 p-4 rounded-xl border border-border/50 bg-card"
+                >
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">{f.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">{f.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Right: CAPTCHA Preview */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={2}
+              variants={fadeUp}
+              className="flex items-center justify-center"
+            >
+              <div className="w-full max-w-xs rounded-xl border border-border bg-card shadow-lg overflow-hidden">
+                <div className="p-4 border-b border-border/50 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-sm">P</div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">PicturaCAPTCHA</div>
+                    <div className="text-[10px] text-muted-foreground">Verify you are human</div>
+                  </div>
+                </div>
+                <div className="p-5 bg-secondary/30">
+                  <p className="text-xs text-muted-foreground mb-3">What is 7 + 5?</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[10, 12, 14, 11].map((n) => (
+                      <button key={n} className={`py-2 rounded-lg text-sm font-medium border ${n === 12 ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border text-foreground'}`}>
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-3 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span>Protected by Pictura</span>
+                  <span>Privacy &middot; Terms</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            custom={6}
+            variants={fadeUp}
+            className="mt-10 flex justify-center gap-4"
+          >
+            <Link
+              href="/captcha"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Learn More
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/captcha/signup"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-2.5 text-sm font-semibold text-foreground hover:bg-secondary/50 transition-colors"
+            >
+              Get Free Site Key
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Technical Paper / Research Section */}
       <section className="border-t border-border/40 py-20 md:py-28">
         <div className="mx-auto max-w-7xl px-6">
