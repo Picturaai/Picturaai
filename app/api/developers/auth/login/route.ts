@@ -34,15 +34,18 @@ export async function POST(req: NextRequest) {
 
     // Generate session token
     const token = generateToken(32)
+    console.log('[v0] Login - Generated token for developer:', developer.id, 'token prefix:', token.substring(0, 8))
     
     // Store session token with expiry (30 days)
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 30)
     
+    console.log('[v0] Login - Storing session, expires:', expiresAt.toISOString())
     await sql`
       INSERT INTO developer_sessions (developer_id, session_token, expires_at)
       VALUES (${developer.id}, ${token}, ${expiresAt.toISOString()})
     `
+    console.log('[v0] Login - Session stored successfully')
 
     // Update last login
     await sql`UPDATE developers SET last_login = NOW() WHERE id = ${developer.id}`

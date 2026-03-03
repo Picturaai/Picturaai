@@ -115,16 +115,27 @@ export default function DeveloperDashboard() {
 
   const fetchDashboard = useCallback(async () => {
     try {
+      console.log('[v0] Dashboard - Fetching dashboard data...')
       const res = await fetch('/api/developers/dashboard', {
         credentials: 'include',
       })
 
+      console.log('[v0] Dashboard - Response status:', res.status)
+      
       if (!res.ok) {
-        window.location.href = '/developers/login'
+        const errorData = await res.json().catch(() => ({}))
+        console.log('[v0] Dashboard - Error response:', errorData)
+        if (res.status === 401) {
+          console.log('[v0] Dashboard - Unauthorized, redirecting to login')
+          window.location.href = '/developers/login'
+          return
+        }
+        toast.error(errorData.error || 'Failed to load dashboard')
         return
       }
 
       const data = await res.json()
+      console.log('[v0] Dashboard - Data loaded successfully for:', data.email)
       setDeveloper(data)
       
       // Check if first time user (show onboarding)
@@ -132,12 +143,13 @@ export default function DeveloperDashboard() {
       if (!hasSeenOnboarding && data.apiKeys?.length <= 1) {
         setShowOnboarding(true)
       }
-    } catch {
+    } catch (err) {
+      console.error('[v0] Dashboard - Fetch error:', err)
       toast.error('Failed to load dashboard')
     } finally {
       setLoading(false)
     }
-  }, [router])
+  }, [])
 
   useEffect(() => {
     fetchDashboard()
