@@ -272,61 +272,133 @@ export default function DeveloperDashboard() {
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       {/* Mobile Header */}
-      <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b">
-        <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2">
-          <Menu className="h-5 w-5" />
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b">
+        <button 
+          onClick={() => setSidebarOpen(true)} 
+          className="w-9 h-9 rounded-xl bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors active:scale-95"
+        >
+          <Menu className="h-4 w-4" />
         </button>
         <PicturaLogo size="sm" />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="w-8 h-8 rounded-full bg-[#C87941] text-white flex items-center justify-center text-sm font-medium">
-              {developer.name?.charAt(0).toUpperCase() || 'D'}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <div className="px-2 py-1.5">
-              <p className="text-sm font-medium">{developer.name}</p>
-              <p className="text-xs text-muted-foreground">{developer.email}</p>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <button 
+          onClick={() => setActiveTab('settings')}
+          className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C87941] to-[#A66835] text-white flex items-center justify-center text-xs font-semibold shadow-md shadow-[#C87941]/20 active:scale-95 transition-transform"
+        >
+          {developer.name?.charAt(0).toUpperCase() || 'D'}
+        </button>
       </header>
 
       {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-72 bg-white border-r">
-            <div className="flex items-center justify-between p-4 border-b">
-              <PicturaLogo size="sm" />
-              <button onClick={() => setSidebarOpen(false)} className="p-2 -mr-2">
-                <X className="h-5 w-5" />
-              </button>
+      <div 
+        className={`lg:hidden fixed inset-0 z-50 transition-opacity duration-300 ${
+          sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+          onClick={() => setSidebarOpen(false)} 
+        />
+        <div 
+          className={`fixed inset-y-0 left-0 w-[280px] bg-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-[#C87941]/5 to-transparent">
+            <PicturaLogo size="sm" />
+            <button 
+              onClick={() => setSidebarOpen(false)} 
+              className="w-8 h-8 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* User Profile Card */}
+          <div className="p-4">
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#C87941] to-[#A66835] p-4 text-white">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-12 h-12 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-semibold backdrop-blur-sm">
+                    {developer.name?.charAt(0).toUpperCase() || 'D'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{developer.name}</p>
+                    <p className="text-[10px] text-white/70 truncate">{developer.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-white/60">Balance</p>
+                    <p className="text-lg font-bold">{formatCurrency(developer.creditsBalance)}</p>
+                  </div>
+                  <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
+                    <CreditCard className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
             </div>
-            <nav className="p-4 space-y-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => { setActiveTab(item.id); setSidebarOpen(false) }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                    activeTab === item.id
-                      ? 'bg-[#C87941]/10 text-[#C87941] font-medium'
-                      : 'text-muted-foreground hover:bg-muted'
-                  }`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </button>
-              ))}
-            </nav>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+            <p className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Menu</p>
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => { setActiveTab(item.id); setSidebarOpen(false) }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                  activeTab === item.id
+                    ? 'bg-[#C87941] text-white font-medium shadow-md shadow-[#C87941]/20'
+                    : 'text-muted-foreground hover:bg-muted/80 active:scale-[0.98]'
+                }`}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+                {activeTab === item.id && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
+                )}
+              </button>
+            ))}
+          </nav>
+
+          {/* Quick Links */}
+          <div className="px-3 py-2 border-t">
+            <p className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Resources</p>
+            <Link
+              href="/api-docs"
+              target="_blank"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-muted/80 transition-colors"
+            >
+              <Book className="h-4 w-4" />
+              Documentation
+              <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
+            </Link>
+            <Link
+              href="/developers/support"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-muted/80 transition-colors"
+            >
+              <Shield className="h-4 w-4" />
+              Support
+            </Link>
+          </div>
+
+          {/* Sign Out */}
+          <div className="p-4 border-t bg-muted/30">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-600 bg-red-50 hover:bg-red-100 transition-colors font-medium"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
       <div className="flex">
         {/* Desktop Sidebar */}
