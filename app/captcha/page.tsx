@@ -242,13 +242,13 @@ export default function CaptchaPage() {
                         <div className="flex items-center gap-2 mb-2">
                           <div className="text-[10px] text-muted-foreground">Risk:</div>
                           <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                            <div className="h-full w-1/4 bg-gradient-to-r from-green-500 to-green-400 rounded-full" />
+                            <div className="h-full w-1/4 bg-gradient-to-r from-primary to-primary/80 rounded-full" />
                           </div>
-                          <div className="text-[10px] font-medium text-green-500">Low</div>
+                          <div className="text-[10px] font-medium text-primary">Low</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1 mt-1">
-                          <div className="h-1 bg-green-500/30 rounded" />
-                          <div className="h-1 bg-green-500/30 rounded" />
+                          <div className="h-1 bg-primary/30 rounded" />
+                          <div className="h-1 bg-primary/30 rounded" />
                           <div className="h-1 bg-border/30 rounded" />
                         </div>
                         <div className="text-[8px] text-center text-muted-foreground mt-2">Human: 94%</div>
