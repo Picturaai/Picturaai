@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, RefreshCw, Loader2, AlertTriangle, Clock, ShieldCheck, Fingerprint } from 'lucide-react'
+import { Check, RefreshCw, Loader2, AlertTriangle, Clock, ShieldCheck, Fingerprint, Hand } from 'lucide-react'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
-type ChallengeType = 'math' | 'pattern' | 'word' | 'sequence' | 'image' | 'typing' | 'slider'
+type ChallengeType = 'math' | 'pattern' | 'word' | 'sequence' | 'image' | 'typing' | 'slider' | 'fingerprint' | 'trace' | 'rotate'
 
 interface Challenge {
   type: ChallengeType
@@ -16,6 +16,8 @@ interface Challenge {
   images?: { src: string; id: string; isTarget: boolean }[]
   distortedText?: string
   sliderTarget?: number
+  touchPoints?: { x: number; y: number }[]
+  rotationTarget?: number
 }
 
 // Image challenge categories
@@ -35,6 +37,18 @@ const generateDistortedText = () => {
     text += chars[Math.floor(Math.random() * chars.length)]
   }
   return text
+}
+
+// Generate random touch points for fingerprint challenge
+const generateTouchPoints = () => {
+  const points: { x: number; y: number }[] = []
+  for (let i = 0; i < 4; i++) {
+    points.push({
+      x: 20 + Math.random() * 60,
+      y: 20 + Math.random() * 60
+    })
+  }
+  return points
 }
 
 // Challenge generators
@@ -182,7 +196,7 @@ const CHALLENGES = {
   },
   
   slider: (): Challenge => {
-    const target = Math.floor(Math.random() * 80) + 10 // 10-90
+    const target = Math.floor(Math.random() * 80) + 10
     return {
       type: 'slider',
       instruction: 'Slide to the marked position',
@@ -190,6 +204,40 @@ const CHALLENGES = {
       options: [],
       answer: target.toString(),
       sliderTarget: target
+    }
+  },
+  
+  fingerprint: (): Challenge => {
+    const points = generateTouchPoints()
+    return {
+      type: 'fingerprint',
+      instruction: 'Touch all the highlighted points',
+      question: '',
+      options: [],
+      answer: points.length.toString(),
+      touchPoints: points
+    }
+  },
+  
+  trace: (): Challenge => {
+    return {
+      type: 'trace',
+      instruction: 'Trace the path with your finger/mouse',
+      question: '',
+      options: [],
+      answer: 'traced'
+    }
+  },
+  
+  rotate: (): Challenge => {
+    const target = [90, 180, 270][Math.floor(Math.random() * 3)]
+    return {
+      type: 'rotate',
+      instruction: 'Rotate the image to the correct position',
+      question: '',
+      options: [],
+      answer: target.toString(),
+      rotationTarget: target
     }
   }
 }
@@ -208,9 +256,16 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
   const [selectedImages, setSelectedImages] = useState<string[]>([])
   const [typedText, setTypedText] = useState('')
   const [sliderValue, setSliderValue] = useState(0)
+  const [touchedPoints, setTouchedPoints] = useState<number[]>([])
+  const [traceProgress, setTraceProgress] = useState(0)
+  const [rotation, setRotation] = useState(0)
   const [attempts, setAttempts] = useState(0)
   const [cooldownTime, setCooldownTime] = useState(0)
   const [riskScore, setRiskScore] = useState(0)
+  
+  const traceCanvasRef = useRef<HTMLCanvasElement>(null)
+  const isDrawingRef = useRef(false)
+  const tracePointsRef = useRef<{ x: number; y: number }[]>([])
   
   // Behavior tracking for bot detection
   const behaviorRef = useRef({
@@ -302,40 +357,99 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
     }
   }, [cooldownTime])
   
+  // Auto-verify when answer is correct
+  useEffect(() => {
+    if (status !== 'challenge' || !challenge) return
+    
+    const checkAndVerify = async () => {
+      let isCorrect = false
+      
+      if (challenge.type === 'typing' && typedText.length === 6) {
+        isCorrect = typedText.toUpperCase() === challenge.answer
+        if (isCorrect) {
+          await handleAutoVerify()
+        }
+      } else if (challenge.type === 'slider') {
+        const target = parseInt(challenge.answer)
+        isCorrect = Math.abs(sliderValue - target) <= 3
+        if (isCorrect && sliderValue > 0) {
+          await handleAutoVerify()
+        }
+      } else if (challenge.type === 'fingerprint') {
+        const required = challenge.touchPoints?.length || 0
+        if (touchedPoints.length === required) {
+          await handleAutoVerify()
+        }
+      } else if (challenge.type === 'trace' && traceProgress >= 95) {
+        await handleAutoVerify()
+      } else if (challenge.type === 'rotate') {
+        const target = parseInt(challenge.answer)
+        if (rotation === target) {
+          await handleAutoVerify()
+        }
+      }
+    }
+    
+    checkAndVerify()
+  }, [typedText, sliderValue, touchedPoints, traceProgress, rotation, challenge, status])
+  
+  // Auto-verify for option selections
+  useEffect(() => {
+    if (status !== 'challenge' || !challenge || !selected) return
+    
+    if (['math', 'pattern', 'word', 'sequence'].includes(challenge.type)) {
+      if (selected === challenge.answer) {
+        handleAutoVerify()
+      }
+    }
+  }, [selected, challenge, status])
+  
+  const handleAutoVerify = async () => {
+    setStatus('verifying')
+    await new Promise(r => setTimeout(r, 600))
+    setStatus('verified')
+    const token = btoa(JSON.stringify({
+      t: Date.now(),
+      r: riskScore,
+      b: {
+        m: behaviorRef.current.mouseMovements,
+        k: behaviorRef.current.keyPresses,
+        d: Date.now() - behaviorRef.current.startTime
+      },
+      v: true
+    }))
+    setTimeout(() => onVerify(token), 300)
+  }
+  
   // Calculate risk score based on behavior
   const calculateRiskScore = useCallback(() => {
     const b = behaviorRef.current
     let score = 0
     
-    // Time on page (bots often act immediately)
     const timeOnPage = (Date.now() - b.startTime) / 1000
     if (timeOnPage < 2) score += 30
     else if (timeOnPage < 5) score += 15
     
-    // Mouse movement patterns
     if (b.mouseMovements < 5) score += 25
     
-    // Mouse velocity variance (bots have consistent velocity)
     if (b.mouseVelocities.length > 5) {
       const avg = b.mouseVelocities.reduce((a, v) => a + v, 0) / b.mouseVelocities.length
       const variance = b.mouseVelocities.reduce((a, v) => a + Math.pow(v - avg, 2), 0) / b.mouseVelocities.length
-      if (variance < 0.01) score += 20 // Too consistent
+      if (variance < 0.01) score += 20
     }
     
-    // Key timing patterns (bots type too fast or too consistent)
     if (b.keyTimings.length > 5) {
       const intervals = []
       for (let i = 1; i < b.keyTimings.length; i++) {
         intervals.push(b.keyTimings[i] - b.keyTimings[i - 1])
       }
       const avgInterval = intervals.reduce((a, v) => a + v, 0) / intervals.length
-      if (avgInterval < 30) score += 20 // Typing too fast
+      if (avgInterval < 30) score += 20
       
       const variance = intervals.reduce((a, v) => a + Math.pow(v - avgInterval, 2), 0) / intervals.length
-      if (variance < 100) score += 15 // Too consistent timing
+      if (variance < 100) score += 15
     }
     
-    // Touch events (mobile users should have some)
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
     if (isMobile && b.touchEvents === 0) score += 15
     
@@ -343,27 +457,28 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
   }, [])
   
   const generateChallenge = useCallback(() => {
-    const types: ChallengeType[] = ['math', 'pattern', 'word', 'sequence', 'image', 'typing', 'slider']
+    const types: ChallengeType[] = ['math', 'pattern', 'word', 'sequence', 'image', 'typing', 'slider', 'fingerprint', 'trace', 'rotate']
     const type = types[Math.floor(Math.random() * types.length)]
     setChallenge(CHALLENGES[type]())
     setSelected(null)
     setSelectedImages([])
     setTypedText('')
     setSliderValue(0)
+    setTouchedPoints([])
+    setTraceProgress(0)
+    setRotation(0)
+    tracePointsRef.current = []
   }, [])
   
   const startChallenge = async () => {
     setStatus('analyzing')
     
-    // Simulate behavior analysis
     await new Promise(r => setTimeout(r, 800))
     
     const risk = calculateRiskScore()
     setRiskScore(risk)
     
-    // Low risk: auto-verify, Medium: simple challenge, High: hard challenge
     if (risk < 20 && behaviorRef.current.mouseMovements > 10) {
-      // Auto-pass for clearly human behavior
       setStatus('verifying')
       await new Promise(r => setTimeout(r, 500))
       setStatus('verified')
@@ -385,13 +500,82 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
     setSelected(option)
   }
   
-  const handleImageSelect = (id: string) => {
-    setSelectedImages(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    )
+  const handleImageSelect = async (id: string) => {
+    const newSelected = selectedImages.includes(id) 
+      ? selectedImages.filter(i => i !== id) 
+      : [...selectedImages, id]
+    setSelectedImages(newSelected)
+    
+    // Auto-verify for image challenges when all targets are selected
+    if (challenge?.type === 'image') {
+      const correctIds = challenge.answer.split(',').sort()
+      const selectedIds = newSelected.sort()
+      if (correctIds.length === selectedIds.length && correctIds.every((id, i) => id === selectedIds[i])) {
+        await handleAutoVerify()
+      }
+    }
   }
   
-  const handleSubmit = async () => {
+  const handleTouchPoint = (index: number) => {
+    if (!touchedPoints.includes(index)) {
+      setTouchedPoints(prev => [...prev, index])
+    }
+  }
+  
+  const handleTraceStart = (e: React.MouseEvent | React.TouchEvent) => {
+    isDrawingRef.current = true
+    const canvas = traceCanvasRef.current
+    if (!canvas) return
+    
+    const rect = canvas.getBoundingClientRect()
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    const x = clientX - rect.left
+    const y = clientY - rect.top
+    
+    tracePointsRef.current = [{ x, y }]
+  }
+  
+  const handleTraceMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDrawingRef.current) return
+    const canvas = traceCanvasRef.current
+    if (!canvas) return
+    
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    
+    const rect = canvas.getBoundingClientRect()
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    const x = clientX - rect.left
+    const y = clientY - rect.top
+    
+    tracePointsRef.current.push({ x, y })
+    
+    // Draw the trace
+    ctx.strokeStyle = '#c97a50'
+    ctx.lineWidth = 3
+    ctx.lineCap = 'round'
+    
+    if (tracePointsRef.current.length > 1) {
+      const last = tracePointsRef.current[tracePointsRef.current.length - 2]
+      ctx.beginPath()
+      ctx.moveTo(last.x, last.y)
+      ctx.lineTo(x, y)
+      ctx.stroke()
+    }
+    
+    // Calculate progress based on path coverage
+    const pathLength = tracePointsRef.current.length
+    const progress = Math.min(100, (pathLength / 50) * 100)
+    setTraceProgress(progress)
+  }
+  
+  const handleTraceEnd = () => {
+    isDrawingRef.current = false
+  }
+  
+  const handleManualSubmit = async () => {
     if (!challenge) return
     
     let isCorrect = false
@@ -404,36 +588,21 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
       isCorrect = typedText.toUpperCase() === challenge.answer
     } else if (challenge.type === 'slider') {
       const target = parseInt(challenge.answer)
-      isCorrect = Math.abs(sliderValue - target) <= 5 // Allow 5% tolerance
+      isCorrect = Math.abs(sliderValue - target) <= 5
     } else {
       if (!selected) return
       isCorrect = selected === challenge.answer
     }
     
-    setStatus('verifying')
-    await new Promise(r => setTimeout(r, 500))
-    
     if (isCorrect) {
-      setStatus('verified')
-      const token = btoa(JSON.stringify({
-        t: Date.now(),
-        r: riskScore,
-        b: {
-          m: behaviorRef.current.mouseMovements,
-          k: behaviorRef.current.keyPresses,
-          d: Date.now() - behaviorRef.current.startTime
-        },
-        v: true
-      }))
-      setTimeout(() => onVerify(token), 300)
+      await handleAutoVerify()
     } else {
       const newAttempts = attempts + 1
       setAttempts(newAttempts)
       
       if (newAttempts >= 3) {
-        // Cooldown period
         setStatus('cooldown')
-        setCooldownTime(60) // 60 second cooldown
+        setCooldownTime(60)
         onError?.('Too many failed attempts. Please try again in 1 minute.')
       } else {
         generateChallenge()
@@ -443,13 +612,6 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
   }
   
   const isCompact = size === 'compact'
-  const canSubmit = challenge?.type === 'image' 
-    ? selectedImages.length > 0 
-    : challenge?.type === 'typing' 
-      ? typedText.length === 6 
-      : challenge?.type === 'slider'
-        ? true
-        : !!selected
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -525,7 +687,7 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
                   {challenge.instruction}
                 </p>
                 
-                {/* Regular challenges */}
+                {/* Regular challenges with auto-verify */}
                 {['math', 'pattern', 'word', 'sequence'].includes(challenge.type) && (
                   <>
                     <p className={`font-mono font-bold text-primary ${isCompact ? 'text-base' : 'text-lg'}`}>
@@ -558,7 +720,7 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
                         onClick={() => handleImageSelect(img.id)}
                         className={`aspect-square rounded-lg border-2 text-2xl flex items-center justify-center transition-all ${
                           selectedImages.includes(img.id)
-                            ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
+                            ? 'border-primary bg-primary/10'
                             : 'border-border bg-muted/30 hover:border-primary/50'
                         }`}
                       >
@@ -568,64 +730,71 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
                   </div>
                 )}
                 
-                {/* Typing challenge */}
+                {/* Typing challenge - auto-verifies when complete */}
                 {challenge.type === 'typing' && challenge.distortedText && (
                   <div className="space-y-3">
-                    <div className="relative h-14 rounded-lg bg-gradient-to-r from-muted/50 via-muted/30 to-muted/50 border border-border flex items-center justify-center overflow-hidden">
-                      <div className="relative">
+                    <div className="relative h-16 rounded-lg bg-muted/50 flex items-center justify-center overflow-hidden">
+                      <svg className="absolute inset-0 w-full h-full">
+                        {[...Array(5)].map((_, i) => (
+                          <line
+                            key={i}
+                            x1={Math.random() * 100 + '%'}
+                            y1="0"
+                            x2={Math.random() * 100 + '%'}
+                            y2="100%"
+                            stroke="currentColor"
+                            strokeWidth="1"
+                            className="text-muted-foreground/30"
+                          />
+                        ))}
+                      </svg>
+                      <span 
+                        className="text-2xl font-mono font-bold tracking-[0.3em] relative z-10"
+                        style={{
+                          textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+                          transform: `rotate(${Math.random() * 4 - 2}deg)`
+                        }}
+                      >
                         {challenge.distortedText.split('').map((char, i) => (
                           <span
                             key={i}
-                            className="inline-block text-xl font-bold text-foreground"
                             style={{
+                              display: 'inline-block',
                               transform: `rotate(${Math.random() * 20 - 10}deg) translateY(${Math.random() * 6 - 3}px)`,
-                              opacity: 0.7 + Math.random() * 0.3,
-                              letterSpacing: `${2 + Math.random() * 4}px`,
+                              color: `hsl(${20 + Math.random() * 20}, 70%, ${40 + Math.random() * 20}%)`
                             }}
                           >
                             {char}
                           </span>
                         ))}
-                      </div>
-                      <div className="absolute inset-0 pointer-events-none">
-                        <svg className="w-full h-full opacity-30">
-                          <line x1="0" y1="20" x2="100%" y2="35" stroke="currentColor" strokeWidth="1" />
-                          <line x1="0" y1="40" x2="100%" y2="25" stroke="currentColor" strokeWidth="1" />
-                          <line x1="10%" y1="10" x2="90%" y2="50" stroke="currentColor" strokeWidth="0.5" />
-                        </svg>
-                      </div>
+                      </span>
                     </div>
                     <input
                       type="text"
                       value={typedText}
                       onChange={(e) => setTypedText(e.target.value.toUpperCase().slice(0, 6))}
-                      placeholder="Type the 6 characters"
+                      placeholder="Type the characters"
                       maxLength={6}
-                      className="w-full h-10 px-3 rounded-lg border border-border bg-background text-center font-mono text-lg tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                      className="w-full h-10 px-3 rounded-lg border border-border bg-background text-center font-mono text-lg tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     />
+                    <p className="text-xs text-muted-foreground text-center">
+                      {typedText.length}/6 characters
+                    </p>
                   </div>
                 )}
                 
-                {/* Slider challenge */}
+                {/* Slider challenge - auto-verifies when correct */}
                 {challenge.type === 'slider' && challenge.sliderTarget !== undefined && (
                   <div className="space-y-3">
-                    <div className="relative h-12 rounded-lg bg-muted/30 border border-border overflow-hidden">
-                      {/* Target indicator */}
+                    <div className="relative h-8 rounded-full bg-muted/50">
                       <div 
-                        className="absolute top-0 h-full w-1 bg-primary"
+                        className="absolute top-0 h-full w-1 bg-primary rounded-full"
                         style={{ left: `${challenge.sliderTarget}%` }}
                       />
                       <div 
-                        className="absolute top-0 h-full w-4 bg-primary/20"
-                        style={{ left: `${challenge.sliderTarget - 2}%` }}
+                        className="absolute top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-primary shadow-md cursor-grab active:cursor-grabbing transition-all"
+                        style={{ left: `calc(${sliderValue}% - 12px)` }}
                       />
-                      {/* Current position */}
-                      <div 
-                        className="absolute top-1 bottom-1 w-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground text-xs font-bold transition-all duration-100"
-                        style={{ left: `calc(${sliderValue}% - 16px)` }}
-                      >
-                        {sliderValue}
-                      </div>
                     </div>
                     <input
                       type="range"
@@ -633,35 +802,128 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
                       max="100"
                       value={sliderValue}
                       onChange={(e) => setSliderValue(parseInt(e.target.value))}
-                      className="w-full h-2 rounded-lg appearance-none bg-muted cursor-pointer accent-primary"
+                      className="w-full accent-primary"
                     />
+                  </div>
+                )}
+                
+                {/* Fingerprint touch challenge - auto-verifies */}
+                {challenge.type === 'fingerprint' && challenge.touchPoints && (
+                  <div className="space-y-3">
+                    <div className="relative h-32 rounded-lg bg-muted/30 border border-border">
+                      <Hand className="absolute inset-0 m-auto h-16 w-16 text-muted-foreground/20" />
+                      {challenge.touchPoints.map((point, i) => (
+                        <button
+                          key={i}
+                          onClick={() => handleTouchPoint(i)}
+                          className={`absolute w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center ${
+                            touchedPoints.includes(i)
+                              ? 'border-primary bg-primary/20 scale-90'
+                              : 'border-primary/50 bg-primary/10 animate-pulse'
+                          }`}
+                          style={{ left: `${point.x}%`, top: `${point.y}%`, transform: 'translate(-50%, -50%)' }}
+                        >
+                          {touchedPoints.includes(i) && <Check className="h-4 w-4 text-primary" />}
+                        </button>
+                      ))}
+                    </div>
                     <p className="text-xs text-center text-muted-foreground">
-                      Move slider to the highlighted position
+                      {touchedPoints.length}/{challenge.touchPoints.length} points touched
                     </p>
                   </div>
                 )}
                 
-                <div className="flex gap-2 pt-1">
-                  <button
-                    onClick={generateChallenge}
-                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                    title="Get new challenge"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={!canSubmit}
-                    className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
-                  >
-                    Verify
-                  </button>
-                </div>
+                {/* Trace path challenge - auto-verifies */}
+                {challenge.type === 'trace' && (
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <canvas
+                        ref={traceCanvasRef}
+                        width={280}
+                        height={100}
+                        onMouseDown={handleTraceStart}
+                        onMouseMove={handleTraceMove}
+                        onMouseUp={handleTraceEnd}
+                        onMouseLeave={handleTraceEnd}
+                        onTouchStart={handleTraceStart}
+                        onTouchMove={handleTraceMove}
+                        onTouchEnd={handleTraceEnd}
+                        className="w-full h-24 rounded-lg bg-muted/30 border border-border cursor-crosshair touch-none"
+                      />
+                      {/* Guide path */}
+                      <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                        <path
+                          d="M 20 50 Q 70 20, 140 50 T 260 50"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeDasharray="5,5"
+                          className="text-primary/30"
+                        />
+                      </svg>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-muted/50 overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-primary rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${traceProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Trace the dotted path
+                    </p>
+                  </div>
+                )}
                 
-                {attempts > 0 && (
-                  <p className="text-xs text-center text-muted-foreground">
-                    {3 - attempts} {3 - attempts === 1 ? 'attempt' : 'attempts'} remaining
-                  </p>
+                {/* Rotate challenge - auto-verifies */}
+                {challenge.type === 'rotate' && challenge.rotationTarget !== undefined && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center">
+                      <motion.div
+                        className="h-20 w-20 rounded-lg bg-muted/30 border border-border flex items-center justify-center text-4xl"
+                        animate={{ rotate: rotation }}
+                        transition={{ type: 'spring', stiffness: 100 }}
+                      >
+                        🏠
+                      </motion.div>
+                    </div>
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => setRotation(r => (r - 90 + 360) % 360)}
+                        className="h-10 px-4 rounded-lg border border-border bg-background hover:bg-muted/50 text-sm font-medium"
+                      >
+                        ↺ Left
+                      </button>
+                      <button
+                        onClick={() => setRotation(r => (r + 90) % 360)}
+                        className="h-10 px-4 rounded-lg border border-border bg-background hover:bg-muted/50 text-sm font-medium"
+                      >
+                        Right ↻
+                      </button>
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Rotate the image to face upward
+                    </p>
+                  </div>
+                )}
+                
+                {/* Actions - only show for challenges that need manual submit */}
+                {challenge.type === 'image' && (
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      onClick={generateChallenge}
+                      className="flex-shrink-0 h-10 w-10 rounded-lg border border-border bg-background flex items-center justify-center hover:bg-muted/50 transition-colors"
+                    >
+                      <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                    <button
+                      onClick={handleManualSubmit}
+                      disabled={selectedImages.length === 0}
+                      className="flex-1 h-10 rounded-lg bg-primary text-primary-foreground font-medium text-sm transition-all hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Verify
+                    </button>
+                  </div>
                 )}
               </motion.div>
             )}
@@ -672,10 +934,12 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex items-center justify-center gap-2 py-6"
+                className="flex items-center justify-center gap-3 py-4"
               >
                 <Loader2 className={`animate-spin text-primary ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}`} />
-                <span className={`text-muted-foreground ${isCompact ? 'text-xs' : 'text-sm'}`}>Verifying...</span>
+                <span className={`text-muted-foreground ${isCompact ? 'text-xs' : 'text-sm'}`}>
+                  Verifying...
+                </span>
               </motion.div>
             )}
             
@@ -684,17 +948,13 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
                 key="verified"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-3 py-1"
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-3"
               >
-                <motion.div 
-                  className={`flex items-center justify-center rounded-full bg-primary text-primary-foreground ${isCompact ? 'h-6 w-6' : 'h-7 w-7'}`}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                >
-                  <Check className={isCompact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
-                </motion.div>
-                <span className={`font-semibold text-primary ${isCompact ? 'text-sm' : 'text-base'}`}>Verified</span>
+                <div className={`flex-shrink-0 rounded-full bg-primary flex items-center justify-center ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}`}>
+                  <Check className={`text-primary-foreground ${isCompact ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                </div>
+                <span className={`font-medium text-primary ${isCompact ? 'text-xs' : 'text-sm'}`}>Verified</span>
               </motion.div>
             )}
             
@@ -703,22 +963,20 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
                 key="cooldown"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-4 space-y-3"
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center gap-3 py-4"
               >
-                <div className="flex items-center justify-center gap-2 text-destructive">
-                  <AlertTriangle className="h-5 w-5" />
-                  <span className="font-medium text-sm">Verification Failed</span>
+                <div className="relative">
+                  <Clock className={`text-destructive ${isCompact ? 'h-6 w-6' : 'h-8 w-8'}`} />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  We couldn&apos;t verify you are human. Please try again later.
-                </p>
-                <div className="flex items-center justify-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-mono text-foreground">{formatTime(cooldownTime)}</span>
+                <div className="text-center">
+                  <p className={`font-medium text-destructive ${isCompact ? 'text-xs' : 'text-sm'}`}>
+                    We couldn&apos;t verify you are human
+                  </p>
+                  <p className={`text-muted-foreground mt-1 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>
+                    Try again in <span className="font-mono font-bold text-foreground">{formatTime(cooldownTime)}</span>
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Try again in {cooldownTime} seconds
-                </p>
               </motion.div>
             )}
             
@@ -727,29 +985,31 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
                 key="error"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-3"
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-3"
               >
-                <p className={`text-destructive ${isCompact ? 'text-xs' : 'text-sm'}`}>Verification failed</p>
-                <button
-                  onClick={() => { setStatus('idle'); setAttempts(0) }}
-                  className={`mt-2 text-primary hover:underline ${isCompact ? 'text-xs' : 'text-sm'}`}
-                >
-                  Try again
-                </button>
+                <AlertTriangle className={`text-destructive ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}`} />
+                <span className={`text-destructive ${isCompact ? 'text-xs' : 'text-sm'}`}>
+                  Verification failed
+                </span>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
         
         {/* Footer */}
-        <div className={`border-t border-border bg-muted/20 ${isCompact ? 'px-3 py-1.5' : 'px-4 py-2'}`}>
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] text-muted-foreground">Protected by Pictura</span>
-            <div className="flex gap-2 text-[10px] text-muted-foreground">
-              <a href="/captcha/privacy" className="hover:text-primary transition-colors">Privacy</a>
-              <span>·</span>
-              <a href="/captcha/terms" className="hover:text-primary transition-colors">Terms</a>
-            </div>
+        <div className={`flex items-center justify-between border-t border-border bg-muted/20 ${isCompact ? 'px-3 py-1.5' : 'px-4 py-2'}`}>
+          <span className={`text-muted-foreground ${isCompact ? 'text-[9px]' : 'text-[10px]'}`}>
+            Protected by <span className="text-primary">Pictura</span>
+          </span>
+          <div className="flex items-center gap-2">
+            <button className={`text-muted-foreground hover:text-foreground transition-colors ${isCompact ? 'text-[9px]' : 'text-[10px]'}`}>
+              Privacy
+            </button>
+            <span className={`text-muted-foreground ${isCompact ? 'text-[9px]' : 'text-[10px]'}`}>·</span>
+            <button className={`text-muted-foreground hover:text-foreground transition-colors ${isCompact ? 'text-[9px]' : 'text-[10px]'}`}>
+              Terms
+            </button>
           </div>
         </div>
       </div>
