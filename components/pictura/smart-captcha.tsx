@@ -1,9 +1,9 @@
 'use client'
 
 /**
- * SmartCaptcha v3 - Advanced CAPTCHA with multiple challenge types
- * Last updated: 2026-03-03
- * All lucide-react icons verified to exist in lucide-react@0.564.0
+ * SmartCaptcha v4 - Advanced multi-step CAPTCHA
+ * Updated: 2026-03-03
+ * Icons verified for lucide-react@0.564.0
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -39,7 +39,6 @@ interface Challenge {
   puzzlePieces?: number[]
 }
 
-// Real icon-based image categories
 const IMAGE_CATEGORIES = [
   { 
     target: 'vehicles', 
@@ -196,7 +195,6 @@ const generateChallenge = (): Challenge => {
     }
     case 'image': {
       const cat = IMAGE_CATEGORIES[Math.floor(Math.random() * IMAGE_CATEGORIES.length)]
-      // Shuffle items
       const shuffled = [...cat.items].sort(() => Math.random() - 0.5)
       return { type, question: cat.question, answer: cat.target, images: shuffled, targetCount: shuffled.filter(i => i.isTarget).length }
     }
@@ -211,7 +209,6 @@ const generateChallenge = (): Challenge => {
       return { type, question: `Slide to ${target}`, answer: target.toString(), sliderTarget: target }
     }
     case 'puzzle': {
-      // Simple number ordering puzzle
       const pieces = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5)
       return { type, question: 'Tap numbers in order: 1, 2, 3...', answer: '123456789', puzzlePieces: pieces }
     }
@@ -229,7 +226,7 @@ interface SmartCaptchaProps {
 }
 
 export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: SmartCaptchaProps) {
-  const [status, setStatus] = useState<'idle' | 'analyzing' | 'challenge' | 'wrong' | 'verifying' | 'verified' | 'cooldown'>('idle')
+  const [status, setStatus] = useState<'idle' | 'analyzing' | 'challenge' | 'wrong' | 'showAnswer' | 'verifying' | 'verified' | 'cooldown'>('idle')
   const [challenge, setChallenge] = useState<Challenge | null>(null)
   const [userAnswer, setUserAnswer] = useState('')
   const [selectedImages, setSelectedImages] = useState<string[]>([])
@@ -240,8 +237,9 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   
   // Multi-step challenge state
   const [currentStep, setCurrentStep] = useState(0)
-  const [requiredSteps, setRequiredSteps] = useState(2) // Default 2 challenges
-  const [riskScore, setRiskScore] = useState(0) // 0-100, higher = more suspicious
+  const [requiredSteps, setRequiredSteps] = useState(2)
+  const [riskScore, setRiskScore] = useState(0)
+  const [lastCorrectAnswer, setLastCorrectAnswer] = useState<string>('')
   
   // Biometric hold state
   const [isHolding, setIsHolding] = useState(false)
@@ -254,6 +252,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   
   // Behavior tracking
   const interactionsRef = useRef(0)
+  const hasStartedRef = useRef(false)
   
   useEffect(() => {
     const track = () => { interactionsRef.current++ }
@@ -291,33 +290,25 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     setChallenge(generateChallenge())
   }, [])
   
-  const hasStartedRef = useRef(false)
-  
   // Analyze user behavior to determine risk and number of challenges
   const analyzeRisk = useCallback(() => {
     let risk = 0
     
-    // Low interactions = suspicious (bots don't move mouse naturally)
     if (interactionsRef.current < 10) risk += 40
     else if (interactionsRef.current < 30) risk += 20
     else if (interactionsRef.current < 50) risk += 10
     
-    // Check for suspicious timing (too fast = bot)
-    const timeOnPage = (Date.now() - (window as any).__picturaLoadTime) || 5000
+    const timeOnPage = (Date.now() - (window as unknown as { __picturaLoadTime?: number }).__picturaLoadTime) || 5000
     if (timeOnPage < 2000) risk += 30
     else if (timeOnPage < 5000) risk += 15
     
-    // Random factor for unpredictability
     risk += Math.floor(Math.random() * 15)
-    
-    // Clamp to 0-100
     risk = Math.min(100, Math.max(0, risk))
     setRiskScore(risk)
     
-    // Determine required steps based on risk
-    if (risk >= 60) return 3 // High risk: 3 challenges
-    if (risk >= 30) return 2 // Medium risk: 2 challenges
-    return 2 // Low risk: still 2 challenges minimum for security
+    if (risk >= 60) return 3
+    if (risk >= 30) return 2
+    return 2
   }, [])
   
   const startChallenge = useCallback(() => {
@@ -326,9 +317,8 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     hasStartedRef.current = true
     setStatus('analyzing')
     
-    // Store page load time for risk analysis
-    if (!(window as any).__picturaLoadTime) {
-      (window as any).__picturaLoadTime = Date.now()
+    if (!(window as unknown as { __picturaLoadTime?: number }).__picturaLoadTime) {
+      (window as unknown as { __picturaLoadTime: number }).__picturaLoadTime = Date.now()
     }
     
     setTimeout(() => {
@@ -340,11 +330,23 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     }, 1200)
   }, [status, resetChallenge, analyzeRisk])
   
+  // Show correct answer then give new challenge
   const handleWrong = useCallback(() => {
-    setStatus('wrong')
+    if (!challenge) return
+    
+    // Store the correct answer to show
+    let correctAnswerText = challenge.answer
+    if (challenge.type === 'image' && challenge.images) {
+      const correctItems = challenge.images.filter(i => i.isTarget).length
+      correctAnswerText = `${correctItems} correct items`
+    }
+    setLastCorrectAnswer(correctAnswerText)
+    
+    setStatus('showAnswer')
     const newAttempts = attempts + 1
     setAttempts(newAttempts)
     
+    // Show correct answer for 2 seconds, then give new challenge
     setTimeout(() => {
       if (newAttempts >= 3) {
         setStatus('cooldown')
@@ -353,13 +355,11 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
         resetChallenge()
         setStatus('challenge')
       }
-    }, 1500)
-  }, [attempts, resetChallenge])
+    }, 2500)
+  }, [attempts, resetChallenge, challenge])
   
   const handleCorrect = useCallback(() => {
-    // Check if more challenges are needed
     if (currentStep < requiredSteps) {
-      // Show brief success, then next challenge
       setStatus('verifying')
       setTimeout(() => {
         setCurrentStep(prev => prev + 1)
@@ -367,7 +367,6 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
         setStatus('challenge')
       }, 600)
     } else {
-      // All challenges complete - verify
       setStatus('verifying')
       setTimeout(() => { 
         setStatus('verified')
@@ -453,7 +452,6 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
       if (progress >= 100 && holdIntervalRef.current) clearInterval(holdIntervalRef.current)
     }, 50)
     
-    // Simulate pulse detection
     pulseIntervalRef.current = setInterval(() => {
       setPulseData(prev => {
         const newData = [...prev, 60 + Math.random() * 40]
@@ -528,7 +526,21 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
               </motion.div>
             )}
             
-            {/* Wrong Answer */}
+            {/* Show Correct Answer */}
+            {status === 'showAnswer' && (
+              <motion.div key="showAnswer" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="text-center py-3">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-amber-500/10 mb-3">
+                  <AlertCircle className="h-6 w-6 text-amber-500" />
+                </div>
+                <p className="text-sm font-medium text-foreground">Incorrect answer</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  The correct answer was: <span className="font-semibold text-primary">{lastCorrectAnswer}</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-3">Loading new challenge...</p>
+              </motion.div>
+            )}
+            
+            {/* Wrong Answer (brief flash) */}
             {status === 'wrong' && (
               <motion.div key="wrong" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="text-center py-2">
                 <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-destructive/10 mb-3">
@@ -539,35 +551,36 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
               </motion.div>
             )}
             
-{/* Challenge */}
-  {status === 'challenge' && challenge && (
-  <motion.div key="challenge" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
-    {/* Step indicator */}
-    <div className="flex items-center justify-between mb-1">
-      <div className="flex items-center gap-1.5">
-        {Array.from({ length: requiredSteps }).map((_, i) => (
-          <div
-            key={i}
-            className={`h-1.5 rounded-full transition-all ${
-              i < currentStep 
-                ? 'w-6 bg-primary' 
-                : i === currentStep - 1 
-                  ? 'w-6 bg-primary animate-pulse' 
-                  : 'w-1.5 bg-border'
-            }`}
-          />
-        ))}
-      </div>
-      <span className="text-[10px] text-muted-foreground font-medium">
-        Step {currentStep} of {requiredSteps}
-      </span>
-    </div>
-    {/* Question + Refresh */}
-    <div className="flex items-center justify-between">
-      <p className="text-sm font-medium text-foreground">{challenge.question}</p>
-      <button onClick={resetChallenge} className="p-1.5 rounded-md hover:bg-muted transition-colors" title="New challenge">
-        <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
-      </button>
+            {/* Challenge */}
+            {status === 'challenge' && challenge && (
+              <motion.div key="challenge" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
+                {/* Step indicator */}
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5">
+                    {Array.from({ length: requiredSteps }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-1.5 rounded-full transition-all ${
+                          i < currentStep - 1 
+                            ? 'w-6 bg-primary' 
+                            : i === currentStep - 1 
+                              ? 'w-6 bg-primary animate-pulse' 
+                              : 'w-1.5 bg-border'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-medium">
+                    Step {currentStep} of {requiredSteps}
+                  </span>
+                </div>
+                
+                {/* Question + Refresh */}
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">{challenge.question}</p>
+                  <button onClick={resetChallenge} className="p-1.5 rounded-md hover:bg-muted transition-colors" title="New challenge">
+                    <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
+                  </button>
                 </div>
                 
                 {/* Options (math, pattern, word, sequence) */}
@@ -581,7 +594,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                   </div>
                 )}
                 
-                {/* Image selection with real icons */}
+                {/* Image selection */}
                 {challenge.type === 'image' && challenge.images && (
                   <div className="space-y-2">
                     <div className="grid grid-cols-3 gap-2">
@@ -632,7 +645,7 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                   </div>
                 )}
                 
-                {/* Puzzle - Number ordering */}
+                {/* Puzzle */}
                 {challenge.type === 'puzzle' && challenge.puzzlePieces && (
                   <div className="space-y-2">
                     <div className="grid grid-cols-3 gap-2">
@@ -676,7 +689,6 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                       onTouchEnd={endHold} 
                       className={`relative w-24 h-24 rounded-full border-4 transition-all mx-auto flex items-center justify-center ${isHolding ? 'border-primary bg-primary/10 scale-95' : 'border-border bg-muted/30 hover:border-primary/50'}`}
                     >
-                      {/* Progress ring */}
                       <svg className="absolute inset-0 w-full h-full -rotate-90">
                         <circle cx="48" cy="48" r="44" fill="none" stroke="currentColor" strokeWidth="4" className="text-primary/20" />
                         <circle cx="48" cy="48" r="44" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray={`${holdProgress * 2.76} 276`} className="text-primary transition-all" />
@@ -727,10 +739,9 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
             {status === 'cooldown' && (
               <motion.div key="cooldown" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-2">
                 <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-                <p className="text-sm font-medium text-foreground">We couldn&apos;t verify you are human</p>
-                <p className="text-xs text-muted-foreground mt-1">Too many failed attempts</p>
+                <p className="text-sm font-medium text-foreground">Too many failed attempts</p>
+                <p className="text-xs text-muted-foreground mt-1">Please wait before trying again</p>
                 <p className="text-lg font-mono font-bold text-primary mt-3">{cooldownTime}s</p>
-                <p className="text-[10px] text-muted-foreground">Try again in</p>
               </motion.div>
             )}
           </AnimatePresence>
