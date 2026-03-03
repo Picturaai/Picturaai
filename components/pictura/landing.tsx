@@ -697,10 +697,34 @@ export function Landing() {
                         <span className="text-xs font-bold text-primary">Pictura</span>
                       </div>
                     </div>
-                    <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">DALL-E 3</div>
-                    <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Midjourney</div>
-                    <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Stable Diff.</div>
-                    <div className="px-5 py-4 text-xs font-semibold text-muted-foreground">Nano Banana</div>
+                    <div className="px-5 py-4 flex items-center gap-1.5">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 flex-shrink-0" fill="none">
+                        <circle cx="12" cy="12" r="10" fill="#10a37f"/>
+                        <path d="M12 7v5l3 3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                      <span className="text-xs font-semibold text-muted-foreground">DALL-E 3</span>
+                    </div>
+                    <div className="px-5 py-4 flex items-center gap-1.5">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 flex-shrink-0" fill="none">
+                        <rect width="24" height="24" rx="4" fill="#1a1a2e"/>
+                        <path d="M6 12h12M12 6v12" stroke="white" strokeWidth="2"/>
+                      </svg>
+                      <span className="text-xs font-semibold text-muted-foreground">Midjourney</span>
+                    </div>
+                    <div className="px-5 py-4 flex items-center gap-1.5">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 flex-shrink-0" fill="none">
+                        <circle cx="12" cy="12" r="10" fill="#a855f7"/>
+                        <path d="M8 12l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span className="text-xs font-semibold text-muted-foreground">Stable Diff.</span>
+                    </div>
+                    <div className="px-5 py-4 flex items-center gap-1.5">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 flex-shrink-0" fill="none">
+                        <rect width="24" height="24" rx="12" fill="#fbbf24"/>
+                        <circle cx="12" cy="12" r="4" fill="white"/>
+                      </svg>
+                      <span className="text-xs font-semibold text-muted-foreground">Nano Banana</span>
+                    </div>
                   </div>
 
                   {/* Table rows */}

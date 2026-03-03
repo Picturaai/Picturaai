@@ -32,13 +32,13 @@ function CodeBlock({ code, language = 'html', filename }: { code: string; langua
   }
   
   return (
-    <div className="rounded-xl border border-border bg-[#0d0d0d] overflow-hidden my-4">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#171717] border-b border-border/50">
+    <div className="rounded-xl border border-border bg-card overflow-hidden my-4">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-muted/50 border-b border-border">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
           </div>
           {filename && <span className="text-xs text-muted-foreground ml-2">{filename}</span>}
         </div>
@@ -50,8 +50,8 @@ function CodeBlock({ code, language = 'html', filename }: { code: string; langua
           {copied ? 'Copied!' : 'Copy'}
         </button>
       </div>
-      <pre className="p-4 text-sm overflow-x-auto">
-        <code className="text-[#e6e6e6] font-mono text-xs leading-relaxed">{code}</code>
+      <pre className="p-3 sm:p-4 text-sm overflow-x-auto bg-background">
+        <code className="text-foreground font-mono text-xs leading-relaxed">{code}</code>
       </pre>
     </div>
   )
@@ -64,15 +64,15 @@ export default function CaptchaDocsPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="mx-auto max-w-7xl px-6 pt-24 pb-16">
-        <div className="flex items-center gap-4 mb-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-20 sm:pt-24 pb-12 sm:pb-16">
+        <div className="flex items-center gap-4 mb-6 sm:mb-8">
           <Link href="/captcha" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to PicturaCAPTCHA
           </Link>
         </div>
         
-        <div className="grid lg:grid-cols-[240px_1fr] gap-10">
+        <div className="grid lg:grid-cols-[220px_1fr] gap-6 lg:gap-10">
           {/* Sidebar */}
           <aside className="hidden lg:block">
             <nav className="sticky top-24 space-y-1">
