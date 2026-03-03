@@ -3,468 +3,292 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight, Code2, Zap, Shield, Wifi, BookOpen, Terminal, Copy, Check, ChevronDown } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, Code2, Zap, Shield, Globe, Terminal, Copy, Check, ChevronRight, Play, ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.5, delay: i * 0.08 },
-  }),
-}
+import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 export default function ApiDocsPage() {
   const [copied, setCopied] = useState(false)
   const [activeTab, setActiveTab] = useState<'python' | 'node' | 'curl'>('python')
-  const [expandedSection, setExpandedSection] = useState<string | null>(null)
+  const [simulating, setSimulating] = useState(false)
+  const [simulationResult, setSimulationResult] = useState<string | null>(null)
+
+  const installCmd = 'npm install @pictura/sdk'
 
   const codeSnippets = {
     python: `import pictura
 
-client = pictura.Client(api_key="pk_test_...")
+client = pictura.Client(api_key="pk_...")
 
-# Generate an image
-response = await client.images.generate(
-    prompt="A serene mountain landscape at sunset",
-    model="pi-1.5-turbo",
-    size="1024x1024"
+response = client.images.generate(
+  prompt="A mountain at sunset",
+  model="pi-1.5-turbo"
 )
 
 print(response.url)`,
     node: `import Pictura from '@pictura/sdk'
 
-const client = new Pictura({
-  apiKey: 'pk_test_...'
-})
+const client = new Pictura({ apiKey: 'pk_...' })
 
-// Generate an image
 const response = await client.images.generate({
-  prompt: 'A serene mountain landscape at sunset',
-  model: 'pi-1.5-turbo',
-  size: '1024x1024'
+  prompt: 'A mountain at sunset',
+  model: 'pi-1.5-turbo'
 })
 
 console.log(response.url)`,
-    curl: `curl -X POST https://api.pictura.ai/v1/images/generate \\
-  -H "Authorization: Bearer pk_test_..." \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "prompt": "A serene mountain landscape at sunset",
-    "model": "pi-1.5-turbo",
-    "size": "1024x1024"
-  }'`,
+    curl: `curl -X POST https://api.pictura.ai/v1/generate \\
+  -H "Authorization: Bearer pk_..." \\
+  -d '{"prompt": "A mountain at sunset"}'`,
   }
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(codeSnippets[activeTab])
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text)
     setCopied(true)
-    toast.success('Copied to clipboard!')
+    toast.success('Copied!')
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const features = [
-    { icon: Zap, title: 'Lightning Fast', desc: 'Generate images in under 10 seconds with optimized models' },
-    { icon: Shield, title: 'Secure', desc: 'Enterprise-grade security with API key management' },
-    { icon: Wifi, title: 'Reliable', desc: '99.9% uptime SLA with redundant infrastructure' },
-    { icon: Code2, title: 'Developer Friendly', desc: 'SDKs for Python, Node.js, and REST API' },
-  ]
-
-  const endpoints = [
-    {
-      method: 'POST',
-      path: '/v1/images/generate',
-      title: 'Generate Image',
-      desc: 'Create an image from a text prompt',
-      params: ['prompt (string, required)', 'model (string)', 'size (string)', 'format (string)'],
-    },
-    {
-      method: 'GET',
-      path: '/v1/images/{id}',
-      title: 'Get Image',
-      desc: 'Retrieve a generated or transformed image',
-      params: ['id (string, required)'],
-    },
-    {
-      method: 'POST',
-      path: '/v1/images/transform',
-      title: 'Transform Image',
-      desc: 'Apply transformations to an existing image',
-      params: ['image (file|url)', 'prompt (string)', 'strength (number)'],
-    },
-    {
-      method: 'GET',
-      path: '/v1/usage',
-      title: 'Get Usage',
-      desc: 'Check current API usage and rate limits',
-      params: [],
-    },
-  ]
+  const runSimulation = () => {
+    setSimulating(true)
+    setSimulationResult(null)
+    setTimeout(() => {
+      setSimulating(false)
+      setSimulationResult('/placeholder.svg?height=256&width=256')
+    }, 2000)
+  }
 
   return (
     <>
       <Navbar />
       <main className="min-h-screen bg-background">
-        {/* Hero Section */}
-        <section className="border-b border-border/40 bg-gradient-to-b from-primary/5 to-background pt-20 sm:pt-32 pb-16 sm:pb-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              custom={0}
-              variants={fadeUp}
-              className="text-center mb-16"
-            >
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 mb-6">
-                <span className="text-xs font-semibold text-primary">✓ Now Available in Beta</span>
+        {/* Hero */}
+        <section className="pt-28 sm:pt-36 pb-12 sm:pb-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 mb-4">
+                <span className="text-[10px] sm:text-xs font-medium text-primary">API Beta</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 text-balance">
-                Pictura API Documentation
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 sm:mb-4">
+                Build with Pictura API
               </h1>
-              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-balance px-2">
-                Integrate powerful AI image generation directly into your applications with our robust REST API and official SDKs.
+              <p className="text-sm sm:text-base text-muted-foreground mb-6 max-w-xl">
+                Generate stunning AI images with a simple API call. Get started in minutes with our SDKs for Python and Node.js.
               </p>
-            </motion.div>
-
-            {/* Quick Stats */}
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              custom={1}
-              variants={fadeUp}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-            >
-              {[
-                { label: 'API Endpoints', value: '10+' },
-                { label: 'Response Time', value: '<500ms' },
-                { label: 'Beta Users', value: '5,000+' },
-              ].map((stat) => (
-                <div key={stat.label} className="rounded-lg border border-border/40 bg-card p-6 sm:p-8 text-center">
-                  <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-2">{stat.value}</div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Get Started Section */}
-        <section className="border-b border-border/40 py-20">
-          <div className="mx-auto max-w-6xl px-4">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={2}
-              variants={fadeUp}
-              className="mb-12"
-            >
-              <h2 className="text-2xl font-bold text-foreground mb-3">Get Started in Minutes</h2>
-              <p className="text-muted-foreground">Follow these simple steps to start using the Pictura API</p>
-            </motion.div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { num: '1', title: 'Create Developer Account', desc: 'Sign up and verify your email to access the dashboard' },
-                { num: '2', title: 'Get API Key', desc: 'Generate a scoped API key from your developer dashboard' },
-                { num: '3', title: 'Install SDK', desc: 'npm install @pictura/sdk or pip install pictura' },
-                { num: '4', title: 'Make First Request', desc: 'Send a prompt and receive generated images' },
-              ].map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  custom={i + 2}
-                  variants={fadeUp}
-                  className="rounded-lg border border-border/40 bg-card p-6 hover:border-primary/30 transition-colors"
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <Link
+                  href="/developers/signup"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
                 >
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary mb-4">
-                    {step.num}
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground">{step.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* CTA Button */}
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={6}
-              variants={fadeUp}
-              className="flex justify-center mt-12"
-            >
-              <Link
-                href="/developers/signup"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-              >
-                Get Your API Key Free
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Code Example */}
-        <section className="border-b border-border/40 py-12 sm:py-20 bg-card/50">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={3}
-              variants={fadeUp}
-              className="mb-12"
-            >
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2 sm:mb-3">Quick Start Example</h2>
-              <p className="text-sm sm:text-base text-muted-foreground">Choose your preferred language and integrate in minutes</p>
-            </motion.div>
-
-            <div className="rounded-xl border border-border/40 overflow-hidden bg-background">
-              {/* Tab Bar */}
-              <div className="flex flex-wrap items-center gap-2 border-b border-border/40 p-3 sm:p-4 bg-card">
-                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-                  {(['python', 'node', 'curl'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-                        activeTab === tab
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {tab === 'python' && 'Python'}
-                      {tab === 'node' && 'Node.js'}
-                      {tab === 'curl' && 'cURL'}
-                    </button>
-                  ))}
-                </div>
+                  Get API Key
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
                 <button
-                  onClick={handleCopy}
-                  className="ml-auto inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-md bg-secondary text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => handleCopy(installCmd)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-foreground text-sm font-mono hover:bg-secondary/80 transition-colors"
                 >
-                  {copied ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                      <span className="hidden sm:inline">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span className="hidden sm:inline">Copy</span>
-                    </>
-                  )}
+                  <span className="text-muted-foreground">$</span>
+                  {installCmd}
+                  <Copy className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               </div>
-
-              {/* Code */}
-              <div className="overflow-x-auto">
-                <pre className="p-4 sm:p-6 text-xs sm:text-sm leading-relaxed text-foreground bg-background min-w-0 whitespace-pre-wrap break-all sm:whitespace-pre sm:break-normal">
-                  {codeSnippets[activeTab]}
-                </pre>
-              </div>
             </div>
           </div>
         </section>
 
-        {/* API Reference */}
-        <section className="border-b border-border/40 py-20">
-          <div className="mx-auto max-w-6xl px-4">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={4}
-              variants={fadeUp}
-              className="mb-12"
-            >
-              <h2 className="text-2xl font-bold text-foreground mb-3">API Endpoints</h2>
-              <p className="text-muted-foreground">Complete reference for all available endpoints</p>
-            </motion.div>
+        {/* Interactive Demo */}
+        <section className="py-8 sm:py-12 border-y border-border/40 bg-card/30">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+              {/* Code */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Terminal className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-medium text-foreground">Quick Start</span>
+                </div>
+                <div className="rounded-lg border border-border/50 overflow-hidden bg-background">
+                  <div className="flex items-center gap-1 p-2 border-b border-border/40 bg-secondary/30">
+                    {(['python', 'node', 'curl'] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                          activeTab === tab
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {tab === 'python' ? 'Python' : tab === 'node' ? 'Node.js' : 'cURL'}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => handleCopy(codeSnippets[activeTab])}
+                      className="ml-auto p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                  </div>
+                  <pre className="p-3 sm:p-4 text-[11px] sm:text-xs leading-relaxed text-foreground overflow-x-auto">
+                    <code>{codeSnippets[activeTab]}</code>
+                  </pre>
+                </div>
+              </div>
 
-            <div className="space-y-3">
-              {endpoints.map((ep, i) => (
-                <motion.div
-                  key={ep.path}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  custom={i + 4}
-                  variants={fadeUp}
-                  className="rounded-lg border border-border/40 bg-card overflow-hidden"
-                >
-                  <button
-                    onClick={() => setExpandedSection(expandedSection === ep.path ? null : ep.path)}
-                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-secondary/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-4 text-left flex-1">
-                      <span className={`px-3 py-1 rounded text-xs font-bold ${
-                        ep.method === 'POST'
-                          ? 'bg-primary/10 text-primary'
-                          : 'bg-secondary text-muted-foreground'
-                      }`}>
-                        {ep.method}
-                      </span>
-                      <div>
-                        <p className="font-mono text-sm text-foreground">{ep.path}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{ep.desc}</p>
-                      </div>
+              {/* Simulation */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Play className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-medium text-foreground">Try It Live</span>
+                </div>
+                <div className="rounded-lg border border-border/50 bg-background p-4 h-[calc(100%-28px)]">
+                  <div className="flex flex-col h-full">
+                    <div className="mb-3">
+                      <label className="block text-[10px] text-muted-foreground mb-1">Prompt</label>
+                      <input
+                        type="text"
+                        defaultValue="A serene mountain landscape at golden hour"
+                        className="w-full px-3 py-2 rounded-md bg-secondary/50 border border-border/40 text-xs text-foreground"
+                      />
                     </div>
-                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${
-                      expandedSection === ep.path ? 'rotate-180' : ''
-                    }`} />
-                  </button>
-
-                  {expandedSection === ep.path && (
-                    <div className="border-t border-border/40 px-6 py-4 bg-secondary/20">
-                      <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase">Parameters</p>
-                      {ep.params.length > 0 ? (
-                        <ul className="space-y-2">
-                          {ep.params.map((param, j) => (
-                            <li key={j} className="text-sm text-foreground font-mono">
-                              • {param}
-                            </li>
-                          ))}
-                        </ul>
+                    <button
+                      onClick={runSimulation}
+                      disabled={simulating}
+                      className="w-full py-2 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 mb-3"
+                    >
+                      {simulating ? 'Generating...' : 'Generate Image'}
+                    </button>
+                    <div className="flex-1 rounded-md bg-secondary/30 border border-border/30 flex items-center justify-center min-h-[120px]">
+                      {simulating ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                          <span className="text-[10px] text-muted-foreground">Processing...</span>
+                        </div>
+                      ) : simulationResult ? (
+                        <div className="text-center p-4">
+                          <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-2">
+                            <ImageIcon className="h-8 w-8 text-primary/40" />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">Generated in 1.2s</p>
+                        </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground italic">No parameters required</p>
+                        <div className="text-center">
+                          <ImageIcon className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                          <p className="text-[10px] text-muted-foreground">Click generate to try</p>
+                        </div>
                       )}
                     </div>
-                  )}
-                </motion.div>
-              ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Features */}
-        <section className="border-b border-border/40 py-20 bg-card/50">
-          <div className="mx-auto max-w-6xl px-4">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={5}
-              variants={fadeUp}
-              className="mb-12"
-            >
-              <h2 className="text-2xl font-bold text-foreground mb-3">Why Choose Pictura API?</h2>
-              <p className="text-muted-foreground">Built for developers, by developers</p>
-            </motion.div>
+        <section className="py-12 sm:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              {[
+                { icon: Zap, title: 'Fast', desc: 'Generate in <10s' },
+                { icon: Shield, title: 'Secure', desc: 'API key auth' },
+                { icon: Globe, title: '99.9% Uptime', desc: 'Always available' },
+                { icon: Code2, title: 'SDKs', desc: 'Python & Node.js' },
+              ].map((f) => (
+                <div key={f.title} className="p-4 sm:p-5 rounded-lg border border-border/40 bg-card/50">
+                  <f.icon className="h-5 w-5 text-primary mb-2" />
+                  <h3 className="text-sm font-semibold text-foreground mb-0.5">{f.title}</h3>
+                  <p className="text-xs text-muted-foreground">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-            <div className="grid sm:grid-cols-2 gap-6">
-              {features.map((f, i) => (
-                <motion.div
-                  key={f.title}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  custom={i + 5}
-                  variants={fadeUp}
-                  className="rounded-lg border border-border/40 bg-background p-6"
-                >
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <f.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">{f.title}</h3>
-                  <p className="text-sm text-muted-foreground">{f.desc}</p>
-                </motion.div>
+        {/* API Reference */}
+        <section className="py-12 sm:py-16 border-t border-border/40">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-6">API Reference</h2>
+            <div className="space-y-3">
+              {[
+                { method: 'POST', path: '/v1/images/generate', title: 'Generate Image', desc: 'Create an image from text' },
+                { method: 'POST', path: '/v1/images/transform', title: 'Transform Image', desc: 'Edit an existing image' },
+                { method: 'GET', path: '/v1/images/{id}', title: 'Get Image', desc: 'Retrieve image details' },
+                { method: 'GET', path: '/v1/usage', title: 'Get Usage', desc: 'Check API usage stats' },
+              ].map((ep) => (
+                <div key={ep.path} className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border border-border/40 bg-card/30 hover:bg-card/50 transition-colors">
+                  <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-mono font-medium ${
+                    ep.method === 'POST' ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'
+                  }`}>
+                    {ep.method}
+                  </span>
+                  <code className="text-xs text-foreground font-mono truncate">{ep.path}</code>
+                  <span className="hidden sm:block text-xs text-muted-foreground ml-auto">{ep.desc}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 ml-auto sm:ml-0" />
+                </div>
               ))}
             </div>
           </div>
         </section>
 
         {/* Pricing */}
-        <section className="border-b border-border/40 py-20">
-          <div className="mx-auto max-w-6xl px-4">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={6}
-              variants={fadeUp}
-              className="mb-12 text-center"
-            >
-              <h2 className="text-2xl font-bold text-foreground mb-3">Simple, Transparent Pricing</h2>
-              <p className="text-muted-foreground">Free during beta with ₦4000 welcome credits</p>
-            </motion.div>
-
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={6}
-              variants={fadeUp}
-              className="overflow-hidden rounded-lg border border-border/40"
-            >
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border/40 bg-card">
-                      <th className="px-6 py-4 text-left font-semibold text-foreground">Feature</th>
-                      <th className="px-6 py-4 text-center font-semibold text-foreground">Beta (Free)</th>
-                      <th className="px-6 py-4 text-center font-semibold text-foreground">Pro</th>
-                      <th className="px-6 py-4 text-center font-semibold text-foreground">Enterprise</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { feature: 'Monthly Credits', beta: '₦4,000', pro: '₦20,000', enterprise: 'Custom' },
-                      { feature: 'API Calls/Day', beta: '100', pro: '1,000', enterprise: 'Unlimited' },
-                      { feature: 'Max Resolution', beta: '1024px', pro: '2048px', enterprise: '4096px' },
-                      { feature: 'Response Time', beta: '<10s', pro: '<5s', enterprise: '<2s' },
-                      { feature: 'Support', beta: 'Community', pro: 'Email', enterprise: '24/7 Phone' },
-                    ].map((row, i) => (
-                      <tr key={i} className={`border-b border-border/40 ${i % 2 === 0 ? 'bg-background' : 'bg-secondary/20'}`}>
-                        <td className="px-6 py-4 font-medium text-foreground">{row.feature}</td>
-                        <td className="px-6 py-4 text-center text-muted-foreground">{row.beta}</td>
-                        <td className="px-6 py-4 text-center text-muted-foreground">{row.pro}</td>
-                        <td className="px-6 py-4 text-center text-muted-foreground">{row.enterprise}</td>
-                      </tr>
+        <section className="py-12 sm:py-16 border-t border-border/40 bg-card/30">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-6">Pricing</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { name: 'Free', price: '0', credits: '200 credits', features: ['5 req/min', 'Community support'] },
+                { name: 'Pro', price: '29', credits: '5,000 credits', features: ['100 req/min', 'Priority support'], popular: true },
+                { name: 'Enterprise', price: 'Custom', credits: 'Unlimited', features: ['Custom limits', 'Dedicated support'] },
+              ].map((plan) => (
+                <div key={plan.name} className={`p-5 sm:p-6 rounded-lg border ${plan.popular ? 'border-primary bg-primary/5' : 'border-border/40 bg-background'}`}>
+                  {plan.popular && <span className="text-[10px] font-medium text-primary mb-2 block">Most Popular</span>}
+                  <h3 className="text-base font-semibold text-foreground">{plan.name}</h3>
+                  <div className="mt-2 mb-4">
+                    <span className="text-2xl font-bold text-foreground">{plan.price === 'Custom' ? '' : '$'}{plan.price}</span>
+                    {plan.price !== 'Custom' && <span className="text-xs text-muted-foreground">/month</span>}
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">{plan.credits}</p>
+                  <ul className="space-y-1.5 mb-4">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-center gap-2 text-xs text-foreground">
+                        <Check className="h-3 w-3 text-primary" />
+                        {f}
+                      </li>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
+                  </ul>
+                  <Link
+                    href="/developers/signup"
+                    className={`block text-center py-2 rounded-md text-xs font-medium transition-colors ${
+                      plan.popular
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'bg-secondary text-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="py-16 sm:py-20 bg-gradient-to-b from-background to-primary/5">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 text-center">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={7}
-              variants={fadeUp}
+        {/* CTA */}
+        <section className="py-12 sm:py-16">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 text-center">
+            <PicturaIcon size={32} className="text-primary mx-auto mb-4" />
+            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Ready to build?</h2>
+            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+              Get your API key and start generating images today.
+            </p>
+            <Link
+              href="/developers/signup"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">Ready to Build?</h2>
-              <p className="text-base sm:text-lg text-muted-foreground mb-8 text-balance">
-                Join thousands of developers using Pictura API to power their applications
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/developers/signup"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-                >
-                  Get Started Free
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/models"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg border border-border/40 text-foreground font-semibold hover:bg-secondary/30 transition-colors"
-                >
-                  Explore Models
-                </Link>
-              </div>
-            </motion.div>
+              Create Account
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </section>
       </main>

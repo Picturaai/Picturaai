@@ -132,19 +132,19 @@ export default function SignupPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-background pt-24 pb-16">
-        <div className="mx-auto max-w-md px-4">
+      <main className="min-h-screen bg-background pt-28 sm:pt-36 pb-16">
+        <div className="mx-auto max-w-sm sm:max-w-md px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
             {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2">
+            <div className="text-center mb-6">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
                 Create Developer Account
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Get {startupCredits} {selectedCountry.currency} in free credits
               </p>
             </div>
@@ -159,47 +159,47 @@ export default function SignupPage() {
               >
                 {/* Full Name */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                  <label className="block text-xs font-medium text-foreground mb-1">
                     Full Name
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     <input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="John Doe"
-                      className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                      className="w-full h-9 pl-9 pr-3 rounded-md bg-background border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                  <label className="block text-xs font-medium text-foreground mb-1">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                      className="w-full h-9 pl-9 pr-3 rounded-md bg-background border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Country */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                  <label className="block text-xs font-medium text-foreground mb-1">
                     Country
                   </label>
                   <select
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    className="w-full h-10 px-4 rounded-lg bg-background border border-border/50 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                    className="w-full h-9 px-3 rounded-md bg-background border border-border/50 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                   >
                     {COUNTRIES.map((c) => (
                       <option key={c.code} value={c.code}>
@@ -211,11 +211,11 @@ export default function SignupPage() {
 
                 {/* Phone Number */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                  <label className="block text-xs font-medium text-foreground mb-1">
                     Phone Number
                   </label>
                   <div className="flex gap-2">
-                    <span className="flex items-center px-3 rounded-lg bg-secondary border border-border/50 text-sm font-medium text-muted-foreground">
+                    <span className="flex items-center px-2.5 rounded-md bg-secondary border border-border/50 text-xs font-medium text-muted-foreground">
                       {selectedCountry.dialCode}
                     </span>
                     <input
@@ -223,24 +223,24 @@ export default function SignupPage() {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                       placeholder="8012345678"
-                      className="flex-1 h-10 px-4 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                      className="flex-1 h-9 px-3 rounded-md bg-background border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                  <label className="block text-xs font-medium text-foreground mb-1">
                     Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     <input
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 8 characters"
-                      className="w-full h-10 pl-10 pr-4 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                      className="w-full h-9 pl-9 pr-3 rounded-md bg-background border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                     />
                   </div>
                 </div>
@@ -248,7 +248,7 @@ export default function SignupPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-10 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-9 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -280,15 +280,15 @@ export default function SignupPage() {
                 animate={{ opacity: 1 }}
                 className="space-y-4"
               >
-                <div className="text-center p-4 rounded-lg bg-secondary/50 border border-border/40 mb-6">
-                  <p className="text-sm text-foreground">
+                <div className="text-center p-3 rounded-md bg-secondary/50 border border-border/40 mb-4">
+                  <p className="text-xs text-foreground">
                     Enter the 6-digit code we sent to
                   </p>
-                  <p className="text-sm font-semibold text-foreground">{email}</p>
+                  <p className="text-xs font-semibold text-foreground">{email}</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                  <label className="block text-xs font-medium text-foreground mb-1">
                     OTP Code
                   </label>
                   <input
@@ -296,14 +296,14 @@ export default function SignupPage() {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="000000"
-                    className="w-full h-12 px-4 rounded-lg bg-background border border-border/50 text-foreground text-center text-2xl letter-spacing-wide focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all font-mono"
+                    className="w-full h-10 px-3 rounded-md bg-background border border-border/50 text-foreground text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all font-mono"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading || otp.length !== 6}
-                  className="w-full h-10 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-9 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
