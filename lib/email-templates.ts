@@ -86,8 +86,8 @@ export const emailTemplates = {
                     <tr>
                         <td style="padding: 40px 30px;">
                             <p style="margin: 0 0 24px 0; font-size: 15px; color: #666; line-height: 1.6;">Hi ${name},</p>
-                            <p style="margin: 0 0 16px 0; font-size: 15px; color: #666; line-height: 1.6;">Welcome to Pictura! Your developer account is now active. We've added <strong>100 free images</strong> to your account to help you get started.</p>
-                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">That's <strong>${credits} ${currency}</strong> in credits, with no strings attached. Build something amazing.</p>
+                            <p style="margin: 0 0 16px 0; font-size: 15px; color: #666; line-height: 1.6;">Welcome to Pictura! Your developer account is now active. We've added <strong>${credits} ${currency}</strong> in free credits to your account.</p>
+                            <p style="margin: 0 0 32px 0; font-size: 15px; color: #666; line-height: 1.6;">Use these credits to integrate AI image generation into your applications. No credit card required to get started.</p>
                             
                             <!-- Credits Card -->
                             <div style="background: linear-gradient(135deg, #c77d4a 0%, #a85a2a 100%); border-radius: 12px; padding: 32px; margin: 32px 0; text-align: center; color: white;">

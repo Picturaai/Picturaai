@@ -45,7 +45,17 @@ export default function SignupPage() {
   const [timer, setTimer] = useState(0)
 
   const selectedCountry = COUNTRIES.find((c) => c.code === country) || COUNTRIES[0]
-  const freeImages = Math.floor(selectedCountry.credits / selectedCountry.pricePerImage)
+  
+  // Format free credits for display
+  const formatCredits = () => {
+    const c = selectedCountry
+    if (c.currency === 'NGN') return '₦1,000'
+    if (c.currency === 'USD') return '$2'
+    if (c.currency === 'GBP') return '£1.60'
+    if (c.currency === 'EUR') return '€1.80'
+    if (c.currency === 'INR') return '₹168'
+    return `${c.credits} ${c.currency}`
+  }
 
   useEffect(() => {
     const detectLocation = async () => {
@@ -181,7 +191,7 @@ export default function SignupPage() {
               </h1>
               {step === 'info' && !detecting && (
                 <p className="text-muted-foreground">
-                  Get <span className="font-semibold text-primary">{freeImages} free images</span> to start
+                  Get <span className="font-semibold text-primary">{formatCredits()}</span> in free credits to start building
                 </p>
               )}
             </div>

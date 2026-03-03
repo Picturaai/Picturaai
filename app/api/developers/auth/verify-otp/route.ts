@@ -4,20 +4,20 @@ import { sendWelcomeEmail, generateToken, hashPassword } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
-// 100 free images for all users - per-image cost varies by currency
+// Free credits for developers to start building
 const CURRENCY_CREDITS: Record<string, number> = {
-  NGN: 500,    // 100 images * 5 NGN
-  USD: 1,      // 100 images * $0.01
-  GBP: 0.80,
-  EUR: 0.90,
-  CAD: 1.35,
-  AUD: 1.50,
-  INR: 85,
-  ZAR: 19,
-  KES: 130,
-  GHS: 12,
-  JPY: 150,
-  BRL: 5,
+  NGN: 1000,   // ₦1,000 free credits
+  USD: 2,      // $2 free credits
+  GBP: 1.60,   // £1.60 free credits
+  EUR: 1.80,   // €1.80 free credits
+  CAD: 2.60,   // C$2.60 free credits
+  AUD: 3,      // A$3 free credits
+  INR: 168,    // ₹168 free credits
+  ZAR: 38,     // R38 free credits
+  KES: 258,    // KSh258 free credits
+  GHS: 24,     // GH₵24 free credits
+  JPY: 300,    // ¥300 free credits
+  BRL: 10,     // R$10 free credits
 }
 
 export async function POST(req: NextRequest) {
