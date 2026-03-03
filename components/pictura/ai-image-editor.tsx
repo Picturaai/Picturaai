@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, Wand2, Loader2, Undo2, Redo2, Download,
   Eraser, ZoomIn, ZoomOut, RotateCcw,
-  Sparkles, Layers, Sun, Contrast, Palette,
+  ScanLine, Layers, Sun, Contrast, Palette,
   ArrowLeft, Check, Send, History
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -26,7 +26,7 @@ interface AIImageEditorProps {
 const QUICK_ACTIONS = [
   { icon: Eraser, label: 'Remove BG', instruction: 'Remove the background and make it transparent' },
   { icon: Sun, label: 'Enhance', instruction: 'Enhance the image quality, improve lighting and colors' },
-  { icon: Sparkles, label: 'Upscale', instruction: 'Upscale and enhance resolution while keeping details sharp' },
+  { icon: ScanLine, label: 'Upscale', instruction: 'Upscale and enhance resolution while keeping details sharp' },
   { icon: Palette, label: 'Colors', instruction: 'Auto color correct and balance the image' },
   { icon: Contrast, label: 'Contrast', instruction: 'Increase contrast to make the image more vibrant' },
   { icon: Layers, label: 'Depth', instruction: 'Add depth of field effect, blur background slightly' },

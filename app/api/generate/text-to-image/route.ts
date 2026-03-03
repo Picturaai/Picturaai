@@ -114,6 +114,45 @@ async function generateWithLeonardo(prompt: string): Promise<string> {
   throw new Error('Leonardo generation timed out')
 }
 
+async function generateWithMistral(prompt: string): Promise<string> {
+  const apiKey = process.env.MISTRAL_API_KEY
+  if (!apiKey) throw new Error('Mistral API key not configured')
+
+  const response = await fetch('https://api.mistral.ai/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'pixtral-large-latest',
+      prompt: prompt.trim(),
+      size: '1024x1024',
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('[v0] Mistral API error:', response.status, errorText)
+    throw new Error('Mistral generation failed')
+  }
+
+  const data = await response.json()
+  
+  // Mistral returns base64 encoded image
+  if (data.data && data.data[0]) {
+    const imageData = data.data[0]
+    if (imageData.b64_json) {
+      return `data:image/png;base64,${imageData.b64_json}`
+    }
+    if (imageData.url) {
+      return imageData.url
+    }
+  }
+  
+  throw new Error('Could not extract image from Mistral response')
+}
+
 function extractImageUrl(data: Record<string, unknown>): string {
   // Try all known fields
   if (data.image && typeof data.image === 'string') return data.image
@@ -157,26 +196,26 @@ export async function POST(request: Request) {
       )
     }
 
-    // Generate based on selected model
+    // Generate based on selected model with automatic fallback
     let imageUrl: string
-    try {
-      switch (model) {
-        case 'pi-1.5-turbo':
-          // pi-1.5-turbo uses Stability AI with Leonardo AI as fallback
-          try {
-            imageUrl = await generateWithStability(prompt)
-          } catch (stabilityError) {
-            console.log('[v0] Stability AI failed, falling back to Leonardo AI:', stabilityError)
-            imageUrl = await generateWithLeonardo(prompt)
-          }
-          break
-        case 'pi-1.0':
-        default:
-          imageUrl = await generateWithZyLabs(prompt)
-          break
+    const providers = model === 'pi-1.5-turbo' 
+      ? [generateWithStability, generateWithLeonardo, generateWithMistral, generateWithZyLabs]
+      : [generateWithZyLabs, generateWithMistral, generateWithStability, generateWithLeonardo]
+    
+    let lastError: Error | null = null
+    for (const provider of providers) {
+      try {
+        imageUrl = await provider(prompt)
+        break // Success, exit loop
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err))
+        console.log(`[v0] Provider failed, trying next: ${lastError.message}`)
+        continue // Try next provider
       }
-    } catch (genError) {
-      console.error('Generation error:', genError)
+    }
+
+    if (!imageUrl!) {
+      console.error('All providers failed:', lastError)
       return NextResponse.json(
         { error: 'Image generation failed. Please try again.' },
         { status: 500 }

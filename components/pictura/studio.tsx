@@ -8,7 +8,7 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw, Pencil, Sparkles,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -54,6 +54,11 @@ const TOUR_STEPS = [
   {
     title: 'Your Gallery',
     description: 'All your generated images appear here. Tap to view, download, or rate them.',
+    target: 'gallery',
+  },
+  {
+    title: 'AI Image Editor',
+    description: 'Click "Edit" on any image to open our powerful AI editor. Remove backgrounds, enhance quality, or describe any change you want!',
     target: 'gallery',
   },
 ]
@@ -1220,8 +1225,8 @@ export function Studio() {
                       }}
                       className="flex h-8 items-center gap-1.5 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium shadow-lg"
                     >
-                      <Sparkles className="h-3 w-3" />
-                      Edit
+<Wand2 className="h-3 w-3" />
+  Edit
                     </button>
                     <button
                       onClick={() => handleDownload(lightbox)}
