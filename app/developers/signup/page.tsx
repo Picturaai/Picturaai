@@ -54,6 +54,9 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [country, setCountry] = useState('US')
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [referralSource, setReferralSource] = useState('')
+  const [promoCode, setPromoCode] = useState('')
+  const [bonusCredits, setBonusCredits] = useState<string | null>(null)
   const [otp, setOtp] = useState('')
   const [apiKey, setApiKey] = useState('')
   const [copiedKey, setCopiedKey] = useState(false)
@@ -61,6 +64,19 @@ export default function SignupPage() {
   
   const [loading, setLoading] = useState(false)
   const [timer, setTimer] = useState(0)
+  
+  const REFERRAL_SOURCES = [
+    { value: '', label: 'Select how you found us' },
+    { value: 'lablab', label: 'LabLab.ai Community' },
+    { value: 'google', label: 'Google Search' },
+    { value: 'twitter', label: 'X (Twitter)' },
+    { value: 'telegram', label: 'Telegram' },
+    { value: 'friend', label: 'Friend or Colleague' },
+    { value: 'youtube', label: 'YouTube' },
+    { value: 'blog', label: 'Blog or Article' },
+    { value: 'hackathon', label: 'Hackathon' },
+    { value: 'other', label: 'Other' },
+  ]
 
   const selectedCountry = COUNTRIES.find((c) => c.code === country) || COUNTRIES[0]
   const freeCredits = FREE_CREDITS[selectedCountry.currency] || '$2'
@@ -123,6 +139,8 @@ export default function SignupPage() {
           currency: selectedCountry.currency,
           phoneNumber: phoneNumber ? `${selectedCountry.dialCode}${phoneNumber}` : '',
           captchaToken,
+          referralSource,
+          promoCode: promoCode.toUpperCase().trim(),
         }),
       })
 
@@ -157,6 +175,7 @@ export default function SignupPage() {
 
       if (res.ok) {
         setApiKey(data.apiKey || '')
+        setBonusCredits(data.bonusCredits || null)
         setStep('complete')
         toast.success('Account created successfully!')
       } else {
@@ -301,6 +320,46 @@ export default function SignupPage() {
                   </div>
                 </div>
 
+                {/* How did you hear about us */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    How did you hear about us? <span className="text-muted-foreground font-normal">(optional)</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={referralSource}
+                      onChange={(e) => setReferralSource(e.target.value)}
+                      className="w-full h-10 px-4 rounded-lg bg-background border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer"
+                    >
+                      {REFERRAL_SOURCES.map((s) => (
+                        <option key={s.value} value={s.value}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  </div>
+                  {referralSource === 'lablab' && (
+                    <p className="mt-1.5 text-xs text-primary">
+                      Welcome from LabLab.ai! Use code LABLAB for bonus credits.
+                    </p>
+                  )}
+                </div>
+
+                {/* Promo Code */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    Promo Code <span className="text-muted-foreground font-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    placeholder="Enter promo code"
+                    className="w-full h-10 px-4 rounded-lg bg-background border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all uppercase"
+                  />
+                </div>
+
                 {/* Smart CAPTCHA */}
                 <SmartCaptcha 
                   onVerify={(token) => setCaptchaToken(token)} 
@@ -418,10 +477,23 @@ export default function SignupPage() {
                   </div>
                 </div>
                 
-                <div className="text-center">
+                <div className="text-center space-y-2">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Welcome{fullName ? `, ${fullName.split(' ')[0]}` : ''}!
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    Your account is ready. Start integrating Pictura into your applications.
+                    Your account is ready. You have <span className="text-primary font-medium">{freeCredits}</span> in free credits.
                   </p>
+                  {bonusCredits && (
+                    <div className="mt-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                      <p className="text-sm text-primary font-medium">
+                        Bonus: +{bonusCredits} credits applied!
+                      </p>
+                      {referralSource === 'lablab' && (
+                        <p className="text-xs text-primary/80 mt-1">Thank you for joining from LabLab.ai</p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {apiKey && (
