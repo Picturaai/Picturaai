@@ -218,6 +218,7 @@ export default function SignupPage() {
   const [apiKey, setApiKey] = useState('')
   const [copiedKey, setCopiedKey] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0) // Used to reset CAPTCHA on errors
   
   const [loading, setLoading] = useState(false)
   const [timer, setTimer] = useState(0)
@@ -310,9 +311,15 @@ export default function SignupPage() {
         toast.success('Verification code sent to your email')
       } else {
         toast.error(data.error || 'Failed to send verification code')
+        // Reset CAPTCHA on error
+        setCaptchaToken(null)
+        setCaptchaKey(prev => prev + 1)
       }
     } catch {
       toast.error('An error occurred. Please try again.')
+      // Reset CAPTCHA on error
+      setCaptchaToken(null)
+      setCaptchaKey(prev => prev + 1)
     } finally {
       setLoading(false)
     }
@@ -534,8 +541,9 @@ export default function SignupPage() {
                   />
                 </div>
 
-                {/* Smart CAPTCHA */}
+                {/* Smart CAPTCHA - resets on failed attempts */}
                 <SmartCaptcha 
+                  key={captchaKey}
                   onVerify={(token) => setCaptchaToken(token)} 
                 />
 

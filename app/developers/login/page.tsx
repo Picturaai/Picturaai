@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaKey, setCaptchaKey] = useState(0) // Used to reset CAPTCHA
   
   // Load saved email on mount
   useEffect(() => {
@@ -74,6 +75,9 @@ export default function LoginPage() {
       } else {
         console.log('[v0] Login - failed:', data.error)
         toast.error(data.error || 'Invalid credentials')
+        // Reset CAPTCHA on failed login
+        setCaptchaToken(null)
+        setCaptchaKey(prev => prev + 1)
       }
     } catch {
       toast.error('An error occurred')
@@ -126,8 +130,9 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Smart CAPTCHA */}
+              {/* Smart CAPTCHA - resets on failed login */}
               <SmartCaptcha 
+                key={captchaKey}
                 onVerify={(token) => setCaptchaToken(token)} 
               />
 
