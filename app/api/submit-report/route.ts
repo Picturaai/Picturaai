@@ -17,32 +17,26 @@ interface ReportData {
   type: 'bug' | 'complaint' | 'feedback'
   subject: string
   description: string
-  turnstileToken?: string
+  captchaToken?: string
 }
 
-async function verifyTurnstileToken(token: string): Promise<boolean> {
-  const secretKey = process.env.TURNSTILE_SECRET_KEY
-  if (!secretKey) {
-    console.error('Turnstile secret key not configured')
+// PicturaCAPTCHA token validation (basic check - token format)
+function verifyCaptchaToken(token: string): boolean {
+  // PicturaCAPTCHA tokens start with 'pictura_' and contain verification info
+  if (!token || !token.startsWith('pictura_')) {
     return false
   }
-
-  try {
-    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        secret: secretKey,
-        response: token,
-      }),
-    })
-
-    const data = await response.json()
-    return data.success === true
-  } catch (error) {
-    console.error('Turnstile verification error:', error)
+  // Token format: pictura_timestamp_sitekey_random_verified
+  const parts = token.split('_')
+  if (parts.length < 4) return false
+  
+  // Check if token is not expired (5 minute validity)
+  const timestamp = parseInt(parts[1], 10)
+  if (isNaN(timestamp) || Date.now() - timestamp > 5 * 60 * 1000) {
     return false
   }
+  
+  return token.endsWith('_verified')
 }
 
 function generateTicketId(): string {
@@ -179,14 +173,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid report type' }, { status: 400 })
     }
 
-    // Verify Turnstile token
-    if (!body.turnstileToken) {
-      return NextResponse.json({ error: 'Security verification required' }, { status: 400 })
+    // Verify PicturaCAPTCHA token
+    if (!body.captchaToken) {
+      return NextResponse.json({ error: 'CAPTCHA verification required' }, { status: 400 })
     }
 
-    const isValidToken = await verifyTurnstileToken(body.turnstileToken)
+    const isValidToken = verifyCaptchaToken(body.captchaToken)
     if (!isValidToken) {
-      return NextResponse.json({ error: 'Security verification failed. Please try again.' }, { status: 403 })
+      return NextResponse.json({ error: 'CAPTCHA verification failed. Please try again.' }, { status: 403 })
     }
 
     const ticketId = generateTicketId()

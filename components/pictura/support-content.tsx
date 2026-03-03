@@ -2,8 +2,9 @@
 
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { SmartCaptcha } from '@/components/pictura/smart-captcha'
 import { motion } from 'framer-motion'
-import { Heart, Coffee, Rocket, Star } from 'lucide-react'
+import { Heart, Coffee, Rocket, Star, Shield } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 
@@ -41,6 +42,7 @@ export function SupportContent() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
   const [donorName, setDonorName] = useState('')
   const [donorEmail, setDonorEmail] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const searchParams = useSearchParams()
 
   useEffect(() => {
@@ -72,6 +74,10 @@ export function SupportContent() {
       alert('Please enter your email address')
       return
     }
+    if (!captchaToken) {
+      alert('Please verify you are not a robot')
+      return
+    }
 
     setLoading(selectedAmount)
     try {
@@ -84,12 +90,13 @@ export function SupportContent() {
           amount: selectedAmount,
           name: donorName.trim() || 'Pictura Supporter',
           email: donorEmail.trim(),
+          captchaToken,
         }),
       })
 
       const data = await response.json()
-      if (data.success && data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
+      if (data.success && data.authorizationUrl) {
+        window.location.href = data.authorizationUrl
       } else {
         alert(data.error || 'Payment initialization failed. Please try again.')
       }
@@ -99,6 +106,7 @@ export function SupportContent() {
     } finally {
       setLoading(null)
       setShowModal(false)
+      setCaptchaToken(null)
     }
   }
 
@@ -302,18 +310,36 @@ export function SupportContent() {
                 />
                 <p className="text-xs text-muted-foreground mt-1.5">We'll send your receipt to this email</p>
               </div>
+
+              {/* PicturaCAPTCHA */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1.5">
+                  Security Check <span className="text-destructive">*</span>
+                </label>
+                <SmartCaptcha 
+                  onVerify={(token) => setCaptchaToken(token)} 
+                  siteKey="pictura-donate"
+                />
+              </div>
             </div>
 
             <button
               onClick={handleDonate}
-              disabled={loading === selectedAmount || !donorEmail.trim()}
-              className="w-full mt-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading === selectedAmount || !donorEmail.trim() || !captchaToken}
+              className="w-full mt-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading === selectedAmount ? 'Redirecting to payment...' : 'Proceed to Payment'}
+              {loading === selectedAmount ? (
+                'Redirecting to payment...'
+              ) : (
+                <>
+                  <Shield className="w-4 h-4" />
+                  Proceed to Payment
+                </>
+              )}
             </button>
 
             <p className="text-xs text-center text-muted-foreground mt-4">
-              Secure payment powered by Korapay
+              Secure payment powered by Paystack
             </p>
           </motion.div>
         </div>

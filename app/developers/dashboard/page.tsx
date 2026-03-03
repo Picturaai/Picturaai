@@ -46,8 +46,12 @@ import {
   User,
   DollarSign,
   Gift,
+  Sparkles,
+  Zap,
+  Crown,
 } from 'lucide-react'
 import { PicturaLogo, PicturaIcon } from '@/components/pictura/pictura-logo'
+import { PatternAvatar } from '@/components/pictura/pattern-avatar'
 
 interface ApiKey {
   id: string
@@ -111,6 +115,11 @@ export default function DeveloperDashboard() {
   // Onboarding
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState(0)
+  
+  // Pricing & Payment
+  const [showPricingModal, setShowPricingModal] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<{name: string, credits: number, price: number} | null>(null)
+  const [processingPayment, setProcessingPayment] = useState(false)
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -286,7 +295,7 @@ export default function DeveloperDashboard() {
   ] as const
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
+    <div className="min-h-screen bg-[#FAFAFA] overflow-x-hidden">
       {/* Mobile Header */}
       <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b">
         <button 
@@ -296,11 +305,8 @@ export default function DeveloperDashboard() {
           <Menu className="h-4 w-4" />
         </button>
         <PicturaLogo size="sm" />
-        <button 
-          onClick={() => setActiveTab('settings')}
-          className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C87941] to-[#A66835] text-white flex items-center justify-center text-xs font-semibold shadow-md shadow-[#C87941]/20 active:scale-95 transition-transform"
-        >
-          {developer.name?.charAt(0).toUpperCase() || 'D'}
+        <button onClick={() => setActiveTab('settings')} className="active:scale-95 transition-transform">
+          <PatternAvatar name={developer.name || 'Developer'} email={developer.email} size="sm" />
         </button>
       </header>
 
@@ -328,34 +334,6 @@ export default function DeveloperDashboard() {
             >
               <X className="h-4 w-4" />
             </button>
-          </div>
-
-          {/* User Profile Card */}
-          <div className="p-4">
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#C87941] to-[#A66835] p-4 text-white">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-12 h-12 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-semibold backdrop-blur-sm">
-                    {developer.name?.charAt(0).toUpperCase() || 'D'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{developer.name}</p>
-                    <p className="text-[10px] text-white/70 truncate">{developer.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-wider text-white/60">Balance</p>
-                    <p className="text-lg font-bold">{formatCurrency(developer.creditsBalance)}</p>
-                  </div>
-                  <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
-                    <CreditCard className="h-4 w-4" />
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Navigation */}
@@ -457,14 +435,12 @@ export default function DeveloperDashboard() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors">
-                  <div className="w-9 h-9 rounded-full bg-[#C87941] text-white flex items-center justify-center text-sm font-medium">
-                    {developer.name?.charAt(0).toUpperCase() || 'D'}
-                  </div>
-                  <div className="flex-1 text-left">
+                  <PatternAvatar name={developer.name || 'Developer'} email={developer.email} size="md" />
+                  <div className="flex-1 text-left min-w-0">
                     <p className="text-sm font-medium truncate">{developer.name}</p>
                     <p className="text-xs text-muted-foreground truncate">{developer.email}</p>
                   </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -504,7 +480,7 @@ export default function DeveloperDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6 lg:p-8 max-w-6xl">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl overflow-x-hidden">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
@@ -515,28 +491,53 @@ export default function DeveloperDashboard() {
 
               {/* Stats Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {/* Credit Card Design */}
-                <Card className="col-span-full md:col-span-1 bg-gradient-to-br from-[#C87941] to-[#A66835] text-white border-0 overflow-hidden relative">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                  <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-                  <CardContent className="p-4 relative">
-                    <div className="flex items-start justify-between mb-6">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-white/70">Credit Balance</p>
-                        <div className="text-xl sm:text-2xl font-bold mt-0.5">{formatCurrency(developer.creditsBalance)}</div>
-                      </div>
-                      <div className="w-8 h-8 rounded bg-white/20 flex items-center justify-center">
-                        <CreditCard className="h-4 w-4" />
-                      </div>
+                {/* ATM Card Design */}
+                <Card className="col-span-full sm:col-span-2 md:col-span-1 border-0 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+                  {/* Chip pattern */}
+                  <div className="absolute top-4 left-4 w-10 h-7 rounded-md bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 opacity-90">
+                    <div className="absolute inset-0.5 grid grid-cols-3 gap-px">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={i} className="bg-yellow-500/50 rounded-sm" />
+                      ))}
                     </div>
-                    <div className="flex items-center justify-between">
+                  </div>
+                  {/* Contactless icon */}
+                  <div className="absolute top-4 right-4">
+                    <svg className="w-6 h-6 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M8.5 14.5c2-2 5-2 7 0M6 12c3.5-3.5 8.5-3.5 12 0M3.5 9.5c5-5 12-5 17 0" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                  {/* Background pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <defs>
+                        <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                          <circle cx="1" cy="1" r="0.5" fill="white"/>
+                        </pattern>
+                      </defs>
+                      <rect width="100" height="100" fill="url(#grid)"/>
+                    </svg>
+                  </div>
+                  {/* Holographic strip */}
+                  <div className="absolute bottom-12 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                  
+                  <CardContent className="p-4 pt-14 relative text-white">
+                    <div className="mb-4">
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-white/50 mb-1">Available Balance</p>
+                      <div className="text-2xl sm:text-3xl font-bold tracking-tight">{formatCurrency(developer.creditsBalance)}</div>
+                    </div>
+                    <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-[9px] uppercase tracking-wider text-white/60">Account</p>
-                        <p className="text-xs font-mono">{developer.email.split('@')[0]}</p>
+                        <p className="text-[8px] uppercase tracking-wider text-white/40 mb-0.5">Card Holder</p>
+                        <p className="text-xs font-medium tracking-wide truncate max-w-[120px]">{developer.name?.toUpperCase()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[9px] uppercase tracking-wider text-white/60">Tier</p>
-                        <p className="text-xs capitalize">{developer.tier || 'Free'}</p>
+                        <p className="text-[8px] uppercase tracking-wider text-white/40 mb-0.5">Tier</p>
+                        <p className="text-xs font-medium">{developer.tier?.toUpperCase() || 'FREE'}</p>
+                      </div>
+                      <div className="flex gap-1">
+                        <div className="w-6 h-6 rounded-full bg-[#C87941] opacity-80" />
+                        <div className="w-6 h-6 rounded-full bg-[#E5A869] opacity-80 -ml-3" />
                       </div>
                     </div>
                   </CardContent>
@@ -622,27 +623,27 @@ export default function DeveloperDashboard() {
               {/* Recent Transactions */}
               {developer.transactions && developer.transactions.length > 0 && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Recent Transactions</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm sm:text-base">Recent Transactions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {developer.transactions.slice(0, 5).map((tx) => (
                         <div key={tx.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.amount > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 ${tx.amount > 0 ? 'bg-[#C87941]/10' : 'bg-muted'}`}>
                               {tx.type === 'signup_bonus' || tx.type === 'promo' ? (
-                                <Gift className={`h-4 w-4 ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`} />
+                                <Gift className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-muted-foreground'}`} />
                               ) : (
-                                <DollarSign className={`h-4 w-4 ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`} />
+                                <DollarSign className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-muted-foreground'}`} />
                               )}
                             </div>
-                            <div>
-                              <p className="text-sm font-medium">{tx.description}</p>
-                              <p className="text-xs text-muted-foreground">{formatDate(tx.createdAt)}</p>
+                            <div className="min-w-0">
+                              <p className="text-xs sm:text-sm font-medium truncate">{tx.description}</p>
+                              <p className="text-[10px] sm:text-xs text-muted-foreground">{formatDate(tx.createdAt)}</p>
                             </div>
                           </div>
-                          <div className={`text-sm font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className={`text-xs sm:text-sm font-medium shrink-0 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-muted-foreground'}`}>
                             {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
                           </div>
                         </div>
@@ -828,8 +829,8 @@ export default function DeveloperDashboard() {
                       <p className="text-xs text-muted-foreground">Pay as you go pricing</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="text-xs h-8">View Plans</Button>
-                      <Button size="sm" className="bg-[#C87941] hover:bg-[#B86D35] text-xs h-8">Upgrade</Button>
+                      <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => setShowPricingModal(true)}>View Plans</Button>
+                      <Button size="sm" className="bg-[#C87941] hover:bg-[#B86D35] text-xs h-8" onClick={() => setShowPricingModal(true)}>Upgrade</Button>
                     </div>
                   </div>
                 </CardContent>
@@ -841,46 +842,76 @@ export default function DeveloperDashboard() {
                   <CardDescription className="text-xs">Your credits are used for API calls.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {/* Credit Card Design in Billing */}
-                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#C87941] to-[#A66835] text-white p-4 sm:p-5">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-                    <div className="relative flex items-start justify-between mb-4">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-white/70">Available Balance</p>
-                        <div className="text-2xl sm:text-3xl font-bold mt-1">{formatCurrency(developer.creditsBalance)}</div>
-                      </div>
-                      <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-                        <CreditCard className="h-5 w-5" />
+                  {/* Premium ATM Card Design */}
+                  <div className="relative overflow-hidden rounded-2xl aspect-[1.6/1] max-w-md" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+                    {/* Chip */}
+                    <div className="absolute top-6 left-6 w-12 h-9 rounded-lg bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 opacity-90">
+                      <div className="absolute inset-1 grid grid-cols-3 gap-0.5">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="bg-yellow-500/50 rounded-sm" />
+                        ))}
                       </div>
                     </div>
-                    <div className="relative flex items-center justify-between text-xs">
-                      <span className="text-white/70">{developer.currency}</span>
-                      <span className="font-mono text-white/80">{developer.email.split('@')[0]}</span>
+                    {/* Contactless */}
+                    <div className="absolute top-6 right-6">
+                      <svg className="w-8 h-8 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M8.5 14.5c2-2 5-2 7 0M6 12c3.5-3.5 8.5-3.5 12 0M3.5 9.5c5-5 12-5 17 0" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    {/* Background pattern */}
+                    <div className="absolute inset-0 opacity-5">
+                      <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <defs>
+                          <pattern id="billingGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+                            <circle cx="1" cy="1" r="0.5" fill="white"/>
+                          </pattern>
+                        </defs>
+                        <rect width="100" height="100" fill="url(#billingGrid)"/>
+                      </svg>
+                    </div>
+                    {/* Holographic strip */}
+                    <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    
+                    {/* Card content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      <div className="mb-3">
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Available Balance</p>
+                        <div className="text-3xl sm:text-4xl font-bold tracking-tight">{formatCurrency(developer.creditsBalance)}</div>
+                      </div>
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <p className="text-[8px] uppercase tracking-wider text-white/40 mb-0.5">Card Holder</p>
+                          <p className="text-sm font-medium tracking-wide">{developer.name?.toUpperCase()}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <div className="w-7 h-7 rounded-full bg-[#C87941] opacity-90" />
+                          <div className="w-7 h-7 rounded-full bg-[#E5A869] opacity-90 -ml-4" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <Button className="mt-4 bg-[#C87941] hover:bg-[#B86D35] text-sm h-9">Buy Credits</Button>
+                  <Button onClick={() => setShowPricingModal(true)} className="mt-4 bg-[#C87941] hover:bg-[#B86D35] text-sm h-9">Buy Credits</Button>
                 </CardContent>
               </Card>
 
               {developer.transactions && developer.transactions.length > 0 && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Transaction History</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm sm:text-base">Transaction History</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="divide-y">
                       {developer.transactions.map((tx) => (
-                        <div key={tx.id} className="flex items-center justify-between py-3">
-                          <div>
-                            <p className="text-sm font-medium">{tx.description}</p>
-                            <p className="text-xs text-muted-foreground">{formatDate(tx.createdAt)}</p>
+                        <div key={tx.id} className="flex items-center justify-between py-2.5 sm:py-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs sm:text-sm font-medium truncate">{tx.description}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">{formatDate(tx.createdAt)}</p>
                           </div>
-                          <div className="text-right">
-                            <div className={`text-sm font-medium ${tx.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className="text-right shrink-0 ml-3">
+                            <div className={`text-xs sm:text-sm font-medium ${tx.amount > 0 ? 'text-[#C87941]' : 'text-muted-foreground'}`}>
                               {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
                             </div>
-                            <p className="text-xs text-muted-foreground">Balance: {formatCurrency(tx.balanceAfter)}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">Bal: {formatCurrency(tx.balanceAfter)}</p>
                           </div>
                         </div>
                       ))}
@@ -899,56 +930,125 @@ export default function DeveloperDashboard() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Manage your account settings</p>
               </div>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm sm:text-base">Profile</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 sm:space-y-6">
-                  <div className="flex items-center gap-3 sm:gap-4 pb-4 border-b">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#C87941] text-white flex items-center justify-center text-lg sm:text-xl font-semibold shrink-0">
-                      {developer.name?.charAt(0).toUpperCase() || 'D'}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-sm sm:text-base truncate">{developer.name}</h3>
-                      <p className="text-xs text-muted-foreground truncate">{developer.email}</p>
-                    </div>
+              {/* Profile Card with Pattern Background */}
+              <Card className="overflow-hidden">
+                <div className="h-20 sm:h-24 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] relative">
+                  <div className="absolute inset-0 opacity-10">
+                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <defs>
+                        <pattern id="settingsGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+                          <circle cx="1" cy="1" r="0.5" fill="white"/>
+                        </pattern>
+                      </defs>
+                      <rect width="100" height="100" fill="url(#settingsGrid)"/>
+                    </svg>
                   </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <Label className="text-muted-foreground">Full Name</Label>
-                      <Input value={developer.name} disabled className="mt-1" />
+                </div>
+                <CardContent className="relative pt-0">
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10 sm:-mt-12">
+                    <div className="ring-4 ring-background rounded-full">
+                      <PatternAvatar name={developer.name || 'Developer'} email={developer.email} size="xl" />
                     </div>
-                    <div>
-                      <Label className="text-muted-foreground">Email</Label>
-                      <Input value={developer.email} disabled className="mt-1" />
+                    <div className="flex-1 min-w-0 pb-1">
+                      <h3 className="font-semibold text-base sm:text-lg truncate">{developer.name}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{developer.email}</p>
                     </div>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <Label className="text-muted-foreground">Account Created</Label>
-                      <Input value={formatDate(developer.createdAt)} disabled className="mt-1" />
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">Currency</Label>
-                      <Input value={developer.currency} disabled className="mt-1" />
+                    <div className="flex items-center gap-2">
+                      <Badge className="text-[10px] bg-[#C87941]/10 text-[#C87941] border border-[#C87941]/20">
+                        {developer.tier?.toUpperCase() || 'FREE'} TIER
+                      </Badge>
+                      <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => setShowPricingModal(true)}>
+                        Upgrade
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-red-200">
-                <CardHeader>
-                  <CardTitle className="text-lg text-red-600">Danger Zone</CardTitle>
+              {/* Account Details */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                    <User className="h-4 w-4 text-[#C87941]" />
+                    Account Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Full Name</Label>
+                      <Input value={developer.name} disabled className="mt-1 text-sm" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Email Address</Label>
+                      <Input value={developer.email} disabled className="mt-1 text-sm" />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Account Created</Label>
+                      <Input value={formatDate(developer.createdAt)} disabled className="mt-1 text-sm" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Currency</Label>
+                      <Input value={developer.currency} disabled className="mt-1 text-sm" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Credits Balance</Label>
+                      <Input value={formatCurrency(developer.creditsBalance)} disabled className="mt-1 text-sm font-medium text-[#C87941]" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Quick Stats */}
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+                <Card className="bg-[#C87941]/5 border-[#C87941]/20">
+                  <CardContent className="p-3 sm:p-4 text-center">
+                    <Key className="h-5 w-5 mx-auto text-[#C87941] mb-1" />
+                    <p className="text-lg sm:text-xl font-bold">{developer.apiKeys.filter(k => k.isActive).length}</p>
+                    <p className="text-[10px] text-muted-foreground">Active Keys</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-[#C87941]/5 border-[#C87941]/20">
+                  <CardContent className="p-3 sm:p-4 text-center">
+                    <Activity className="h-5 w-5 mx-auto text-[#C87941] mb-1" />
+                    <p className="text-lg sm:text-xl font-bold">{developer.usage.thisMonth.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground">This Month</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-[#C87941]/5 border-[#C87941]/20">
+                  <CardContent className="p-3 sm:p-4 text-center">
+                    <BarChart3 className="h-5 w-5 mx-auto text-[#C87941] mb-1" />
+                    <p className="text-lg sm:text-xl font-bold">{developer.usage.totalRequests.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground">Total Requests</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-[#C87941]/5 border-[#C87941]/20">
+                  <CardContent className="p-3 sm:p-4 text-center">
+                    <CreditCard className="h-5 w-5 mx-auto text-[#C87941] mb-1" />
+                    <p className="text-lg sm:text-xl font-bold">{developer.transactions?.length || 0}</p>
+                    <p className="text-[10px] text-muted-foreground">Transactions</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Danger Zone */}
+              <Card className="border-destructive/30">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base text-destructive flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Danger Zone
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border border-destructive/20 rounded-lg bg-destructive/5">
                     <div>
-                      <h4 className="font-medium text-red-900">Delete Account</h4>
-                      <p className="text-sm text-red-700">Permanently delete your account and all associated data</p>
+                      <h4 className="font-medium text-sm text-destructive">Delete Account</h4>
+                      <p className="text-xs text-muted-foreground">Permanently delete your account and all associated data</p>
                     </div>
-                    <Button variant="destructive" size="sm">Delete Account</Button>
+                    <Button variant="destructive" size="sm" className="text-xs shrink-0">Delete Account</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -972,10 +1072,10 @@ export default function DeveloperDashboard() {
 
           {newlyCreatedKey ? (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <Label className="text-green-800">Your API Key</Label>
+              <div className="p-4 bg-[#C87941]/10 border border-[#C87941]/30 rounded-lg">
+                <Label className="text-[#C87941]">Your API Key</Label>
                 <div className="flex items-center gap-2 mt-2">
-                  <code className="flex-1 p-3 bg-white border rounded text-sm font-mono break-all">{newlyCreatedKey}</code>
+                  <code className="flex-1 p-3 bg-white border rounded text-xs sm:text-sm font-mono break-all">{newlyCreatedKey}</code>
                   <Button
                     size="sm"
                     variant="outline"
@@ -1101,6 +1201,124 @@ export default function DeveloperDashboard() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Pricing Modal */}
+      <Dialog open={showPricingModal} onOpenChange={setShowPricingModal}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-[#C87941]" />
+              Buy Credits
+            </DialogTitle>
+            <DialogDescription>
+              Choose a credit package that suits your needs. Credits never expire.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 py-4">
+            {[
+              { name: 'Starter', credits: 1000, price: 500, icon: Zap, popular: false },
+              { name: 'Growth', credits: 5000, price: 2000, icon: Sparkles, popular: true },
+              { name: 'Pro', credits: 15000, price: 5000, icon: Crown, popular: false },
+              { name: 'Business', credits: 50000, price: 15000, icon: CreditCard, popular: false },
+              { name: 'Enterprise', credits: 150000, price: 40000, icon: Shield, popular: false },
+              { name: 'Custom', credits: 500000, price: 100000, icon: Gift, popular: false },
+            ].map((plan) => (
+              <div
+                key={plan.name}
+                onClick={() => setSelectedPlan(plan)}
+                className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
+                  selectedPlan?.name === plan.name 
+                    ? 'border-[#C87941] bg-[#C87941]/5' 
+                    : 'border-border hover:border-[#C87941]/50'
+                } ${plan.popular ? 'ring-2 ring-[#C87941]/20' : ''}`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#C87941] text-white text-[10px] font-semibold rounded-full">
+                    Popular
+                  </div>
+                )}
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                    selectedPlan?.name === plan.name ? 'bg-[#C87941] text-white' : 'bg-[#C87941]/10 text-[#C87941]'
+                  }`}>
+                    <plan.icon className="h-4 w-4" />
+                  </div>
+                  {selectedPlan?.name === plan.name && (
+                    <Check className="h-5 w-5 text-[#C87941]" />
+                  )}
+                </div>
+                <h3 className="font-semibold text-sm mb-1">{plan.name}</h3>
+                <p className="text-lg font-bold text-[#C87941] mb-0.5">
+                  {CURRENCY_SYMBOLS[developer.currency] || '₦'}{plan.price.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {plan.credits.toLocaleString()} credits
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {((plan.price / plan.credits) * 100).toFixed(1)} kobo/credit
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowPricingModal(false)} className="sm:flex-1">
+              Cancel
+            </Button>
+            <Button 
+              onClick={async () => {
+                if (!selectedPlan || !developer) return
+                setProcessingPayment(true)
+                try {
+                  const res = await fetch('/api/paystack/initialize', {
+                    method: 'POST',
+                    headers: { 
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${localStorage.getItem('pictura_session')}`
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      amount: selectedPlan.price,
+                      credits: selectedPlan.credits,
+                      planName: selectedPlan.name,
+                      email: developer.email,
+                      name: developer.name,
+                    }),
+                  })
+                  const data = await res.json()
+                  if (data.success && data.authorizationUrl) {
+                    window.location.href = data.authorizationUrl
+                  } else {
+                    toast.error(data.error || 'Payment initialization failed')
+                  }
+                } catch {
+                  toast.error('An error occurred')
+                } finally {
+                  setProcessingPayment(false)
+                }
+              }}
+              disabled={!selectedPlan || processingPayment}
+              className="bg-[#C87941] hover:bg-[#B86D35] sm:flex-1"
+            >
+              {processingPayment ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : selectedPlan ? (
+                `Pay ${CURRENCY_SYMBOLS[developer.currency] || '₦'}${selectedPlan.price.toLocaleString()}`
+              ) : (
+                'Select a Plan'
+              )}
+            </Button>
+          </DialogFooter>
+          
+          <p className="text-[10px] text-center text-muted-foreground">
+            Secure payment powered by Paystack. Credits are added instantly after payment.
+          </p>
         </DialogContent>
       </Dialog>
     </div>
