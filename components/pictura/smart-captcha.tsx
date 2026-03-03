@@ -313,23 +313,38 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   }, [])
   
   const startChallenge = useCallback(() => {
-    if (status === 'cooldown' || status === 'verified' || status === 'verifying' || isVerifiedRef.current || hasStartedRef.current) return
+    // Only allow starting from idle state
+    if (status !== 'idle') return
+    if (isVerifiedRef.current) return
     
-    hasStartedRef.current = true
     setStatus('analyzing')
     
     if (!(window as unknown as { __picturaLoadTime?: number }).__picturaLoadTime) {
       (window as unknown as { __picturaLoadTime: number }).__picturaLoadTime = Date.now()
     }
     
+    // Simplified flow: analyze behavior and auto-verify low-risk users
     setTimeout(() => {
-      const steps = analyzeRisk()
-      setRequiredSteps(steps)
-      setCurrentStep(1)
-      resetChallenge()
-      setStatus('challenge')
-    }, 1200)
-  }, [status, resetChallenge, analyzeRisk])
+      const risk = analyzeRisk()
+      
+      // For most users (low risk), auto-verify after behavior analysis
+      if (risk < 50 && interactionsRef.current > 5) {
+        setStatus('verifying')
+        setTimeout(() => {
+          isVerifiedRef.current = true
+          setStatus('verified')
+          const token = `pictura_${Date.now()}_${siteKey}_${Math.random().toString(36).substr(2, 9)}_auto`
+          onVerify?.(token)
+        }, 600)
+      } else {
+        // Higher risk users get challenges
+        setRequiredSteps(risk >= 60 ? 3 : 2)
+        setCurrentStep(1)
+        resetChallenge()
+        setStatus('challenge')
+      }
+    }, 1000)
+  }, [status, resetChallenge, analyzeRisk, siteKey, onVerify])
   
   // Show correct answer then give new challenge
   const handleWrong = useCallback(() => {

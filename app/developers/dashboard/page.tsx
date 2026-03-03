@@ -120,7 +120,7 @@ export default function DeveloperDashboard() {
       })
 
       if (!res.ok) {
-        router.push('/developers/login')
+        window.location.href = '/developers/login'
         return
       }
 
@@ -152,7 +152,7 @@ export default function DeveloperDashboard() {
     } finally {
       localStorage.removeItem('pictura_session')
       localStorage.removeItem('pictura_developer')
-      router.push('/developers/login')
+      window.location.href = '/developers/login'
     }
   }
 

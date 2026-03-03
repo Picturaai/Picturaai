@@ -47,9 +47,12 @@ export default function LoginPage() {
 
     setLoading(true)
     try {
+      console.log('[v0] Login - attempting login for:', email.toLowerCase())
+      
       const res = await fetch('/api/developers/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ 
           email: email.toLowerCase(), 
           password,
@@ -58,13 +61,18 @@ export default function LoginPage() {
       })
 
       const data = await res.json()
+      console.log('[v0] Login - response status:', res.status, 'data:', data)
 
       if (res.ok) {
+        console.log('[v0] Login - success! Redirecting to dashboard...')
+        // Store session info for client-side access
         localStorage.setItem('pictura_session', data.token)
         localStorage.setItem('pictura_developer', JSON.stringify(data.developer))
-        router.push('/developers/dashboard')
         toast.success('Welcome back!')
+        // Use full page redirect to ensure cookies are read
+        window.location.href = '/developers/dashboard'
       } else {
+        console.log('[v0] Login - failed:', data.error)
         toast.error(data.error || 'Invalid credentials')
       }
     } catch {
