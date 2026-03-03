@@ -99,8 +99,20 @@ export default function ApiDocsPage() {
   const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'node' | 'python' | 'curl'>('node')
   const [pricing, setPricing] = useState(PRICING_BY_COUNTRY.DEFAULT)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   useEffect(() => {
+    // Check if user is logged in
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/developers/dashboard', { credentials: 'include' })
+        setIsLoggedIn(res.ok)
+      } catch {
+        setIsLoggedIn(false)
+      }
+    }
+    checkAuth()
+    
     const detectLocation = async () => {
       try {
         const res = await fetch('https://ipapi.co/json/')
@@ -194,10 +206,10 @@ print(image.url)`,
               </p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <Link
-                  href="/developers/signup"
+                  href={isLoggedIn ? "/developers/dashboard" : "/developers/signup"}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all active:scale-[0.98]"
                 >
-                  Get API Key
+                  {isLoggedIn ? "Go to Dashboard" : "Get API Key"}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
                 <button
@@ -430,10 +442,10 @@ print(image.url)`,
                     <li className="flex items-center gap-2"><Check className="h-3 w-3 text-primary" />Community support</li>
                   </ul>
                   <Link
-                    href="/developers/signup"
+                    href={isLoggedIn ? "/developers/dashboard" : "/developers/signup"}
                     className="block text-center w-full py-2 rounded-lg border border-border text-sm font-medium text-foreground hover:bg-muted transition-all"
                   >
-                    Get Started
+                    {isLoggedIn ? "View Dashboard" : "Get Started"}
                   </Link>
                 </div>
                 
@@ -452,10 +464,10 @@ print(image.url)`,
                     <li className="flex items-center gap-2"><Check className="h-3 w-3 text-primary" />Priority support</li>
                   </ul>
                   <Link
-                    href="/developers/signup"
+                    href={isLoggedIn ? "/developers/dashboard" : "/developers/signup"}
                     className="block text-center w-full py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all"
                   >
-                    Start Pro
+                    {isLoggedIn ? "Upgrade Now" : "Start Pro"}
                   </Link>
                 </div>
               </div>
@@ -474,13 +486,17 @@ print(image.url)`,
               className="text-center"
             >
               <PicturaIcon size={32} className="mx-auto mb-4" />
-              <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">Ready to build?</h2>
-              <p className="text-sm text-muted-foreground mb-5">Get your API key and start generating images in minutes.</p>
+              <h2 className="text-lg sm:text-xl font-bold text-foreground mb-2">
+                {isLoggedIn ? "Continue building" : "Ready to build?"}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-5">
+                {isLoggedIn ? "Head to your dashboard to manage API keys and view usage." : "Get your API key and start generating images in minutes."}
+              </p>
               <Link
-                href="/developers/signup"
+                href={isLoggedIn ? "/developers/dashboard" : "/developers/signup"}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all"
               >
-                Get API Key
+                {isLoggedIn ? "Go to Dashboard" : "Get API Key"}
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </motion.div>

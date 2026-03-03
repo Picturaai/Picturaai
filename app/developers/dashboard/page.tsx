@@ -40,7 +40,6 @@ import {
   Loader2,
   Menu,
   X,
-  Zap,
   Activity,
   ArrowUpRight,
   Shield,
@@ -422,97 +421,111 @@ export default function DeveloperDashboard() {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-2xl font-semibold">Welcome back, {developer.name?.split(' ')[0]}</h1>
-                <p className="text-muted-foreground">Here's what's happening with your API</p>
+                <h1 className="text-lg sm:text-xl font-semibold">Welcome back, {developer.name?.split(' ')[0]}</h1>
+                <p className="text-sm text-muted-foreground">Here's what's happening with your API</p>
               </div>
 
               {/* Stats Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="border-l-4 border-l-[#C87941]">
-                  <CardHeader className="pb-2">
-                    <CardDescription className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-[#C87941]" />
-                      Credit Balance
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-[#C87941]">{formatCurrency(developer.creditsBalance)}</div>
-                    <p className="text-xs text-muted-foreground mt-1">Available credits</p>
+                {/* Credit Card Design */}
+                <Card className="col-span-full md:col-span-1 bg-gradient-to-br from-[#C87941] to-[#A66835] text-white border-0 overflow-hidden relative">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+                  <CardContent className="p-4 relative">
+                    <div className="flex items-start justify-between mb-6">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-white/70">Credit Balance</p>
+                        <div className="text-xl sm:text-2xl font-bold mt-0.5">{formatCurrency(developer.creditsBalance)}</div>
+                      </div>
+                      <div className="w-8 h-8 rounded bg-white/20 flex items-center justify-center">
+                        <CreditCard className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-white/60">Account</p>
+                        <p className="text-xs font-mono">{developer.email.split('@')[0]}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[9px] uppercase tracking-wider text-white/60">Tier</p>
+                        <p className="text-xs capitalize">{developer.tier || 'Free'}</p>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription className="flex items-center gap-2">
-                      <Activity className="h-4 w-4" />
-                      Requests This Month
+                  <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
+                    <CardDescription className="flex items-center gap-1.5 text-xs">
+                      <Activity className="h-3.5 w-3.5" />
+                      This Month
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{developer.usage.thisMonth.toLocaleString()}</div>
+                  <CardContent className="pb-3 px-3 sm:px-4">
+                    <div className="text-lg sm:text-xl font-bold">{developer.usage.thisMonth.toLocaleString()}</div>
                     {developer.usage.lastMonth > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <ArrowUpRight className="h-3 w-3 text-green-600" />
-                        <span className="text-green-600">
+                      <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-0.5">
+                        <ArrowUpRight className="h-2.5 w-2.5 text-[#C87941]" />
+                        <span className="text-[#C87941]">
                           {Math.round(((developer.usage.thisMonth - developer.usage.lastMonth) / developer.usage.lastMonth) * 100)}%
                         </span>
-                        from last month
+                        vs last month
                       </p>
                     )}
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription className="flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
+                  <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
+                    <CardDescription className="flex items-center gap-1.5 text-xs">
+                      <BarChart3 className="h-3.5 w-3.5" />
                       Total Requests
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{developer.usage.totalRequests.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground mt-1">All time</p>
+                  <CardContent className="pb-3 px-3 sm:px-4">
+                    <div className="text-lg sm:text-xl font-bold">{developer.usage.totalRequests.toLocaleString()}</div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">All time</p>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription className="flex items-center gap-2">
-                      <Key className="h-4 w-4" />
-                      Active API Keys
+                  <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
+                    <CardDescription className="flex items-center gap-1.5 text-xs">
+                      <Key className="h-3.5 w-3.5" />
+                      API Keys
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{developer.apiKeys.filter(k => k.isActive).length}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {developer.apiKeys.length} total keys
+                  <CardContent className="pb-3 px-3 sm:px-4">
+                    <div className="text-lg sm:text-xl font-bold">{developer.apiKeys.filter(k => k.isActive).length}</div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {developer.apiKeys.length} total
                     </p>
                   </CardContent>
                 </Card>
               </div>
 
               {/* Quick Actions */}
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Card className="cursor-pointer hover:border-[#C87941]/50 transition-colors group" onClick={() => setActiveTab('api-keys')}>
-                  <CardContent className="flex items-center gap-4 p-6">
-                    <div className="w-12 h-12 rounded-lg bg-[#C87941]/10 flex items-center justify-center group-hover:bg-[#C87941]/20 transition-colors">
-                      <Key className="h-6 w-6 text-[#C87941]" />
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <div className="w-10 h-10 rounded-lg bg-[#C87941]/10 flex items-center justify-center group-hover:bg-[#C87941]/20 transition-colors shrink-0">
+                      <Key className="h-5 w-5 text-[#C87941]" />
                     </div>
-                    <div>
-                      <h3 className="font-medium">Manage API Keys</h3>
-                      <p className="text-sm text-muted-foreground">Create and manage your API keys</p>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-medium">Manage API Keys</h3>
+                      <p className="text-xs text-muted-foreground truncate">Create and manage your keys</p>
                     </div>
                   </CardContent>
                 </Card>
 
                 <Card className="cursor-pointer hover:border-[#C87941]/50 transition-colors group" onClick={() => window.open('/api-docs', '_blank')}>
-                  <CardContent className="flex items-center gap-4 p-6">
-                    <div className="w-12 h-12 rounded-lg bg-[#C87941]/10 flex items-center justify-center group-hover:bg-[#C87941]/20 transition-colors">
-                      <Book className="h-6 w-6 text-[#C87941]" />
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <div className="w-10 h-10 rounded-lg bg-[#C87941]/10 flex items-center justify-center group-hover:bg-[#C87941]/20 transition-colors shrink-0">
+                      <Book className="h-5 w-5 text-[#C87941]" />
                     </div>
-                    <div>
-                      <h3 className="font-medium">View Documentation</h3>
-                      <p className="text-sm text-muted-foreground">Learn how to use the Pictura API</p>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-medium">Documentation</h3>
+                      <p className="text-xs text-muted-foreground truncate">Learn how to use the API</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -556,18 +569,18 @@ export default function DeveloperDashboard() {
           {/* API Keys Tab */}
           {activeTab === 'api-keys' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl font-semibold flex items-center gap-2">
+                  <h1 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
                     API Keys
-                    <Badge variant="secondary" className="text-xs">Beta</Badge>
+                    <Badge variant="secondary" className="text-[10px]">Beta</Badge>
                   </h1>
-                  <p className="text-muted-foreground">
-                    Manage your API keys. While in beta, API calls will consume your Pictura credits.
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Manage your API keys for Pictura API access.
                   </p>
                 </div>
-                <Button onClick={() => { setShowCreateKey(true); setNewKeyName(''); setNewlyCreatedKey(null) }} className="bg-[#C87941] hover:bg-[#B86D35]">
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button onClick={() => { setShowCreateKey(true); setNewKeyName(''); setNewlyCreatedKey(null) }} className="bg-[#C87941] hover:bg-[#B86D35] text-sm h-9">
+                  <Plus className="h-4 w-4 mr-1.5" />
                   New Key
                 </Button>
               </div>
@@ -643,40 +656,40 @@ export default function DeveloperDashboard() {
 
           {/* Usage Tab */}
           {activeTab === 'usage' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h1 className="text-2xl font-semibold">Usage</h1>
-                <p className="text-muted-foreground">Monitor your API usage and requests</p>
+                <h1 className="text-lg sm:text-xl font-semibold">Usage</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Monitor your API usage and requests</p>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-3 sm:gap-4 grid-cols-3">
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>This Month</CardDescription>
+                  <CardHeader className="pb-1.5 pt-3 px-3 sm:px-4">
+                    <CardDescription className="text-xs">This Month</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">{developer.usage.thisMonth.toLocaleString()}</div>
-                    <p className="text-sm text-muted-foreground">requests</p>
+                  <CardContent className="pb-3 px-3 sm:px-4">
+                    <div className="text-lg sm:text-2xl font-bold">{developer.usage.thisMonth.toLocaleString()}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">requests</p>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>Last Month</CardDescription>
+                  <CardHeader className="pb-1.5 pt-3 px-3 sm:px-4">
+                    <CardDescription className="text-xs">Last Month</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">{developer.usage.lastMonth.toLocaleString()}</div>
-                    <p className="text-sm text-muted-foreground">requests</p>
+                  <CardContent className="pb-3 px-3 sm:px-4">
+                    <div className="text-lg sm:text-2xl font-bold">{developer.usage.lastMonth.toLocaleString()}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">requests</p>
                   </CardContent>
                 </Card>
 
                 <Card>
-                  <CardHeader className="pb-2">
-                    <CardDescription>All Time</CardDescription>
+                  <CardHeader className="pb-1.5 pt-3 px-3 sm:px-4">
+                    <CardDescription className="text-xs">All Time</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">{developer.usage.totalRequests.toLocaleString()}</div>
-                    <p className="text-sm text-muted-foreground">requests</p>
+                  <CardContent className="pb-3 px-3 sm:px-4">
+                    <div className="text-lg sm:text-2xl font-bold">{developer.usage.totalRequests.toLocaleString()}</div>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">requests</p>
                   </CardContent>
                 </Card>
               </div>
@@ -710,46 +723,55 @@ export default function DeveloperDashboard() {
 
           {/* Billing Tab */}
           {activeTab === 'billing' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h1 className="text-2xl font-semibold">Billing</h1>
-                <p className="text-muted-foreground">Manage your credits and payment methods</p>
+                <h1 className="text-lg sm:text-xl font-semibold">Billing</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Manage your credits and payment methods</p>
               </div>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Current Plan</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base">Current Plan</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg">
                     <div>
-                      <h3 className="font-semibold">{developer.tier === 'free' ? 'Free Plan' : 'Premium Plan'}</h3>
-                      <p className="text-sm text-muted-foreground">Pay as you go pricing</p>
+                      <h3 className="text-sm font-semibold">{developer.tier === 'free' ? 'Free Plan' : 'Premium Plan'}</h3>
+                      <p className="text-xs text-muted-foreground">Pay as you go pricing</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline">View Plans</Button>
-                      <Button className="bg-[#C87941] hover:bg-[#B86D35]">Upgrade</Button>
+                      <Button variant="outline" size="sm" className="text-xs h-8">View Plans</Button>
+                      <Button size="sm" className="bg-[#C87941] hover:bg-[#B86D35] text-xs h-8">Upgrade</Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Credit Balance</CardTitle>
-                  <CardDescription>Your credits are used for API calls.</CardDescription>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base">Credit Balance</CardTitle>
+                  <CardDescription className="text-xs">Your credits are used for API calls.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-4 p-6 bg-[#C87941] rounded-xl text-white">
-                    <div className="w-14 h-14 rounded-lg bg-white/20 flex items-center justify-center">
-                      <Zap className="h-7 w-7" />
+                  {/* Credit Card Design in Billing */}
+                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#C87941] to-[#A66835] text-white p-4 sm:p-5">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+                    <div className="relative flex items-start justify-between mb-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-white/70">Available Balance</p>
+                        <div className="text-2xl sm:text-3xl font-bold mt-1">{formatCurrency(developer.creditsBalance)}</div>
+                      </div>
+                      <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                        <CreditCard className="h-5 w-5" />
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-4xl font-bold">{formatCurrency(developer.creditsBalance)}</div>
-                      <p className="text-sm opacity-90">Available balance ({developer.currency})</p>
+                    <div className="relative flex items-center justify-between text-xs">
+                      <span className="text-white/70">{developer.currency}</span>
+                      <span className="font-mono text-white/80">{developer.email.split('@')[0]}</span>
                     </div>
                   </div>
-                  <Button className="mt-4 bg-[#C87941] hover:bg-[#B86D35]">Buy Credits</Button>
+                  <Button className="mt-4 bg-[#C87941] hover:bg-[#B86D35] text-sm h-9">Buy Credits</Button>
                 </CardContent>
               </Card>
 
@@ -783,24 +805,24 @@ export default function DeveloperDashboard() {
 
           {/* Settings Tab */}
           {activeTab === 'settings' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <h1 className="text-2xl font-semibold">Settings</h1>
-                <p className="text-muted-foreground">Manage your account settings</p>
+                <h1 className="text-lg sm:text-xl font-semibold">Settings</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Manage your account settings</p>
               </div>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Profile</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm sm:text-base">Profile</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center gap-4 pb-4 border-b">
-                    <div className="w-16 h-16 rounded-full bg-[#C87941] text-white flex items-center justify-center text-2xl font-semibold">
+                <CardContent className="space-y-4 sm:space-y-6">
+                  <div className="flex items-center gap-3 sm:gap-4 pb-4 border-b">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#C87941] text-white flex items-center justify-center text-lg sm:text-xl font-semibold shrink-0">
                       {developer.name?.charAt(0).toUpperCase() || 'D'}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{developer.name}</h3>
-                      <p className="text-sm text-muted-foreground">{developer.email}</p>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-sm sm:text-base truncate">{developer.name}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{developer.email}</p>
                     </div>
                   </div>
 
