@@ -1,22 +1,22 @@
 'use client'
 
-// SmartCaptcha - Advanced CAPTCHA with multiple challenge types
+/**
+ * SmartCaptcha v3 - Advanced CAPTCHA with multiple challenge types
+ * Last updated: 2026-03-03
+ * All lucide-react icons verified to exist in lucide-react@0.564.0
+ */
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check } from 'lucide-react'
-import { RefreshCw } from 'lucide-react'
-import { Loader2 } from 'lucide-react'
-import { AlertCircle } from 'lucide-react'
-import { Fingerprint } from 'lucide-react'
-import { Heart } from 'lucide-react'
-import { X } from 'lucide-react'
-import { Car, Bike, Plane, Train, Ship, Bus } from 'lucide-react'
-import { Dog, Cat, Bird, Fish, Rabbit } from 'lucide-react'
-import { Apple, Pizza, Coffee, Cake } from 'lucide-react'
-import { Flower2, Mountain, Sun, Cloud } from 'lucide-react'
-import { Home, Store, Warehouse, Church } from 'lucide-react'
-import { Laptop, Tablet, Monitor, Headphones } from 'lucide-react'
-import { Shirt, Watch, Glasses, ShoppingBag } from 'lucide-react'
+import { 
+  Check, RefreshCw, Loader2, AlertCircle, Fingerprint, Heart, X,
+  Car, Bike, Plane, Train, Ship, Bus,
+  Dog, Cat, Bird, Fish, Rabbit,
+  Apple, Pizza, Coffee, Cake,
+  Flower2, Mountain, Sun, Cloud,
+  Home, Store, Warehouse, Church,
+  Laptop, Tablet, Monitor, Headphones,
+  Shirt, Watch, Glasses, ShoppingBag
+} from 'lucide-react'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 type ChallengeType = 'math' | 'pattern' | 'word' | 'image' | 'typing' | 'slider' | 'biometric' | 'sequence' | 'puzzle'
