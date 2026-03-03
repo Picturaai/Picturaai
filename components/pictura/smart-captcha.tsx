@@ -1,241 +1,259 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { CheckCircle2, ShieldCheck } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Shield, Check, RefreshCw } from 'lucide-react'
+
+type ChallengeType = 'math' | 'pattern' | 'word' | 'sequence'
+
+interface Challenge {
+  type: ChallengeType
+  question: string
+  options: string[]
+  answer: string
+  hint: string
+}
 
 interface SmartCaptchaProps {
   onVerify: (token: string) => void
-  className?: string
+  onExpire?: () => void
 }
 
-// Generate a secure token
-const generateToken = (data: Record<string, unknown>) => {
-  const payload = JSON.stringify(data)
-  const timestamp = Date.now()
-  // Simple base64 encoding with timestamp for verification
-  return btoa(`${timestamp}:${payload}`)
-}
+function generateChallenge(): Challenge {
+  const types: ChallengeType[] = ['math', 'pattern', 'word', 'sequence']
+  const type = types[Math.floor(Math.random() * types.length)]
 
-export function SmartCaptcha({ onVerify, className = '' }: SmartCaptchaProps) {
-  const [verified, setVerified] = useState(false)
-  const [checking, setChecking] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  
-  // Behavior tracking
-  const behaviorRef = useRef({
-    mouseMovements: 0,
-    keyPresses: 0,
-    clickCount: 0,
-    scrolls: 0,
-    startTime: Date.now(),
-    mousePositions: [] as Array<{ x: number; y: number; t: number }>,
-    checkboxHoverTime: 0,
-    focusEvents: 0,
-  })
-  
-  const containerRef = useRef<HTMLDivElement>(null)
-  const hoverStartRef = useRef<number>(0)
-
-  // Track mouse movements globally
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      behaviorRef.current.mouseMovements++
-      
-      // Store some positions for trajectory analysis
-      if (behaviorRef.current.mousePositions.length < 50) {
-        behaviorRef.current.mousePositions.push({
-          x: e.clientX,
-          y: e.clientY,
-          t: Date.now(),
-        })
+  switch (type) {
+    case 'math': {
+      const ops = ['+', '-', '×']
+      const op = ops[Math.floor(Math.random() * ops.length)]
+      const a = Math.floor(Math.random() * 10) + 1
+      const b = Math.floor(Math.random() * 10) + 1
+      let answer: number
+      let num1 = a, num2 = b
+      switch (op) {
+        case '+': answer = a + b; break
+        case '-': num1 = Math.max(a, b); num2 = Math.min(a, b); answer = num1 - num2; break
+        case '×': answer = a * b; break
+        default: answer = a + b
       }
-    }
-
-    const handleKeyPress = () => {
-      behaviorRef.current.keyPresses++
-    }
-
-    const handleClick = () => {
-      behaviorRef.current.clickCount++
-    }
-
-    const handleScroll = () => {
-      behaviorRef.current.scrolls++
-    }
-
-    const handleFocus = () => {
-      behaviorRef.current.focusEvents++
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('keydown', handleKeyPress)
-    document.addEventListener('click', handleClick)
-    document.addEventListener('scroll', handleScroll)
-    document.addEventListener('focusin', handleFocus)
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('keydown', handleKeyPress)
-      document.removeEventListener('click', handleClick)
-      document.removeEventListener('scroll', handleScroll)
-      document.removeEventListener('focusin', handleFocus)
-    }
-  }, [])
-
-  // Calculate human-likeness score
-  const calculateScore = useCallback(() => {
-    const behavior = behaviorRef.current
-    const timeOnPage = (Date.now() - behavior.startTime) / 1000 // seconds
-    
-    let score = 0
-    
-    // Time on page (humans spend time filling forms)
-    if (timeOnPage > 3) score += 15
-    if (timeOnPage > 10) score += 10
-    if (timeOnPage > 30) score += 5
-    
-    // Mouse movements (bots often don't move mouse naturally)
-    if (behavior.mouseMovements > 5) score += 15
-    if (behavior.mouseMovements > 20) score += 10
-    if (behavior.mouseMovements > 50) score += 5
-    
-    // Key presses (filling out forms)
-    if (behavior.keyPresses > 5) score += 15
-    if (behavior.keyPresses > 20) score += 10
-    
-    // Click count
-    if (behavior.clickCount >= 1) score += 10
-    
-    // Scroll activity
-    if (behavior.scrolls > 0) score += 5
-    
-    // Focus events (tabbing through form fields)
-    if (behavior.focusEvents > 2) score += 5
-    
-    // Checkbox hover time (humans hover before clicking)
-    if (behavior.checkboxHoverTime > 100) score += 10
-    if (behavior.checkboxHoverTime > 500) score += 5
-    
-    // Mouse trajectory analysis - check for natural curved movements
-    if (behavior.mousePositions.length > 5) {
-      let hasVariation = false
-      for (let i = 2; i < behavior.mousePositions.length; i++) {
-        const dx1 = behavior.mousePositions[i].x - behavior.mousePositions[i-1].x
-        const dy1 = behavior.mousePositions[i].y - behavior.mousePositions[i-1].y
-        const dx2 = behavior.mousePositions[i-1].x - behavior.mousePositions[i-2].x
-        const dy2 = behavior.mousePositions[i-1].y - behavior.mousePositions[i-2].y
-        
-        // Check for direction changes (natural mouse movement)
-        if ((dx1 * dx2 < 0) || (dy1 * dy2 < 0)) {
-          hasVariation = true
-          break
+      
+      const options = [answer.toString()]
+      while (options.length < 4) {
+        const wrong = answer + (Math.floor(Math.random() * 10) - 5)
+        if (wrong !== answer && wrong >= 0 && !options.includes(wrong.toString())) {
+          options.push(wrong.toString())
         }
       }
-      if (hasVariation) score += 10
+      options.sort(() => Math.random() - 0.5)
+
+      return { type: 'math', question: `${num1} ${op} ${num2} = ?`, options, answer: answer.toString(), hint: 'Solve it' }
     }
-    
-    return Math.min(score, 100)
+
+    case 'pattern': {
+      const patterns = [
+        { seq: [2, 4, 6, 8], next: '10', hint: '+2 each time' },
+        { seq: [1, 3, 5, 7], next: '9', hint: 'Odd numbers' },
+        { seq: [3, 6, 9, 12], next: '15', hint: '+3 each time' },
+        { seq: [5, 10, 15, 20], next: '25', hint: '+5 each time' },
+        { seq: [1, 2, 4, 8], next: '16', hint: 'Doubles' },
+      ]
+      const p = patterns[Math.floor(Math.random() * patterns.length)]
+      const options = [p.next]
+      while (options.length < 4) {
+        const w = (parseInt(p.next) + Math.floor(Math.random() * 10) - 5).toString()
+        if (w !== p.next && !options.includes(w) && parseInt(w) > 0) options.push(w)
+      }
+      options.sort(() => Math.random() - 0.5)
+      return { type: 'pattern', question: `${p.seq.join(', ')}, ?`, options, answer: p.next, hint: p.hint }
+    }
+
+    case 'word': {
+      const words = [
+        { scrambled: 'OLVE', answer: 'LOVE', hint: 'A feeling' },
+        { scrambled: 'ETRE', answer: 'TREE', hint: 'Nature' },
+        { scrambled: 'KOOB', answer: 'BOOK', hint: 'You read it' },
+        { scrambled: 'TARS', answer: 'STAR', hint: 'In the sky' },
+        { scrambled: 'ODOF', answer: 'FOOD', hint: 'You eat it' },
+      ]
+      const w = words[Math.floor(Math.random() * words.length)]
+      const options = [w.answer, ...words.filter(x => x.answer !== w.answer).slice(0, 3).map(x => x.answer)]
+      options.sort(() => Math.random() - 0.5)
+      return { type: 'word', question: `Unscramble: ${w.scrambled}`, options, answer: w.answer, hint: w.hint }
+    }
+
+    case 'sequence': {
+      const seqs = [
+        { items: ['Mon', 'Tue', 'Wed'], next: 'Thu', hint: 'Days' },
+        { items: ['Jan', 'Feb', 'Mar'], next: 'Apr', hint: 'Months' },
+        { items: ['A', 'B', 'C'], next: 'D', hint: 'Alphabet' },
+        { items: ['Red', 'Orange', 'Yellow'], next: 'Green', hint: 'Rainbow' },
+      ]
+      const s = seqs[Math.floor(Math.random() * seqs.length)]
+      const extras = ['Fri', 'May', 'E', 'Blue', 'Sun', 'Dec', 'Z']
+      const options = [s.next]
+      while (options.length < 4) {
+        const e = extras[Math.floor(Math.random() * extras.length)]
+        if (!options.includes(e)) options.push(e)
+      }
+      options.sort(() => Math.random() - 0.5)
+      return { type: 'sequence', question: `${s.items.join(' → ')} → ?`, options, answer: s.next, hint: s.hint }
+    }
+
+    default:
+      return generateChallenge()
+  }
+}
+
+function generateToken(data: object): string {
+  return btoa(JSON.stringify({ ...data, t: Date.now(), n: Math.random().toString(36).slice(2) }))
+}
+
+export function SmartCaptcha({ onVerify, onExpire }: SmartCaptchaProps) {
+  const [state, setState] = useState<'idle' | 'challenge' | 'verifying' | 'verified' | 'failed'>('idle')
+  const [challenge, setChallenge] = useState<Challenge | null>(null)
+  const [selected, setSelected] = useState<string | null>(null)
+  const [attempts, setAttempts] = useState(0)
+  const [showHint, setShowHint] = useState(false)
+  const startTimeRef = useRef(0)
+
+  const startChallenge = useCallback(() => {
+    setChallenge(generateChallenge())
+    setState('challenge')
+    startTimeRef.current = Date.now()
+    setSelected(null)
+    setShowHint(false)
+    setAttempts(0)
   }, [])
 
-  const handleVerify = async () => {
-    if (verified || checking) return
-    
-    // Calculate hover time
-    if (hoverStartRef.current) {
-      behaviorRef.current.checkboxHoverTime = Date.now() - hoverStartRef.current
-    }
-    
-    setChecking(true)
-    
-    // Small delay to simulate verification
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    const score = calculateScore()
-    const behavior = behaviorRef.current
-    
-    // Require minimum score of 30 to pass
-    if (score >= 30) {
-      setVerified(true)
-      
-      // Generate verification token with behavior data
-      const token = generateToken({
-        score,
-        timeOnPage: (Date.now() - behavior.startTime) / 1000,
-        mouseMovements: behavior.mouseMovements,
-        keyPresses: behavior.keyPresses,
-        verified: true,
-        timestamp: Date.now(),
-      })
-      
-      onVerify(token)
-    } else {
-      // Still pass but flag as suspicious (for monitoring)
-      setVerified(true)
-      const token = generateToken({
-        score,
-        suspicious: true,
-        timeOnPage: (Date.now() - behavior.startTime) / 1000,
-        verified: true,
-        timestamp: Date.now(),
-      })
-      onVerify(token)
-    }
-    
-    setChecking(false)
-  }
+  const handleSelect = useCallback((answer: string) => {
+    if (state !== 'challenge' || !challenge) return
+    setSelected(answer)
+    setState('verifying')
 
-  const handleMouseEnter = () => {
-    setHovered(true)
-    hoverStartRef.current = Date.now()
-  }
+    setTimeout(() => {
+      if (answer === challenge.answer) {
+        setState('verified')
+        const token = generateToken({ solved: true, type: challenge.type, attempts: attempts + 1, time: Date.now() - startTimeRef.current })
+        setTimeout(() => onVerify(token), 400)
+      } else {
+        const newAttempts = attempts + 1
+        setAttempts(newAttempts)
+        if (newAttempts >= 3) {
+          setState('failed')
+          setTimeout(() => startChallenge(), 1200)
+        } else {
+          setState('challenge')
+          setSelected(null)
+          setShowHint(true)
+        }
+      }
+    }, 500)
+  }, [state, challenge, attempts, onVerify, startChallenge])
 
-  const handleMouseLeave = () => {
-    setHovered(false)
-    if (hoverStartRef.current) {
-      behaviorRef.current.checkboxHoverTime += Date.now() - hoverStartRef.current
+  useEffect(() => {
+    if (state === 'challenge') {
+      const t = setTimeout(() => { setState('idle'); onExpire?.() }, 120000)
+      return () => clearTimeout(t)
     }
-  }
+  }, [state, onExpire])
 
   return (
-    <div
-      ref={containerRef}
-      className={`border border-border rounded-lg bg-card/50 ${className}`}
-    >
-      <div className="flex items-center gap-3 p-3">
-        <button
-          type="button"
-          onClick={handleVerify}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          disabled={verified || checking}
-          className={`
-            relative h-6 w-6 rounded border-2 transition-all duration-200 flex items-center justify-center
-            ${verified 
-              ? 'bg-primary border-primary' 
-              : hovered 
-                ? 'border-primary/60 bg-primary/5' 
-                : 'border-border bg-background hover:border-primary/40'
-            }
-            ${checking ? 'cursor-wait' : verified ? 'cursor-default' : 'cursor-pointer'}
-          `}
-        >
-          {checking && (
-            <div className="h-3 w-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          )}
-          {verified && !checking && (
-            <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
-          )}
-        </button>
-        
-        <span className="text-sm text-foreground select-none">
-          {checking ? 'Verifying...' : verified ? 'Verified' : "I'm not a robot"}
-        </span>
-        
-        <div className="ml-auto flex items-center gap-1.5">
-          <ShieldCheck className="h-4 w-4 text-muted-foreground/50" />
-          <span className="text-[10px] text-muted-foreground/50 font-medium">Pictura</span>
-        </div>
-      </div>
+    <div className="w-full">
+      <AnimatePresence mode="wait">
+        {state === 'idle' && (
+          <motion.button
+            key="idle"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            type="button"
+            onClick={startChallenge}
+            className="w-full flex items-center gap-3 p-3.5 rounded-lg border border-border bg-card hover:bg-secondary/50 transition-colors"
+          >
+            <div className="w-5 h-5 rounded border-2 border-muted-foreground/40" />
+            <span className="text-sm text-muted-foreground">Verify you&apos;re human</span>
+            <div className="ml-auto flex items-center gap-1.5 text-muted-foreground/50">
+              <Shield className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-medium">Pictura</span>
+            </div>
+          </motion.button>
+        )}
+
+        {state === 'challenge' && challenge && (
+          <motion.div
+            key="challenge"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="rounded-lg border border-border bg-card overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border/50 bg-secondary/30">
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs font-medium text-muted-foreground">Security Check</span>
+              </div>
+              <button type="button" onClick={startChallenge} className="p-1 rounded hover:bg-secondary">
+                <RefreshCw className="w-3 h-3 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="p-3">
+              <p className="text-sm font-medium text-foreground">{challenge.question}</p>
+              {showHint && <p className="text-xs text-muted-foreground mt-0.5">Hint: {challenge.hint}</p>}
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                {challenge.options.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => handleSelect(opt)}
+                    disabled={selected !== null}
+                    className={`p-2.5 rounded border text-sm font-medium transition-all ${
+                      selected === opt
+                        ? opt === challenge.answer
+                          ? 'bg-green-500/10 border-green-500 text-green-600'
+                          : 'bg-red-500/10 border-red-500 text-red-600'
+                        : 'border-border hover:bg-secondary/50 text-foreground'
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+              {attempts > 0 && <p className="text-[11px] text-muted-foreground mt-2 text-center">{3 - attempts} attempts left</p>}
+            </div>
+            <div className="flex items-center justify-between px-3 py-1.5 border-t border-border/50 bg-secondary/20">
+              <span className="text-[9px] text-muted-foreground/50">Protected by Pictura</span>
+            </div>
+          </motion.div>
+        )}
+
+        {state === 'verifying' && (
+          <motion.div key="verifying" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3 p-3.5 rounded-lg border border-border bg-card">
+            <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <span className="text-sm text-muted-foreground">Verifying...</span>
+          </motion.div>
+        )}
+
+        {state === 'verified' && (
+          <motion.div key="verified" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3 p-3.5 rounded-lg border border-green-500/30 bg-green-500/5">
+            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+              <Check className="w-3 h-3 text-white" />
+            </div>
+            <span className="text-sm text-green-600 font-medium">Verified</span>
+            <div className="ml-auto flex items-center gap-1.5 text-muted-foreground/50">
+              <Shield className="w-3.5 h-3.5" />
+              <span className="text-[10px]">Pictura</span>
+            </div>
+          </motion.div>
+        )}
+
+        {state === 'failed' && (
+          <motion.div key="failed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3 p-3.5 rounded-lg border border-red-500/30 bg-red-500/5">
+            <RefreshCw className="w-4 h-4 text-red-500 animate-spin" />
+            <span className="text-sm text-red-600">Loading new challenge...</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -142,20 +142,15 @@ export default function SignupPage() {
     }
   }
 
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!otp.trim() || otp.length !== 6) {
-      toast.error('Please enter a valid 6-digit code')
-      return
-    }
+  const verifyOTP = useCallback(async (otpCode: string) => {
+    if (loading || otpCode.length !== 6) return
 
     setLoading(true)
     try {
       const res = await fetch('/api/developers/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, otp: otpCode }),
       })
 
       const data = await res.json()
@@ -166,11 +161,27 @@ export default function SignupPage() {
         toast.success('Account created successfully!')
       } else {
         toast.error(data.error || 'Invalid verification code')
+        setOtp('')
       }
     } catch {
-      toast.error('An error occurred. Please try again.')
+      toast.error('Something went wrong. Please try again.')
+      setOtp('')
     } finally {
       setLoading(false)
+    }
+  }, [email, loading])
+
+  // Auto-verify when OTP is complete
+  useEffect(() => {
+    if (step === 'verification' && otp.length === 6 && !loading) {
+      verifyOTP(otp)
+    }
+  }, [otp, step, loading, verifyOTP])
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (otp.length === 6) {
+      verifyOTP(otp)
     }
   }
 
@@ -339,30 +350,36 @@ export default function SignupPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Verification code</label>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="000000"
-                    className="w-full h-12 px-4 rounded-lg bg-background border border-border text-foreground text-center text-lg tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono"
-                    autoFocus
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="000000"
+                      disabled={loading}
+                      className="w-full h-12 px-4 rounded-lg bg-background border border-border text-foreground text-center text-lg tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-mono disabled:opacity-50"
+                      autoFocus
+                    />
+                    {loading && (
+                      <div className="absolute inset-y-0 right-3 flex items-center">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      </div>
+                    )}
+                  </div>
+                  {otp.length === 6 && loading && (
+                    <p className="text-xs text-muted-foreground mt-2 text-center">Verifying your code...</p>
+                  )}
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading || otp.length !== 6}
-                  className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    'Verify & Create Account'
-                  )}
-                </button>
+                {!loading && (
+                  <button
+                    type="submit"
+                    disabled={otp.length !== 6}
+                    className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    Verify & Create Account
+                  </button>
+                )}
 
                 <div className="text-center text-sm text-muted-foreground">
                   {timer > 0 ? (
