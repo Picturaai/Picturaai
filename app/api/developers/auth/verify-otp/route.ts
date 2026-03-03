@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
         )
         VALUES (
           ${dev.id},
-          'promo_bonus',
+          'promo',
           ${bonusCredits},
           ${`Promo code ${promoCodeUsed} - Bonus credits`},
           ${totalCredits}
