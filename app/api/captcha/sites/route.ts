@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     const sites = await sql`
       SELECT 
-        id, domain, site_key, secret_key, verified, created_at,
+        id, domain, site_name, site_key, secret_hash, is_active, created_at,
         COALESCE(challenges_solved, 0) as challenges_solved,
         COALESCE(challenges_failed, 0) as challenges_failed
       FROM captcha_sites 
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { domain } = await req.json()
+    const { domain, siteName } = await req.json()
 
     if (!domain) {
       return NextResponse.json({ error: 'Domain is required' }, { status: 400 })
@@ -89,14 +89,20 @@ export async function POST(req: NextRequest) {
 
     const siteKey = generateSiteKey()
     const secretKey = generateSecretKey()
+    const secretHash = crypto.createHash('sha256').update(secretKey).digest('hex')
+    const name = siteName || domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('.')[0]
 
     const result = await sql`
-      INSERT INTO captcha_sites (developer_id, domain, site_key, secret_key, verified)
-      VALUES (${dev.id}, ${domain.toLowerCase()}, ${siteKey}, ${secretKey}, true)
-      RETURNING id, domain, site_key, secret_key, verified, created_at, 0 as challenges_solved, 0 as challenges_failed
+      INSERT INTO captcha_sites (developer_id, email, site_name, domain, site_key, secret_hash, is_active)
+      VALUES (${dev.id}, ${dev.email}, ${name}, ${domain.toLowerCase()}, ${siteKey}, ${secretHash}, true)
+      RETURNING id, domain, site_name, site_key, is_active, created_at, 0 as challenges_solved, 0 as challenges_failed
     `
 
-    return NextResponse.json({ site: result[0] })
+    // Return the plain secret key only on creation (won't be stored)
+    return NextResponse.json({ 
+      site: result[0],
+      secretKey: secretKey // Only shown once on creation
+    })
   } catch (error) {
     console.error('Failed to add site:', error)
     return NextResponse.json({ error: 'Failed to add site' }, { status: 500 })

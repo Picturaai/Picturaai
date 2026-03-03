@@ -491,19 +491,19 @@ export default function DeveloperDashboard() {
 
               {/* Stats Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {/* ATM Card Design */}
-                <Card className="col-span-full sm:col-span-2 md:col-span-1 border-0 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+                {/* ATM Card Design - Brand Color */}
+                <Card className="col-span-full sm:col-span-2 md:col-span-1 border-0 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #C87941 0%, #A65D2E 50%, #8B4D26 100%)' }}>
                   {/* Chip pattern */}
-                  <div className="absolute top-4 left-4 w-10 h-7 rounded-md bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 opacity-90">
+                  <div className="absolute top-4 left-4 w-10 h-7 rounded-md bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400 opacity-90">
                     <div className="absolute inset-0.5 grid grid-cols-3 gap-px">
                       {[...Array(6)].map((_, i) => (
-                        <div key={i} className="bg-yellow-500/50 rounded-sm" />
+                        <div key={i} className="bg-yellow-400/50 rounded-sm" />
                       ))}
                     </div>
                   </div>
                   {/* Contactless icon */}
                   <div className="absolute top-4 right-4">
-                    <svg className="w-6 h-6 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg className="w-6 h-6 text-white/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M8.5 14.5c2-2 5-2 7 0M6 12c3.5-3.5 8.5-3.5 12 0M3.5 9.5c5-5 12-5 17 0" strokeLinecap="round"/>
                     </svg>
                   </div>
@@ -519,25 +519,25 @@ export default function DeveloperDashboard() {
                     </svg>
                   </div>
                   {/* Holographic strip */}
-                  <div className="absolute bottom-12 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                  <div className="absolute bottom-12 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                   
                   <CardContent className="p-4 pt-14 relative text-white">
                     <div className="mb-4">
-                      <p className="text-[9px] uppercase tracking-[0.2em] text-white/50 mb-1">Available Balance</p>
+                      <p className="text-[9px] uppercase tracking-[0.2em] text-white/70 mb-1">Available Balance</p>
                       <div className="text-2xl sm:text-3xl font-bold tracking-tight">{formatCurrency(developer.creditsBalance)}</div>
                     </div>
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-[8px] uppercase tracking-wider text-white/40 mb-0.5">Card Holder</p>
+                        <p className="text-[8px] uppercase tracking-wider text-white/60 mb-0.5">Card Holder</p>
                         <p className="text-xs font-medium tracking-wide truncate max-w-[120px]">{developer.name?.toUpperCase()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[8px] uppercase tracking-wider text-white/40 mb-0.5">Tier</p>
+                        <p className="text-[8px] uppercase tracking-wider text-white/60 mb-0.5">Tier</p>
                         <p className="text-xs font-medium">{developer.tier?.toUpperCase() || 'FREE'}</p>
                       </div>
                       <div className="flex gap-1">
-                        <div className="w-6 h-6 rounded-full bg-[#C87941] opacity-80" />
-                        <div className="w-6 h-6 rounded-full bg-[#E5A869] opacity-80 -ml-3" />
+                        <div className="w-6 h-6 rounded-full bg-white/30" />
+                        <div className="w-6 h-6 rounded-full bg-white/20 -ml-3" />
                       </div>
                     </div>
                   </CardContent>
@@ -690,39 +690,41 @@ export default function DeveloperDashboard() {
                   ) : (
                     <div className="divide-y">
                       {developer.apiKeys.map((key) => (
-                        <div key={key.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                          <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${key.isActive ? 'bg-[#C87941]/10' : 'bg-muted'}`}>
-                              <Key className={`h-5 w-5 ${key.isActive ? 'text-[#C87941]' : 'text-muted-foreground'}`} />
+                        <div key={key.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 hover:bg-muted/50 transition-colors gap-2 sm:gap-4">
+                          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 ${key.isActive ? 'bg-[#C87941]/10' : 'bg-muted'}`}>
+                              <Key className={`h-4 w-4 sm:h-5 sm:w-5 ${key.isActive ? 'text-[#C87941]' : 'text-muted-foreground'}`} />
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-medium">{key.name}</p>
-                                {!key.isActive && <Badge variant="secondary" className="text-xs">Inactive</Badge>}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-medium text-sm sm:text-base truncate">{key.name}</p>
+                                {!key.isActive && <Badge variant="secondary" className="text-[10px] sm:text-xs">Inactive</Badge>}
                               </div>
-                              <code className="text-sm text-muted-foreground font-mono">{key.keyPreview}</code>
+                              <code className="text-xs sm:text-sm text-muted-foreground font-mono block truncate">{key.keyPreview}</code>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-xs text-muted-foreground hidden sm:block">
+                          <div className="flex items-center justify-between sm:justify-end gap-2 pl-11 sm:pl-0">
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">
                               {key.requestsCount.toLocaleString()} requests
                             </p>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => copyToClipboard(key.keyPreview)}
-                              className="text-muted-foreground"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setKeyToDelete(key)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(key.keyPreview)}
+                                className="text-muted-foreground h-8 w-8 p-0"
+                              >
+                                <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setKeyToDelete(key)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -842,24 +844,24 @@ export default function DeveloperDashboard() {
                   <CardDescription className="text-xs">Your credits are used for API calls.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {/* Premium ATM Card Design */}
-                  <div className="relative overflow-hidden rounded-2xl aspect-[1.6/1] max-w-md" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+                  {/* Premium ATM Card Design - Brand Color */}
+                  <div className="relative overflow-hidden rounded-2xl aspect-[1.6/1] max-w-md" style={{ background: 'linear-gradient(135deg, #C87941 0%, #A65D2E 50%, #8B4D26 100%)' }}>
                     {/* Chip */}
-                    <div className="absolute top-6 left-6 w-12 h-9 rounded-lg bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-600 opacity-90">
+                    <div className="absolute top-6 left-6 w-12 h-9 rounded-lg bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400 opacity-90">
                       <div className="absolute inset-1 grid grid-cols-3 gap-0.5">
                         {[...Array(6)].map((_, i) => (
-                          <div key={i} className="bg-yellow-500/50 rounded-sm" />
+                          <div key={i} className="bg-yellow-400/50 rounded-sm" />
                         ))}
                       </div>
                     </div>
                     {/* Contactless */}
                     <div className="absolute top-6 right-6">
-                      <svg className="w-8 h-8 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <svg className="w-8 h-8 text-white/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M8.5 14.5c2-2 5-2 7 0M6 12c3.5-3.5 8.5-3.5 12 0M3.5 9.5c5-5 12-5 17 0" strokeLinecap="round"/>
                       </svg>
                     </div>
                     {/* Background pattern */}
-                    <div className="absolute inset-0 opacity-5">
+                    <div className="absolute inset-0 opacity-10">
                       <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <defs>
                           <pattern id="billingGrid" width="8" height="8" patternUnits="userSpaceOnUse">
@@ -870,22 +872,22 @@ export default function DeveloperDashboard() {
                       </svg>
                     </div>
                     {/* Holographic strip */}
-                    <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                     
                     {/* Card content */}
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                       <div className="mb-3">
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 mb-1">Available Balance</p>
+                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/70 mb-1">Available Balance</p>
                         <div className="text-3xl sm:text-4xl font-bold tracking-tight">{formatCurrency(developer.creditsBalance)}</div>
                       </div>
                       <div className="flex items-end justify-between">
                         <div>
-                          <p className="text-[8px] uppercase tracking-wider text-white/40 mb-0.5">Card Holder</p>
+                          <p className="text-[8px] uppercase tracking-wider text-white/60 mb-0.5">Card Holder</p>
                           <p className="text-sm font-medium tracking-wide">{developer.name?.toUpperCase()}</p>
                         </div>
                         <div className="flex gap-1">
-                          <div className="w-7 h-7 rounded-full bg-[#C87941] opacity-90" />
-                          <div className="w-7 h-7 rounded-full bg-[#E5A869] opacity-90 -ml-4" />
+                          <div className="w-7 h-7 rounded-full bg-white/30" />
+                          <div className="w-7 h-7 rounded-full bg-white/20 -ml-4" />
                         </div>
                       </div>
                     </div>
@@ -930,10 +932,10 @@ export default function DeveloperDashboard() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Manage your account settings</p>
               </div>
 
-              {/* Profile Card with Pattern Background */}
+              {/* Profile Card with Brand Color Background */}
               <Card className="overflow-hidden">
-                <div className="h-20 sm:h-24 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] relative">
-                  <div className="absolute inset-0 opacity-10">
+                <div className="h-20 sm:h-24 bg-gradient-to-br from-[#C87941] via-[#A65D2E] to-[#8B4D26] relative">
+                  <div className="absolute inset-0 opacity-15">
                     <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                       <defs>
                         <pattern id="settingsGrid" width="8" height="8" patternUnits="userSpaceOnUse">
