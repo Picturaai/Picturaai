@@ -519,11 +519,16 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
             )}
             
             {/* Analyzing */}
-            {status === 'analyzing' && (
-              <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
-                <Fingerprint className="h-5 w-5 text-primary animate-pulse" />
-                <span className="text-sm text-muted-foreground">Analyzing behavior...</span>
-              </motion.div>
+{status === 'analyzing' && (
+  <motion.div key="analyzing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-3">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+    >
+      <Fingerprint className="h-5 w-5 text-primary" />
+    </motion.div>
+    <span className="text-sm text-muted-foreground">Analyzing behavior...</span>
+  </motion.div>
             )}
             
             {/* Show Correct Answer */}
@@ -554,24 +559,18 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
             {/* Challenge */}
             {status === 'challenge' && challenge && (
               <motion.div key="challenge" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-3">
-                {/* Step indicator */}
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    {Array.from({ length: requiredSteps }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={`h-1.5 rounded-full transition-all ${
-                          i < currentStep - 1 
-                            ? 'w-6 bg-primary' 
-                            : i === currentStep - 1 
-                              ? 'w-6 bg-primary animate-pulse' 
-                              : 'w-1.5 bg-border'
-                        }`}
-                      />
-                    ))}
+                {/* Step progress bar */}
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-primary rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${((currentStep - 1) / requiredSteps) * 100}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
                   </div>
-                  <span className="text-[10px] text-muted-foreground font-medium">
-                    Step {currentStep} of {requiredSteps}
+                  <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">
+                    {currentStep}/{requiredSteps}
                   </span>
                 </div>
                 
@@ -695,11 +694,16 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
                       </svg>
                       
                       <div className="flex flex-col items-center">
-                        {isHolding ? (
-                          <>
-                            <Heart className={`h-6 w-6 text-primary ${pulseData.length > 0 ? 'animate-pulse' : ''}`} />
-                            <span className="text-[10px] text-primary mt-1 font-medium">
-                              {pulseDetected ? `${Math.round(pulseData[pulseData.length - 1])} BPM` : 'Detecting...'}
+{isHolding ? (
+    <>
+      <motion.div
+        animate={pulseData.length > 0 ? { scale: [1, 1.15, 1] } : {}}
+        transition={{ duration: 0.8, repeat: Infinity }}
+      >
+        <Heart className="h-6 w-6 text-primary" />
+      </motion.div>
+      <span className="text-[10px] text-primary mt-1 font-medium">
+        {pulseDetected ? `${Math.round(pulseData[pulseData.length - 1])} BPM` : 'Detecting...'}
                             </span>
                           </>
                         ) : (

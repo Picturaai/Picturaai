@@ -67,7 +67,7 @@ export default function CaptchaPage() {
             >
               <div className="flex items-center justify-center lg:justify-start gap-2 mb-4">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <Check className="h-3 w-3" />
                   100% Free Forever
                 </span>
               </div>
@@ -187,8 +187,8 @@ export default function CaptchaPage() {
         </div>
       </section>
       
-      {/* How It Works */}
-      <section className="py-12 sm:py-16 md:py-20 bg-muted/30">
+      {/* How It Works - Interactive Flow Diagram */}
+      <section className="py-12 sm:py-16 md:py-20 bg-muted/30 overflow-hidden">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.div
             initial="hidden"
@@ -204,48 +204,114 @@ export default function CaptchaPage() {
             </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
-            {[
-              {
-                step: '1',
-                title: 'Behavioral Analysis',
-                desc: 'We analyze mouse movements, typing patterns, scroll behavior, and interaction timing to detect bot-like patterns.',
-                icon: Eye,
-              },
-              {
-                step: '2', 
-                title: 'Risk Assessment',
-                desc: 'Our AI calculates a risk score. Low-risk users pass automatically, while suspicious behavior triggers a challenge.',
-                icon: Shield,
-              },
-              {
-                step: '3',
-                title: 'Smart Challenges',
-                desc: 'Multiple challenge types: math, patterns, image selection, text recognition, and slider puzzles - randomly selected.',
-                icon: Lock,
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={item.step}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-                variants={fadeUp}
-                className="relative"
-              >
-                <div className="rounded-xl border border-border bg-card p-6 h-full">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                      {item.step}
+          {/* Flow Diagram */}
+          <div className="relative">
+            {/* Connection lines - Desktop */}
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2 z-0" />
+            
+            <div className="grid md:grid-cols-3 gap-6 sm:gap-8 relative z-10">
+              {[
+                {
+                  step: '1',
+                  title: 'User Arrives',
+                  desc: 'Silent behavioral analysis begins immediately. Mouse movements, scroll patterns, and timing are tracked.',
+                  icon: Eye,
+                  wireframe: (
+                    <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                      <div className="aspect-video bg-background rounded border border-border/50 p-2 relative overflow-hidden">
+                        <div className="absolute top-2 left-2 right-2 h-1.5 bg-border/50 rounded" />
+                        <div className="absolute top-5 left-2 w-12 h-1 bg-border/30 rounded" />
+                        <div className="absolute top-7 left-2 w-8 h-1 bg-border/30 rounded" />
+                        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 60">
+                          <path d="M10,50 Q30,20 50,35 T90,15" stroke="hsl(var(--primary))" strokeWidth="1" fill="none" strokeDasharray="3,2" opacity="0.5" />
+                          <circle cx="90" cy="15" r="3" fill="hsl(var(--primary))" opacity="0.7" />
+                        </svg>
+                        <div className="absolute bottom-2 right-2 text-[8px] text-muted-foreground">tracking...</div>
+                      </div>
                     </div>
-                    <item.icon className="h-5 w-5 text-primary" />
+                  )
+                },
+                {
+                  step: '2', 
+                  title: 'Risk Score',
+                  desc: 'AI calculates threat level based on 50+ behavioral signals. Humans pass silently, bots get challenged.',
+                  icon: Shield,
+                  wireframe: (
+                    <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                      <div className="aspect-video bg-background rounded border border-border/50 p-3 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="text-[10px] text-muted-foreground">Risk:</div>
+                          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                            <div className="h-full w-1/4 bg-gradient-to-r from-green-500 to-green-400 rounded-full" />
+                          </div>
+                          <div className="text-[10px] font-medium text-green-500">Low</div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 mt-1">
+                          <div className="h-1 bg-green-500/30 rounded" />
+                          <div className="h-1 bg-green-500/30 rounded" />
+                          <div className="h-1 bg-border/30 rounded" />
+                        </div>
+                        <div className="text-[8px] text-center text-muted-foreground mt-2">Human: 94%</div>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  step: '3',
+                  title: 'Verification',
+                  desc: 'If needed, one of 9 challenge types is randomly selected. Users must pass 2-3 challenges based on risk.',
+                  icon: Lock,
+                  wireframe: (
+                    <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                      <div className="aspect-video bg-background rounded border border-border/50 p-2">
+                        <div className="h-full flex flex-col">
+                          <div className="flex gap-1 mb-1">
+                            <div className="w-4 h-1 bg-primary rounded-full" />
+                            <div className="w-4 h-1 bg-primary/30 rounded-full" />
+                            <div className="w-1 h-1 bg-border rounded-full" />
+                          </div>
+                          <div className="text-[8px] text-muted-foreground mb-1">Select all vehicles:</div>
+                          <div className="flex-1 grid grid-cols-3 gap-0.5">
+                            {[1,2,3,4,5,6].map(i => (
+                              <div key={i} className={`rounded ${i === 1 || i === 3 ? 'bg-primary/20 ring-1 ring-primary' : 'bg-muted/50'}`} />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.step}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  custom={i}
+                  variants={fadeUp}
+                  className="relative"
+                >
+                  <div className="rounded-xl border border-border bg-card p-5 h-full">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
+                        {item.step}
+                      </div>
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <item.icon className="h-4 w-4 text-primary" />
+                      </div>
+                      {i < 2 && (
+                        <div className="hidden md:flex flex-1 justify-end">
+                          <ArrowRight className="h-4 w-4 text-muted-foreground/50" />
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    {item.wireframe}
                   </div>
-                  <h3 className="font-semibold text-foreground text-lg mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+            </div>
           </div>
           
           <motion.div
