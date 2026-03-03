@@ -4,10 +4,10 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  X, Wand2, Loader2, Undo2, Redo2, Download, Share2,
-  Eraser, Paintbrush, ZoomIn, ZoomOut, RotateCcw,
-  Sparkles, Scissors, Layers, Sun, Contrast, Palette,
-  ArrowLeft, Check, RefreshCw, Send, History
+  X, Wand2, Loader2, Undo2, Redo2, Download,
+  Eraser, ZoomIn, ZoomOut, RotateCcw,
+  Sparkles, Layers, Sun, Contrast, Palette,
+  ArrowLeft, Check, Send, History
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -24,12 +24,12 @@ interface AIImageEditorProps {
 }
 
 const QUICK_ACTIONS = [
-  { icon: Eraser, label: 'Remove Background', instruction: 'Remove the background and make it transparent' },
+  { icon: Eraser, label: 'Remove BG', instruction: 'Remove the background and make it transparent' },
   { icon: Sun, label: 'Enhance', instruction: 'Enhance the image quality, improve lighting and colors' },
   { icon: Sparkles, label: 'Upscale', instruction: 'Upscale and enhance resolution while keeping details sharp' },
-  { icon: Palette, label: 'Color Correct', instruction: 'Auto color correct and balance the image' },
-  { icon: Contrast, label: 'Increase Contrast', instruction: 'Increase contrast to make the image more vibrant' },
-  { icon: Layers, label: 'Add Depth', instruction: 'Add depth of field effect, blur background slightly' },
+  { icon: Palette, label: 'Colors', instruction: 'Auto color correct and balance the image' },
+  { icon: Contrast, label: 'Contrast', instruction: 'Increase contrast to make the image more vibrant' },
+  { icon: Layers, label: 'Depth', instruction: 'Add depth of field effect, blur background slightly' },
 ]
 
 const STYLE_PRESETS = [
@@ -76,7 +76,6 @@ export function AIImageEditor({ imageUrl, onClose, onSave }: AIImageEditorProps)
       const data = await res.json()
       const newUrl = data.url
 
-      // Add to history (remove any redo history)
       const newHistory = history.slice(0, historyIndex + 1)
       newHistory.push({ url: newUrl, instruction: editInstruction, timestamp: new Date() })
       setHistory(newHistory)
@@ -133,7 +132,6 @@ export function AIImageEditor({ imageUrl, onClose, onSave }: AIImageEditorProps)
     onClose()
   }
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -155,147 +153,121 @@ export function AIImageEditor({ imageUrl, onClose, onSave }: AIImageEditorProps)
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 bg-background flex flex-col"
     >
-      {/* Header */}
-      <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors">
-            <ArrowLeft className="h-5 w-5" />
+      {/* Header - Mobile Responsive */}
+      <header className="flex items-center justify-between border-b border-border px-3 sm:px-4 py-2.5 sm:py-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button onClick={onClose} className="p-1.5 sm:p-2 rounded-lg hover:bg-muted transition-colors">
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           <div>
-            <h1 className="font-semibold text-foreground">AI Image Editor</h1>
-            <p className="text-xs text-muted-foreground">Edit with natural language instructions</p>
+            <h1 className="text-sm sm:text-base font-semibold text-foreground">AI Editor</h1>
+            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Edit with natural language</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Undo/Redo */}
-          <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Undo/Redo - compact on mobile */}
+          <div className="flex items-center gap-0.5 sm:gap-1">
             <button
               onClick={handleUndo}
               disabled={!canUndo}
-              className="p-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-30"
-              title="Undo (Ctrl+Z)"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-30"
             >
-              <Undo2 className="h-4 w-4" />
+              <Undo2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
             <button
               onClick={handleRedo}
               disabled={!canRedo}
-              className="p-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-30"
-              title="Redo (Ctrl+Y)"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-muted transition-colors disabled:opacity-30"
             >
-              <Redo2 className="h-4 w-4" />
+              <Redo2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className={`p-2 rounded-lg transition-colors ${showHistory ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}`}
-              title="History"
+              className={`p-1.5 sm:p-2 rounded-lg transition-colors hidden sm:flex ${showHistory ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}`}
             >
               <History className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Zoom */}
-          <div className="flex items-center gap-1 border-r border-border pr-2 mr-2">
-            <button
-              onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-            >
+          {/* Zoom - hidden on mobile */}
+          <div className="hidden md:flex items-center gap-1 border-l border-border pl-2 ml-1">
+            <button onClick={() => setZoom(z => Math.max(0.5, z - 0.25))} className="p-2 rounded-lg hover:bg-muted">
               <ZoomOut className="h-4 w-4" />
             </button>
-            <span className="text-xs text-muted-foreground w-12 text-center">{Math.round(zoom * 100)}%</span>
-            <button
-              onClick={() => setZoom(z => Math.min(3, z + 0.25))}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-            >
+            <span className="text-xs text-muted-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom(z => Math.min(3, z + 0.25))} className="p-2 rounded-lg hover:bg-muted">
               <ZoomIn className="h-4 w-4" />
             </button>
           </div>
 
           {/* Actions */}
-          <button
-            onClick={handleReset}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
-            title="Reset to original"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </button>
-          <button
-            onClick={handleDownload}
-            className="p-2 rounded-lg hover:bg-muted transition-colors"
-            title="Download"
-          >
-            <Download className="h-4 w-4" />
-          </button>
-          <button
-            onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity"
-          >
-            <Check className="h-4 w-4" />
-            Save
-          </button>
+          <div className="flex items-center gap-1 border-l border-border pl-2 ml-1">
+            <button onClick={handleReset} className="p-1.5 sm:p-2 rounded-lg hover:bg-muted">
+              <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </button>
+            <button onClick={handleDownload} className="p-1.5 sm:p-2 rounded-lg hover:bg-muted">
+              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-primary text-primary-foreground font-medium text-xs sm:text-sm"
+            >
+              <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Save</span>
+            </button>
+          </div>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Main Canvas Area */}
-        <div className="flex-1 flex items-center justify-center p-8 overflow-auto bg-muted/30">
-          <div
-            className="relative transition-transform duration-200"
-            style={{ transform: `scale(${zoom})` }}
-          >
+        {/* Main Canvas */}
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto bg-muted/30">
+          <div className="relative transition-transform duration-200" style={{ transform: `scale(${zoom})` }}>
             <Image
               src={currentImage}
               alt="Editing"
               width={800}
               height={800}
-              className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+              className="max-w-full max-h-[50vh] sm:max-h-[60vh] object-contain rounded-xl shadow-xl"
               priority
             />
             {isProcessing && (
-              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg">
-                <Loader2 className="h-8 w-8 text-primary animate-spin mb-3" />
-                <p className="text-sm font-medium">Applying edit...</p>
-                <p className="text-xs text-muted-foreground mt-1">This may take a few seconds</p>
+              <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl">
+                <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-primary animate-spin mb-2 sm:mb-3" />
+                <p className="text-xs sm:text-sm font-medium">Applying edit...</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Sidebar - History */}
+        {/* History Sidebar */}
         <AnimatePresence>
           {showHistory && (
             <motion.div
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 280, opacity: 1 }}
+              animate={{ width: 260, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              className="border-l border-border bg-card overflow-hidden"
+              className="border-l border-border bg-card overflow-hidden hidden sm:block"
             >
               <div className="p-4">
-                <h3 className="font-semibold text-sm mb-3">Edit History</h3>
+                <h3 className="font-semibold text-sm mb-3">History</h3>
                 <div className="space-y-2 max-h-[60vh] overflow-auto">
                   {history.map((item, i) => (
                     <button
                       key={i}
-                      onClick={() => {
-                        setHistoryIndex(i)
-                        setCurrentImage(item.url)
-                      }}
+                      onClick={() => { setHistoryIndex(i); setCurrentImage(item.url) }}
                       className={`w-full p-2 rounded-lg border text-left transition-colors ${
-                        i === historyIndex
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:bg-muted'
+                        i === historyIndex ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
                           <Image src={item.url} alt="" width={32} height={32} className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{item.instruction}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {item.timestamp.toLocaleTimeString()}
-                          </p>
+                          <p className="text-[10px] text-muted-foreground">{item.timestamp.toLocaleTimeString()}</p>
                         </div>
                       </div>
                     </button>
@@ -307,71 +279,67 @@ export function AIImageEditor({ imageUrl, onClose, onSave }: AIImageEditorProps)
         </AnimatePresence>
       </div>
 
-      {/* Bottom Panel */}
-      <div className="border-t border-border bg-card p-4">
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
-          <span className="text-xs text-muted-foreground flex-shrink-0">Quick:</span>
-          {QUICK_ACTIONS.map((action) => (
-            <button
-              key={action.label}
-              onClick={() => handleEdit(action.instruction)}
-              disabled={isProcessing}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-background hover:bg-muted text-xs font-medium transition-colors disabled:opacity-50 flex-shrink-0"
-            >
-              <action.icon className="h-3 w-3" />
-              {action.label}
-            </button>
-          ))}
+      {/* Bottom Panel - Fully Responsive */}
+      <div className="border-t border-border bg-card px-3 sm:px-4 py-3 sm:py-4 space-y-3">
+        {/* Quick Actions - Wrapped Grid on Mobile */}
+        <div className="space-y-2">
+          <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">Quick Actions</span>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
+            {QUICK_ACTIONS.map((action) => (
+              <button
+                key={action.label}
+                onClick={() => handleEdit(action.instruction)}
+                disabled={isProcessing}
+                className="flex flex-col items-center justify-center gap-1 p-2 sm:p-2.5 rounded-xl border border-border bg-background hover:bg-muted hover:border-primary/30 transition-all disabled:opacity-50"
+              >
+                <action.icon className="h-4 w-4 text-primary" />
+                <span className="text-[9px] sm:text-[10px] font-medium text-foreground">{action.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Style Presets */}
-        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
-          <span className="text-xs text-muted-foreground flex-shrink-0">Styles:</span>
-          {STYLE_PRESETS.map((style) => (
-            <button
-              key={style.label}
-              onClick={() => handleEdit(style.instruction)}
-              disabled={isProcessing}
-              className="px-3 py-1.5 rounded-full border border-border bg-background hover:bg-muted text-xs font-medium transition-colors disabled:opacity-50 flex-shrink-0"
-            >
-              {style.label}
-            </button>
-          ))}
+        {/* Style Presets - Wrapped Grid */}
+        <div className="space-y-2">
+          <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">Styles</span>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {STYLE_PRESETS.map((style) => (
+              <button
+                key={style.label}
+                onClick={() => handleEdit(style.instruction)}
+                disabled={isProcessing}
+                className="px-3 py-1.5 rounded-full border border-border bg-background hover:bg-primary/5 hover:border-primary/30 text-[10px] sm:text-xs font-medium transition-all disabled:opacity-50"
+              >
+                {style.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Custom Instruction Input */}
-        <div className="flex items-center gap-3">
+        {/* Input */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex-1 relative">
-            <Wand2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Wand2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <input
               ref={inputRef}
               type="text"
               value={instruction}
               onChange={(e) => setInstruction(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleEdit(instruction)}
-              placeholder="Describe what you want to change... (e.g., 'Remove the person on the left', 'Make the sky more blue')"
-              className="w-full h-11 pl-10 pr-4 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              placeholder="Describe changes..."
+              className="w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-3 sm:pr-4 rounded-xl border border-border bg-background text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               disabled={isProcessing}
             />
           </div>
           <button
             onClick={() => handleEdit(instruction)}
             disabled={!instruction.trim() || isProcessing}
-            className="h-11 px-6 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+            className="h-10 sm:h-11 px-4 sm:px-6 rounded-xl bg-primary text-primary-foreground font-medium text-xs sm:text-sm disabled:opacity-50 flex items-center gap-2"
           >
-            {isProcessing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-            Apply
+            {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            <span className="hidden sm:inline">Apply</span>
           </button>
         </div>
-
-        <p className="text-[10px] text-muted-foreground mt-2 text-center">
-          Tip: Be specific with your instructions. Press Enter to apply, Ctrl+Z to undo.
-        </p>
       </div>
     </motion.div>
   )

@@ -1179,116 +1179,95 @@ export function Studio() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.92, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="relative flex flex-col lg:flex-row gap-4 max-h-[90vh] max-w-5xl w-full mx-4"
+              className="relative w-full max-w-4xl mx-2 sm:mx-4 max-h-[95vh] sm:max-h-[90vh] overflow-hidden rounded-2xl bg-background border border-border shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Image Container */}
-              <div className="relative flex-1 min-h-0">
-                <div className="relative h-full min-h-[300px] lg:min-h-[400px] rounded-2xl overflow-hidden bg-black/20 backdrop-blur-sm flex items-center justify-center">
-                  {lightbox.url ? (
-                    <Image
-                      src={lightbox.url}
-                      alt={lightbox.prompt}
-                      width={1024}
-                      height={1024}
-                      className="h-auto max-h-[60vh] lg:max-h-[80vh] w-full object-contain"
-                      priority
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center gap-3 text-white/50">
-                      <ImageIcon className="h-12 w-12" />
-                      <p className="text-sm">Image unavailable</p>
-                    </div>
-                  )}
-                  {/* Action buttons on image */}
-                  <div className="absolute top-3 right-3 flex items-center gap-1.5">
+              {/* Close button */}
+              <button
+                onClick={() => setLightbox(null)}
+                className="absolute top-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-all hover:bg-black/70"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              {/* Image */}
+              <div className="relative bg-muted/30">
+                {lightbox.url ? (
+                  <Image
+                    src={lightbox.url}
+                    alt={lightbox.prompt}
+                    width={1024}
+                    height={1024}
+                    className="w-full h-auto max-h-[50vh] sm:max-h-[65vh] object-contain"
+                    priority
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                ) : (
+                  <div className="h-64 flex flex-col items-center justify-center text-muted-foreground">
+                    <ImageIcon className="h-12 w-12 mb-2" />
+                    <p className="text-sm">Image unavailable</p>
+                  </div>
+                )}
+                
+                {/* Action buttons overlay */}
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => {
                         setEditorImage(lightbox.url)
                         setEditorOpen(true)
                         setLightbox(null)
                       }}
-                      className="flex h-9 items-center gap-1.5 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shadow-lg transition-all hover:opacity-90 active:scale-95"
-                      aria-label="Edit with AI"
+                      className="flex h-8 items-center gap-1.5 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-medium shadow-lg"
                     >
-                      <Sparkles className="h-3.5 w-3.5" />
+                      <Sparkles className="h-3 w-3" />
                       Edit
                     </button>
                     <button
                       onClick={() => handleDownload(lightbox)}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-foreground shadow-lg transition-all hover:bg-white active:scale-95"
-                      aria-label="Download"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/90 text-foreground shadow-lg"
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleFeedback(lightbox.url, 'up')}
+                      className={`h-8 w-8 rounded-lg flex items-center justify-center shadow-lg transition-all ${
+                        feedbackMap[lightbox.url] === 'up' ? 'bg-primary text-primary-foreground' : 'bg-white/90 text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <ThumbsUp className="h-3.5 w-3.5" />
                     </button>
                     <button
-                      onClick={() => setLightbox(null)}
-                      className="flex h-9 w-9 items-center justify-center rounded-xl bg-black/50 text-white backdrop-blur-sm transition-all hover:bg-black/70 active:scale-95"
-                      aria-label="Close"
+                      onClick={() => handleFeedback(lightbox.url, 'down')}
+                      className={`h-8 w-8 rounded-lg flex items-center justify-center shadow-lg transition-all ${
+                        feedbackMap[lightbox.url] === 'down' ? 'bg-destructive text-destructive-foreground' : 'bg-white/90 text-muted-foreground hover:text-foreground'
+                      }`}
                     >
-                      <X className="h-4 w-4" />
+                      <ThumbsDown className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Prompt & Info Card */}
-              <div className="lg:w-80 flex-shrink-0 rounded-2xl bg-background/95 backdrop-blur-md border border-border/50 shadow-xl p-5 flex flex-col">
-                {/* Header */}
-                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border/50">
-                  <PicturaIcon size={20} />
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Generated Image</p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {lightbox.type === 'text-to-image' ? 'Text to Image' : 'Image to Image'}
+              {/* Info Panel */}
+              <div className="p-4 sm:p-5 border-t border-border/50 max-h-[30vh] overflow-y-auto">
+                <div className="flex items-start gap-3">
+                  <PicturaIcon size={18} className="flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-semibold text-foreground">Generated Image</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                        {lightbox.type === 'text-to-image' ? 'Text to Image' : 'Image to Image'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{lightbox.prompt}</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-3">
+                      {new Date(lightbox.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
-
-                {/* Prompt */}
-                <div className="flex-1 min-h-0 overflow-y-auto">
-                  <p className="text-xs text-muted-foreground mb-2 font-medium">Prompt</p>
-                  <p className="text-sm text-foreground leading-relaxed">{lightbox.prompt}</p>
-                </div>
-
-                {/* Feedback */}
-                <div className="mt-4 pt-4 border-t border-border/50">
-                  <p className="text-xs text-muted-foreground mb-3">How did we do?</p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleFeedback(lightbox.url, 'up')}
-                      className={`flex-1 flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-medium transition-all ${
-                        feedbackMap[lightbox.url] === 'up'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                      }`}
-                      aria-label="Like"
-                    >
-                      <ThumbsUp className="h-4 w-4" />
-                      Good
-                    </button>
-                    <button
-                      onClick={() => handleFeedback(lightbox.url, 'down')}
-                      className={`flex-1 flex items-center justify-center gap-2 h-10 rounded-xl text-sm font-medium transition-all ${
-                        feedbackMap[lightbox.url] === 'down'
-                          ? 'bg-destructive text-destructive-foreground'
-                          : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                      }`}
-                      aria-label="Dislike"
-                    >
-                      <ThumbsDown className="h-4 w-4" />
-                      Bad
-                    </button>
-                  </div>
-                </div>
-
-                {/* Timestamp */}
-                <p className="mt-4 text-[10px] text-muted-foreground/60 text-center">
-                  {new Date(lightbox.createdAt).toLocaleString()}
-                </p>
               </div>
             </motion.div>
           </motion.div>
