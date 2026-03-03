@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { emailTemplates } from './email-templates'
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.zeptomail.com',
@@ -36,18 +37,44 @@ export function generateOTP(): string {
   return Math.random().toString().slice(2, 8)
 }
 
+export async function sendOTPEmail(email: string, name: string, otp: string) {
+  const html = emailTemplates.otp(name, otp)
+  return sendEmail({
+    to: email,
+    subject: 'Verify Your Email - Pictura AI',
+    html,
+  })
+}
+
+export async function sendWelcomeEmail(email: string, name: string, credits: number, currency: string) {
+  const html = emailTemplates.welcomeCredits(name, credits, currency)
+  return sendEmail({
+    to: email,
+    subject: 'Welcome to Pictura AI - Developer Platform',
+    html,
+  })
+}
+
+export async function sendLowCreditsAlert(email: string, name: string, creditsRemaining: number, currency: string) {
+  const html = emailTemplates.lowCreditsAlert(name, creditsRemaining, currency)
+  return sendEmail({
+    to: email,
+    subject: 'Low Credits Alert - Pictura AI',
+    html,
+  })
+}
+
+export async function sendInvoiceEmail(email: string, name: string, invoiceId: string, amount: number, currency: string, items: any[], date: string) {
+  const html = emailTemplates.invoice(name, invoiceId, amount, currency, items, date)
+  return sendEmail({
+    to: email,
+    subject: `Invoice ${invoiceId} - Pictura AI`,
+    html,
+  })
+}
+
 export function getOTPEmailTemplate(otp: string, name: string): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; }
-          .header { background: linear-gradient(135deg, #8B5A3C 0%, #A0704D 100%); padding: 40px 20px; text-align: center; }
-          .logo { font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 10px; }
+  return emailTemplates.otp(name, otp)
           .content { background: #f9f9f9; padding: 40px 20px; text-align: center; }
           .otp-box { background: #fff; border: 2px solid #8B5A3C; border-radius: 8px; padding: 30px; margin: 20px 0; }
           .otp-code { font-size: 32px; font-weight: bold; color: #8B5A3C; letter-spacing: 5px; font-family: 'Courier New', monospace; }

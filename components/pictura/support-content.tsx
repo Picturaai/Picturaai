@@ -11,7 +11,7 @@ const supportTiers = [
   {
     icon: Coffee,
     title: 'Coffee',
-    amount: 2000,
+    amount: 1000,
     description: 'Support the dev team with a coffee',
   },
   {
@@ -64,6 +64,10 @@ export function SupportContent() {
 
   const handleDonate = async () => {
     if (!selectedAmount) return
+    if (selectedAmount < 1000) {
+      alert('Minimum donation is ₦1000. Please select a higher tier.')
+      return
+    }
     if (!donorEmail.trim()) {
       alert('Please enter your email address')
       return
@@ -71,7 +75,7 @@ export function SupportContent() {
 
     setLoading(selectedAmount)
     try {
-      const response = await fetch('/api/korapay-initialize', {
+      const response = await fetch('/api/donate/initialize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -226,9 +230,9 @@ export function SupportContent() {
             transition={{ duration: 0.6 }}
             className="mt-12 p-8 rounded-xl border border-primary/20 bg-primary/5 text-center"
           >
-            <h3 className="text-xl font-semibold text-foreground mb-3">Other Ways to Help</h3>
+            <h3 className="text-xl font-semibold text-foreground mb-3">Donations Available in Nigeria</h3>
             <p className="text-muted-foreground mb-4">
-              Can't donate? No problem! You can still support us by:
+              We currently accept donations from Nigerian supporters. Minimum donation is ₦1000. Other ways to help:
             </p>
             <ul className="text-sm text-muted-foreground space-y-2">
               <li>Sharing Pictura with friends and family</li>
