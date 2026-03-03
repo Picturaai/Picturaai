@@ -208,9 +208,10 @@ export default function CaptchaPage() {
             viewport={{ once: true }}
             custom={1}
             variants={fadeUp}
-            className="overflow-x-auto -mx-4 sm:mx-0"
+            className="w-full overflow-hidden"
           >
-            <div className="min-w-[600px] px-4 sm:px-0">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="min-w-[500px]">
               <div className="rounded-xl border border-border bg-card overflow-hidden">
                 <table className="w-full border-collapse text-sm">
                   <thead>
@@ -270,9 +271,10 @@ export default function CaptchaPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </div>
-            <p className="mt-2 text-center text-xs text-muted-foreground sm:hidden px-4">
+            <p className="mt-2 text-center text-xs text-muted-foreground sm:hidden">
               Swipe to see all providers
             </p>
           </motion.div>
