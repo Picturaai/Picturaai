@@ -785,7 +785,7 @@ export function Landing() {
               New Product
             </span>
             <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
-              Introducing PicturaCAPTCHA
+              Introducing <span className="text-primary">Pictura</span>CAPTCHA
             </h2>
             <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto">
               A free, privacy-first bot protection service. No tracking, no fees, no limits.
@@ -840,9 +840,11 @@ export function Landing() {
             >
               <div className="w-full max-w-xs rounded-xl border border-border bg-card shadow-lg overflow-hidden">
                 <div className="p-4 border-b border-border/50 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground font-bold text-sm">P</div>
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                    <PicturaIcon size={16} className="text-primary-foreground" />
+                  </div>
                   <div>
-                    <div className="text-sm font-semibold text-foreground">PicturaCAPTCHA</div>
+                    <div className="text-sm font-semibold text-foreground"><span className="text-primary">Pictura</span>CAPTCHA</div>
                     <div className="text-[10px] text-muted-foreground">Verify you are human</div>
                   </div>
                 </div>

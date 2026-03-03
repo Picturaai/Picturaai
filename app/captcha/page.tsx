@@ -73,7 +73,7 @@ export default function CaptchaPage() {
               </div>
               
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                PicturaCAPTCHA
+                <span className="text-primary">Pictura</span>CAPTCHA
               </h1>
               <p className="mt-4 text-sm sm:text-base md:text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0">
                 A free, privacy-first CAPTCHA service that protects your website from bots without annoying your users.
@@ -154,7 +154,7 @@ export default function CaptchaPage() {
             variants={fadeUp}
             className="text-center mb-10 sm:mb-12"
           >
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Why PicturaCAPTCHA?</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Why <span className="text-primary">Pictura</span>CAPTCHA?</h2>
             <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               Built by developers, for developers. No corporate surveillance, no paywalls, just protection.
             </p>

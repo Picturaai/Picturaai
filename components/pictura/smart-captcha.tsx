@@ -208,7 +208,7 @@ export function SmartCaptcha({ onVerify, onError, size = 'normal' }: SmartCaptch
         {/* Header */}
         <div className={`flex items-center gap-2 border-b border-border bg-muted/30 ${isCompact ? 'px-3 py-2' : 'px-4 py-2.5'}`}>
           <PicturaIcon size={isCompact ? 18 : 22} />
-          <span className={`font-semibold text-foreground ${isCompact ? 'text-xs' : 'text-sm'}`}>PicturaCAPTCHA</span>
+          <span className={`font-semibold ${isCompact ? 'text-xs' : 'text-sm'}`}><span className="text-primary">Pictura</span><span className="text-foreground">CAPTCHA</span></span>
           <span className="ml-auto text-[10px] text-muted-foreground">Secure</span>
         </div>
         
