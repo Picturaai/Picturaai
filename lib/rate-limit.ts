@@ -18,32 +18,35 @@ function getResetTime(): Date {
 // Initialize the rate limit table if it doesn't exist and auto-migrate
 async function ensureTable() {
   const sql = getDb()
+  
   try {
-    // Try creating with reset_at first (new schema)
-    await sql`
-      CREATE TABLE IF NOT EXISTS rate_limits (
-        identifier TEXT PRIMARY KEY,
-        count INTEGER NOT NULL DEFAULT 0,
-        reset_at TIMESTAMPTZ NOT NULL
-      )
-    `
+    // Check if table exists by querying it
+    await sql`SELECT 1 FROM rate_limits LIMIT 1`
   } catch (e) {
-    // Table might exist with different schema
-    console.log('[RateLimit] Table creation:', e)
+    // Table doesn't exist - create it
+    console.log('[RateLimit] Creating table...')
+    try {
+      // Try with reset_at first (new schema)
+      await sql`
+        CREATE TABLE IF NOT EXISTS rate_limits (
+          identifier TEXT PRIMARY KEY,
+          count INTEGER NOT NULL DEFAULT 0,
+          reset_at TIMESTAMPTZ NOT NULL
+        )
+      `
+    } catch (createErr) {
+      console.log('[RateLimit] Create error:', createErr)
+    }
   }
   
-  // Auto-migrate: add reset_at column if only reset_date exists
+  // Check if we have reset_at column, add if missing
   try {
-    await sql`ALTER TABLE rate_limits ADD COLUMN IF NOT EXISTS reset_at TIMESTAMPTZ`
+    await sql`SELECT reset_at FROM rate_limits LIMIT 1`
   } catch (e) {
-    // Column might already exist
-  }
-  
-  // Copy data from reset_date to reset_at if needed
-  try {
-    await sql`UPDATE rate_limits SET reset_at = reset_date WHERE reset_at IS NULL AND reset_date IS NOT NULL`
-  } catch (e) {
-    // Column might not exist
+    // Try with reset_date
+    try {
+      await sql`ALTER TABLE rate_limits ADD COLUMN IF NOT EXISTS reset_at TIMESTAMPTZ`
+    } catch {}
   }
 }
 
