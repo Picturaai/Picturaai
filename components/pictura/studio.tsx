@@ -337,9 +337,17 @@ export function Studio() {
 
   const fetchRateLimit = useCallback(async () => {
     try {
+      console.log('[Client] Fetching rate limit...')
       const res = await fetch('/api/rate-limit', { credentials: 'include' })
-      if (res.ok) setRateLimit(await res.json())
-    } catch { /* silent */ }
+      console.log('[Client] Rate limit response:', res.status, res.ok)
+      if (res.ok) {
+        const data = await res.json()
+        console.log('[Client] Rate limit data:', data)
+        setRateLimit(data)
+      }
+    } catch (e) { 
+      console.error('[Client] Rate limit error:', e)
+    }
   }, [])
 
   // Load saved gallery on mount
@@ -434,14 +442,21 @@ export function Studio() {
       }
 
       const data = await res.json()
+      console.log('[Client] Generate response:', res.status, data.rateLimitInfo)
       if (!res.ok) {
         toast.error(data.error || 'Generation failed. Please try again.')
-        if (data.rateLimitInfo) setRateLimit(data.rateLimitInfo)
+        if (data.rateLimitInfo) {
+          console.log('[Client] Setting rate limit from error:', data.rateLimitInfo)
+          setRateLimit(data.rateLimitInfo)
+        }
         return
       }
 
       setImages((prev) => [data, ...prev])
-      if (data.rateLimitInfo) setRateLimit(data.rateLimitInfo)
+      if (data.rateLimitInfo) {
+        console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
+        setRateLimit(data.rateLimitInfo)
+      }
       setPrompt('')
       playSuccessSound()
       toast.success('Image generated!')

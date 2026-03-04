@@ -15,6 +15,7 @@ export async function getOrCreateSessionId(): Promise<string> {
 
   if (!sessionId) {
     sessionId = generateSessionId()
+    console.log('[Session] Creating new session:', sessionId)
     cookieStore.set(SESSION_COOKIE_NAME, sessionId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -22,6 +23,8 @@ export async function getOrCreateSessionId(): Promise<string> {
       maxAge: SESSION_COOKIE_MAX_AGE,
       path: '/',
     })
+  } else {
+    console.log('[Session] Using existing session:', sessionId)
   }
 
   return sessionId
