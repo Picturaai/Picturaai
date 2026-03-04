@@ -29,12 +29,28 @@ async function editWithMistral(imageBase64: string, instruction: string): Promis
           role: 'user',
           content: [
             { type: 'image_url', image_url: imageDataUrl },
-            { type: 'text', text: instruction }
+            { type: 'text', text: `Edit this image: ${instruction}. Generate the edited image.` }
           ]
         }
       ],
-      tools: [{ type: 'image_generation' }],
-      tool_choice: 'auto',
+      // Use proper tool format for Mistral
+      tools: [
+        {
+          type: 'function',
+          function: {
+            name: 'image_generation',
+            description: 'Generate an image based on the prompt',
+            parameters: {
+              type: 'object',
+              properties: {
+                prompt: { type: 'string', description: 'The image prompt' }
+              },
+              required: ['prompt']
+            }
+          }
+        }
+      ],
+      tool_choice: { type: 'function', function: { name: 'image_generation' } },
     }),
   })
 
@@ -47,8 +63,11 @@ async function editWithMistral(imageBase64: string, instruction: string): Promis
   const data = await response.json()
   // Extract image from tool call response
   const toolCalls = data.choices?.[0]?.message?.tool_calls
-  if (toolCalls && toolCalls[0]?.function?.output) {
-    return toolCalls[0].function.output
+  if (toolCalls && toolCalls[0]?.function?.arguments) {
+    const args = JSON.parse(toolCalls[0].function.arguments)
+    if (args.image) {
+      return args.image
+    }
   }
   throw new Error('Could not extract image from Mistral response')
 }
