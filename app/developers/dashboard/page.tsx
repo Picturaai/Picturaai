@@ -302,7 +302,7 @@ export default function DeveloperDashboard() {
       <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b">
         <button 
           onClick={() => setSidebarOpen(true)} 
-          className="w-9 h-9 rounded-xl bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors active:scale-95"
+          className="w-9 h-9 rounded-lg bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors active:scale-95"
         >
           <Menu className="h-4 w-4" />
         </button>
@@ -323,7 +323,7 @@ export default function DeveloperDashboard() {
           onClick={() => setSidebarOpen(false)} 
         />
         <div 
-          className={`fixed inset-y-0 left-0 w-[280px] bg-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${
+          className={`fixed inset-y-0 left-0 w-[280px] bg-white border-r transform transition-transform duration-300 ease-out flex flex-col ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -347,7 +347,7 @@ export default function DeveloperDashboard() {
                 onClick={() => { setActiveTab(item.id); setSidebarOpen(false) }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                   activeTab === item.id
-                    ? 'bg-[#C87941] text-white font-medium shadow-md shadow-[#C87941]/20'
+                    ? 'bg-[#C87941] text-white font-medium'
                     : 'text-muted-foreground hover:bg-muted/80 active:scale-[0.98]'
                 }`}
               >
@@ -847,7 +847,7 @@ export default function DeveloperDashboard() {
                 </CardHeader>
                 <CardContent>
                   {/* Premium ATM Card Design - Brand Color */}
-                  <div className="relative overflow-hidden rounded-2xl aspect-[1.6/1] max-w-md" style={{ background: 'linear-gradient(135deg, #C87941 0%, #A65D2E 50%, #8B4D26 100%)' }}>
+                  <div className="relative overflow-hidden rounded-lg aspect-[1.6/1] max-w-md" style={{ background: 'linear-gradient(135deg, #C87941 0%, #A65D2E 50%, #8B4D26 100%)' }}>
                     {/* Chip */}
                     <div className="absolute top-6 left-6 w-12 h-9 rounded-lg bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400 opacity-90">
                       <div className="absolute inset-1 grid grid-cols-3 gap-0.5">
@@ -1166,7 +1166,7 @@ export default function DeveloperDashboard() {
             <>
               <DialogHeader>
                 <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-[#C87941]/10 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-lg bg-[#C87941]/10 flex items-center justify-center">
                     <Key className="h-8 w-8 text-[#C87941]" />
                   </div>
                 </div>
@@ -1188,7 +1188,7 @@ export default function DeveloperDashboard() {
             <>
               <DialogHeader>
                 <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-[#C87941]/10 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-lg bg-[#C87941]/10 flex items-center justify-center">
                     <Gift className="h-8 w-8 text-[#C87941]" />
                   </div>
                 </div>
@@ -1234,7 +1234,7 @@ export default function DeveloperDashboard() {
                 onClick={() => setSelectedPlan(plan)}
                 className={`relative flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
                   selectedPlan?.name === plan.name 
-                    ? 'border-[#C87941] bg-[#C87941]/5 shadow-sm' 
+                ? 'border-[#C87941] bg-[#C87941]/5' 
                     : 'border-border hover:border-[#C87941]/50 hover:bg-muted/50'
                 }`}
               >
