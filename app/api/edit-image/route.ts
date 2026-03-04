@@ -160,9 +160,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!editedImageUrl) {
-      console.error('All edit providers failed:', errors)
+      console.error('All edit providers failed:', errors.join('; '))
+      console.log('Configured API keys:', {
+        fireworks: !!process.env.FIREWORKS_API_KEY,
+        stability: !!process.env.STABILITY_API_KEY,
+        fal: !!process.env.FAL_KEY,
+      })
       return NextResponse.json(
-        { error: 'Image editing failed. Please try again.' },
+        { error: 'Image editing failed. Please try again later.' },
         { status: 500 }
       )
     }

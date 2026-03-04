@@ -345,7 +345,7 @@ export function Studio() {
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
     try {
-      const res = await fetch('/api/gallery')
+      const res = await fetch('/api/gallery', { credentials: 'include' })
       if (res.ok) {
         const { images: saved } = await res.json()
         if (saved && saved.length > 0) {
@@ -418,6 +418,7 @@ export function Studio() {
       if (mode === 'text') {
         res = await fetch('/api/generate/text-to-image', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
         })
@@ -425,7 +426,11 @@ export function Studio() {
         const formData = new FormData()
         formData.append('prompt', prompt.trim())
         if (uploadedFile) formData.append('image', uploadedFile)
-        res = await fetch('/api/generate/image-to-image', { method: 'POST', body: formData })
+        res = await fetch('/api/generate/image-to-image', { 
+          method: 'POST', 
+          credentials: 'include',
+          body: formData 
+        })
       }
 
       const data = await res.json()
