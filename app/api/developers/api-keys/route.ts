@@ -33,7 +33,7 @@ function getTokenFromRequest(req: NextRequest): string | null {
 }
 
 function generateApiKey(): string {
-  return 'pk_live_' + crypto.randomBytes(32).toString('hex')
+  return 'pic_' + crypto.randomBytes(32).toString('hex')
 }
 
 export async function POST(req: NextRequest) {
@@ -59,9 +59,10 @@ export async function POST(req: NextRequest) {
     const keyPrefix = apiKey.slice(0, 12)
     const keyHash = hashPassword(apiKey)
 
+    // Store the full key (secret_key) in database for display
     const keys = await sql`
-      INSERT INTO api_keys (developer_id, name, key_prefix, key_hash, is_active)
-      VALUES (${session.developerId}, ${name}, ${keyPrefix}, ${keyHash}, true)
+      INSERT INTO api_keys (developer_id, name, key_prefix, key_hash, secret_key, is_active)
+      VALUES (${session.developerId}, ${name}, ${keyPrefix}, ${keyHash}, ${apiKey}, true)
       RETURNING id, name, created_at
     `
 
