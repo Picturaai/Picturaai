@@ -9,14 +9,14 @@ async function verifySession(token: string): Promise<{ developerId: string } | n
       SELECT developer_id, expires_at FROM developer_sessions
       WHERE session_token = ${token}
     `
-    
+
     if (sessions.length === 0) return null
-    
+
     const session = sessions[0]
     const expiresAt = new Date(session.expires_at)
-    
+
     if (expiresAt <= new Date()) return null
-    
+
     return { developerId: session.developer_id }
   } catch {
     return null
@@ -26,36 +26,90 @@ async function verifySession(token: string): Promise<{ developerId: string } | n
 function getTokenFromRequest(req: NextRequest): string | null {
   const cookieToken = req.cookies.get('pictura_session')?.value
   if (cookieToken) return cookieToken
-  
+
   const authHeader = req.headers.get('authorization')
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.substring(7)
   }
-  
+
   return null
+}
+
+async function getDeveloperById(developerId: string) {
+  try {
+    return await sql`
+      SELECT id, email, full_name, name, credits_balance, currency, created_at, last_login,
+             tier, phone, country_code, referral_source, email_verified, is_active, signup_method
+      FROM developers
+      WHERE id = ${developerId}
+    `
+  } catch {
+    return await sql`
+      SELECT id, email, full_name, null::text as name, credits_balance, currency, created_at,
+             null::timestamp as last_login, null::text as tier, phone_number as phone,
+             country as country_code, null::text as referral_source, is_verified as email_verified,
+             is_active, null::text as signup_method
+      FROM developers
+      WHERE id = ${developerId}
+    `
+  }
+}
+
+async function getApiKeysForDeveloper(developerId: string) {
+  try {
+    return await sql`
+      SELECT id, name, key_prefix, secret_key, created_at, last_used_at, requests_count, is_active
+      FROM api_keys
+      WHERE developer_id = ${developerId}
+      ORDER BY created_at DESC
+    `
+  } catch {
+    return await sql`
+      SELECT id, name, key_prefix, null::text as secret_key, created_at, last_used_at,
+             0::integer as requests_count, is_active
+      FROM api_keys
+      WHERE developer_id = ${developerId}
+      ORDER BY created_at DESC
+    `
+  }
+}
+
+async function getRecentTransactions(developerId: string) {
+  try {
+    return await sql`
+      SELECT id, type, amount, description, balance_after, created_at
+      FROM credit_transactions
+      WHERE developer_id = ${developerId}
+      ORDER BY created_at DESC
+      LIMIT 10
+    `
+  } catch {
+    return await sql`
+      SELECT id, type, amount, description, amount as balance_after, created_at
+      FROM credit_transactions
+      WHERE developer_id = ${developerId}
+      ORDER BY created_at DESC
+      LIMIT 10
+    `
+  }
 }
 
 export async function GET(req: NextRequest) {
   try {
     const token = getTokenFromRequest(req)
-    
+
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const session = await verifySession(token)
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
 
     // Get developer data
-    const developers = await sql`
-      SELECT id, email, full_name, name, credits_balance, currency, created_at, last_login, 
-             tier, phone, country_code, referral_source, email_verified, is_active, signup_method
-      FROM developers
-      WHERE id = ${session.developerId}
-    `
+    const developers = await getDeveloperById(session.developerId)
 
     if (developers.length === 0) {
       return NextResponse.json({ error: 'Developer not found' }, { status: 404 })
@@ -63,13 +117,8 @@ export async function GET(req: NextRequest) {
 
     const developer = developers[0]
 
-    // Get API keys (including secret_key for display)
-    const apiKeys = await sql`
-      SELECT id, name, key_prefix, secret_key, created_at, last_used_at, requests_count, is_active
-      FROM api_keys
-      WHERE developer_id = ${developer.id}
-      ORDER BY created_at DESC
-    `
+    // Get API keys (including secret_key for display when available)
+    const apiKeys = await getApiKeysForDeveloper(developer.id)
 
     // Get usage stats
     const thisMonth = new Date()
@@ -87,13 +136,7 @@ export async function GET(req: NextRequest) {
     const usageData = usage[0] || { this_month: 0, last_month: 0, total: 0 }
 
     // Get recent transactions
-    const transactions = await sql`
-      SELECT id, type, amount, description, balance_after, created_at
-      FROM credit_transactions
-      WHERE developer_id = ${developer.id}
-      ORDER BY created_at DESC
-      LIMIT 10
-    `
+    const transactions = await getRecentTransactions(developer.id)
 
     return NextResponse.json({
       id: developer.id,
@@ -113,7 +156,7 @@ export async function GET(req: NextRequest) {
         id: k.id,
         name: k.name,
         keyPreview: k.key_prefix + '••••••••••••••••',
-        secret_key: k.secret_key || null, // Full key for reveal
+        secret_key: k.secret_key || null,
         createdAt: k.created_at,
         lastUsed: k.last_used_at,
         requestsCount: k.requests_count || 0,
