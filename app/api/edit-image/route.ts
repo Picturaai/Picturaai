@@ -193,18 +193,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Try multiple providers with fallback
+    // Try multiple providers with fallback (best first)
     let editedImageUrl: string | null = null
     const errors: string[] = []
 
     // Convert image to base64 for providers that need it
     const imageBase64 = await imageUrlToBase64(imageUrl)
 
-    // Try Mistral first (Pixtral)
+    // Try Stability first (best quality, charges at end of month)
     try {
-      editedImageUrl = await editWithMistral(imageBase64, instruction)
+      editedImageUrl = await editWithStability(imageBase64, instruction)
     } catch (err) {
-      errors.push(`Mistral: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
     // Fallback to Replicate
@@ -216,21 +216,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback to Stability (paid)
-    if (!editedImageUrl) {
-      try {
-        editedImageUrl = await editWithStability(imageBase64, instruction)
-      } catch (err) {
-        errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
-      }
-    }
-
-    // Last fallback to Fal
+    // Fallback to Fal
     if (!editedImageUrl) {
       try {
         editedImageUrl = await editWithFal(imageUrl, instruction)
       } catch (err) {
         errors.push(`Fal: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
+    }
+
+    // Last fallback to Mistral
+    if (!editedImageUrl) {
+      try {
+        editedImageUrl = await editWithMistral(imageBase64, instruction)
+      } catch (err) {
+        errors.push(`Mistral: ${err instanceof Error ? err.message : 'Unknown error'}`)
       }
     }
 
