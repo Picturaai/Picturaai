@@ -8,41 +8,49 @@ async function imageUrlToBase64(url: string): Promise<string> {
   return Buffer.from(buffer).toString('base64')
 }
 
-// Fireworks AI image-to-image editing
-async function editWithFireworks(imageBase64: string, instruction: string): Promise<string> {
-  const apiKey = process.env.FIREWORKS_API_KEY
-  if (!apiKey) throw new Error('Fireworks API not configured')
+// Mistral AI - Image-to-image using Pixtral
+async function editWithMistral(imageBase64: string, instruction: string): Promise<string> {
+  const apiKey = process.env.MISTRAL_API_KEY
+  if (!apiKey) throw new Error('Mistral API not configured')
 
-  // Convert base64 to buffer and create a data URL for the API
   const imageDataUrl = `data:image/png;base64,${imageBase64}`
 
-  const response = await fetch('https://api.fireworks.ai/inference/v1/image_generation/ideogram/v2', {
+  // Use Pixtral with image and text prompt
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      prompt: instruction,
-      image: imageDataUrl,
-      image_literal: 'data:image/png;base64',
-      cfg_scale: 7.0,
-      output_format: 'png',
-      num_images: 1,
+      model: 'pixtral-large-latest',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: imageDataUrl },
+            { type: 'text', text: instruction }
+          ]
+        }
+      ],
+      tools: [{ type: 'image_generation' }],
+      tool_choice: 'auto',
     }),
   })
 
   if (!response.ok) {
-    const error = await response.text()
-    console.error('Fireworks API error:', response.status, error)
-    throw new Error(`Fireworks editing failed: ${response.status}`)
+    const errorText = await response.text()
+    console.error('Mistral API error:', response.status, errorText)
+    throw new Error(`Mistral editing failed: ${response.status}`)
   }
 
   const data = await response.json()
-  if (data.image && data.image.b64) {
-    return `data:image/png;base64,${data.image.b64}`
+  // Extract image from tool call response
+  const toolCalls = data.choices?.[0]?.message?.tool_calls
+  if (toolCalls && toolCalls[0]?.function?.output) {
+    return toolCalls[0].function.output
   }
-  throw new Error('No edited image from Fireworks')
+  throw new Error('Could not extract image from Mistral response')
 }
 
 // Stability AI image-to-image editing
@@ -134,11 +142,11 @@ export async function POST(request: NextRequest) {
     // Convert image to base64 for providers that need it
     const imageBase64 = await imageUrlToBase64(imageUrl)
 
-    // Try Fireworks first (good quality, uses Mistral)
+    // Try Mistral first (Pixtral)
     try {
-      editedImageUrl = await editWithFireworks(imageBase64, instruction)
+      editedImageUrl = await editWithMistral(imageBase64, instruction)
     } catch (err) {
-      errors.push(`Fireworks: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`Mistral: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
     // Fallback to Stability
@@ -162,7 +170,7 @@ export async function POST(request: NextRequest) {
     if (!editedImageUrl) {
       console.error('All edit providers failed:', errors.join('; '))
       console.log('Configured API keys:', {
-        fireworks: !!process.env.FIREWORKS_API_KEY,
+        mistral: !!process.env.MISTRAL_API_KEY,
         stability: !!process.env.STABILITY_API_KEY,
         fal: !!process.env.FAL_KEY,
       })

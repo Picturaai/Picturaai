@@ -15,16 +15,36 @@ function getResetTime(): Date {
   return tomorrow
 }
 
-// Initialize the rate limit table if it doesn't exist
+// Initialize the rate limit table if it doesn't exist and auto-migrate
 async function ensureTable() {
   const sql = getDb()
-  await sql`
-    CREATE TABLE IF NOT EXISTS rate_limits (
-      identifier TEXT PRIMARY KEY,
-      count INTEGER NOT NULL DEFAULT 0,
-      reset_at TIMESTAMPTZ NOT NULL
-    )
-  `
+  try {
+    // Try creating with reset_at first (new schema)
+    await sql`
+      CREATE TABLE IF NOT EXISTS rate_limits (
+        identifier TEXT PRIMARY KEY,
+        count INTEGER NOT NULL DEFAULT 0,
+        reset_at TIMESTAMPTZ NOT NULL
+      )
+    `
+  } catch (e) {
+    // Table might exist with different schema
+    console.log('[RateLimit] Table creation:', e)
+  }
+  
+  // Auto-migrate: add reset_at column if only reset_date exists
+  try {
+    await sql`ALTER TABLE rate_limits ADD COLUMN IF NOT EXISTS reset_at TIMESTAMPTZ`
+  } catch (e) {
+    // Column might already exist
+  }
+  
+  // Copy data from reset_date to reset_at if needed
+  try {
+    await sql`UPDATE rate_limits SET reset_at = reset_date WHERE reset_at IS NULL AND reset_date IS NOT NULL`
+  } catch (e) {
+    // Column might not exist
+  }
 }
 
 export async function getRateLimitInfo(identifier: string): Promise<{
@@ -41,15 +61,27 @@ export async function getRateLimitInfo(identifier: string): Promise<{
     
     const now = new Date()
     
-    // Get current rate limit entry
-    const result = await sql`
-      SELECT count, reset_at FROM rate_limits 
-      WHERE identifier = ${identifier}
-    `
+    // Try with reset_at first, fallback to reset_date
+    let result
+    try {
+      result = await sql`
+        SELECT count, reset_at FROM rate_limits 
+        WHERE identifier = ${identifier}
+      `
+    } catch {
+      // Fallback to old column name
+      result = await sql`
+        SELECT count, reset_date FROM rate_limits 
+        WHERE identifier = ${identifier}
+      `
+    }
     
     console.log('[RateLimit] getRateLimitInfo:', identifier, 'result:', result.length)
     
-    if (result.length === 0 || new Date(result[0].reset_at) <= now) {
+    // Check both possible column names for reset time
+    const resetTime = result[0]?.reset_at || result[0]?.reset_date
+    
+    if (result.length === 0 || !resetTime || new Date(resetTime) <= now) {
       // No entry or expired - return fresh limits
       console.log('[RateLimit] Returning fresh limits')
       return {
@@ -65,7 +97,7 @@ export async function getRateLimitInfo(identifier: string): Promise<{
       limit: DAILY_LIMIT,
       remaining: Math.max(0, DAILY_LIMIT - entry.count),
       used: entry.count,
-      resetAt: new Date(entry.reset_at).toISOString(),
+      resetAt: new Date(resetTime).toISOString(),
     }
     console.log('[RateLimit] Returning existing limits:', info)
     return info
@@ -93,29 +125,58 @@ export async function incrementUsage(identifier: string): Promise<void> {
     
     console.log('[RateLimit] incrementUsage:', identifier, 'resetAt:', resetAt.toISOString())
     
-    // Get current entry
-    const result = await sql`
-      SELECT count, reset_at FROM rate_limits 
-      WHERE identifier = ${identifier}
-    `
+    // Try with reset_at first, fallback to reset_date
+    let result
+    try {
+      result = await sql`
+        SELECT count, reset_at FROM rate_limits 
+        WHERE identifier = ${identifier}
+      `
+    } catch {
+      result = await sql`
+        SELECT count, reset_date FROM rate_limits 
+        WHERE identifier = ${identifier}
+      `
+    }
     
-    if (result.length === 0 || new Date(result[0].reset_at) <= now) {
+    const resetTime = result[0]?.reset_at || result[0]?.reset_date
+    
+    if (result.length === 0 || !resetTime || new Date(resetTime) <= now) {
       // Insert new entry or reset expired one
       console.log('[RateLimit] Inserting new entry with count 1')
-      await sql`
-        INSERT INTO rate_limits (identifier, count, reset_at)
-        VALUES (${identifier}, 1, ${resetAt.toISOString()})
-        ON CONFLICT (identifier) 
-        DO UPDATE SET count = 1, reset_at = ${resetAt.toISOString()}
-      `
+      try {
+        await sql`
+          INSERT INTO rate_limits (identifier, count, reset_at)
+          VALUES (${identifier}, 1, ${resetAt.toISOString()})
+          ON CONFLICT (identifier) 
+          DO UPDATE SET count = 1, reset_at = ${resetAt.toISOString()}
+        `
+      } catch {
+        // Try with reset_date
+        await sql`
+          INSERT INTO rate_limits (identifier, count, reset_date)
+          VALUES (${identifier}, 1, ${resetAt.toISOString()})
+          ON CONFLICT (identifier) 
+          DO UPDATE SET count = 1, reset_date = ${resetAt.toISOString()}
+        `
+      }
     } else {
       // Increment existing entry
       console.log('[RateLimit] Incrementing existing entry')
-      await sql`
-        UPDATE rate_limits 
-        SET count = count + 1 
-        WHERE identifier = ${identifier}
-      `
+      try {
+        await sql`
+          UPDATE rate_limits 
+          SET count = count + 1 
+          WHERE identifier = ${identifier}
+        `
+      } catch {
+        // Try with reset_date - might need different syntax
+        await sql`
+          UPDATE rate_limits 
+          SET count = count + 1, reset_date = ${resetAt.toISOString()}
+          WHERE identifier = ${identifier}
+        `
+      }
     }
   } catch (error) {
     console.error('[RateLimit] Increment error:', error)
