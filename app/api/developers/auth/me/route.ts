@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Verify session token and get developer info
     const sessions = await sql`
-      SELECT s.developer_id, d.id, d.name, d.email, d.full_name, d.credits_balance, d.currency
+      SELECT s.developer_id, d.id, d.name, d.email, d.full_name, d.credits_balance, d.currency, d.signup_method
       FROM developer_sessions s
       JOIN developers d ON s.developer_id = d.id
       WHERE s.session_token = ${sessionToken} 
@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
         name: dev.name || dev.full_name,
         email: dev.email,
         credits: dev.credits_balance,
-        currency: dev.currency
+        currency: dev.currency,
+        signupMethod: dev.signup_method || 'pictura'
       }
     })
 

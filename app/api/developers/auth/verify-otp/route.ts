@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     const totalCredits = credits + bonusCredits
 
-    // Create developer account
+    // Create developer account (signup_method = 'pictura' for OTP signup)
     const developer = await sql`
       INSERT INTO developers (
         name,
@@ -90,7 +90,8 @@ export async function POST(req: NextRequest) {
         email_verified,
         referral_source,
         promo_code_used,
-        bonus_credits
+        bonus_credits,
+        signup_method
       )
       VALUES (
         ${record.full_name},
@@ -103,7 +104,8 @@ export async function POST(req: NextRequest) {
         true,
         ${record.referral_source || ''},
         ${promoCodeUsed},
-        ${bonusCredits}
+        ${bonusCredits},
+        'pictura'
       )
       RETURNING id, email, name, credits_balance, currency
     `
