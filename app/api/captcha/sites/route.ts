@@ -6,11 +6,11 @@ import crypto from 'crypto'
 const sql = neon(process.env.DATABASE_URL!)
 
 function generateSiteKey() {
-  return 'pk_live_' + crypto.randomBytes(16).toString('hex')
+  return 'pic_' + crypto.randomBytes(16).toString('hex')
 }
 
 function generateSecretKey() {
-  return 'sk_live_' + crypto.randomBytes(24).toString('hex')
+  return 'pic_' + crypto.randomBytes(24).toString('hex')
 }
 
 async function getDevFromSession(request?: NextRequest) {
@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
           site_name VARCHAR(255) NOT NULL,
           domain VARCHAR(255) NOT NULL,
           site_key VARCHAR(64) UNIQUE NOT NULL,
+          secret_key VARCHAR(64) NOT NULL,
           secret_hash VARCHAR(64) NOT NULL,
           is_active BOOLEAN DEFAULT true,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
       if (isValidDevId) {
         sites = await sql`
           SELECT 
-            id, domain, site_name, site_key, is_active, created_at,
+            id, domain, site_name, site_key, secret_key, is_active, created_at,
             COALESCE(challenges_solved, 0) as challenges_solved,
             COALESCE(challenges_failed, 0) as challenges_failed
           FROM captcha_sites 
@@ -92,7 +93,7 @@ export async function GET(request: NextRequest) {
       console.log('Query with developer_id failed, trying without:', queryError)
       sites = await sql`
         SELECT 
-          id, domain, site_name, site_key, is_active, created_at,
+          id, domain, site_name, site_key, secret_key, is_active, created_at,
           COALESCE(challenges_solved, 0) as challenges_solved,
           COALESCE(challenges_failed, 0) as challenges_failed
         FROM captcha_sites 
@@ -133,6 +134,7 @@ export async function POST(req: NextRequest) {
           site_name VARCHAR(255) NOT NULL,
           domain VARCHAR(255) NOT NULL,
           site_key VARCHAR(64) UNIQUE NOT NULL,
+          secret_key VARCHAR(64) NOT NULL,
           secret_hash VARCHAR(64) NOT NULL,
           is_active BOOLEAN DEFAULT true,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -142,6 +144,13 @@ export async function POST(req: NextRequest) {
       `
     } catch (tableError) {
       console.log('Table creation check:', tableError)
+    }
+
+    // Try to add secret_key column if it doesn't exist
+    try {
+      await sql`ALTER TABLE captcha_sites ADD COLUMN IF NOT EXISTS secret_key VARCHAR(64)`
+    } catch (colError) {
+      console.log('Column check:', colError)
     }
 
     // Parse dev.id as integer to avoid "invalid input syntax for integer" error
@@ -181,9 +190,9 @@ export async function POST(req: NextRequest) {
     try {
       if (isValidDevId) {
         result = await sql`
-          INSERT INTO captcha_sites (developer_id, email, site_name, domain, site_key, secret_hash, is_active)
-          VALUES (${devId}, ${dev.email}, ${name}, ${domain.toLowerCase()}, ${siteKey}, ${secretHash}, true)
-          RETURNING id, domain, site_name, site_key, is_active, created_at, 0 as challenges_solved, 0 as challenges_failed
+          INSERT INTO captcha_sites (developer_id, email, site_name, domain, site_key, secret_key, secret_hash, is_active)
+          VALUES (${devId}, ${dev.email}, ${name}, ${domain.toLowerCase()}, ${siteKey}, ${secretKey}, ${secretHash}, true)
+          RETURNING id, domain, site_name, site_key, secret_key, is_active, created_at, 0 as challenges_solved, 0 as challenges_failed
         `
       } else {
         throw new Error('No developer_id')
@@ -192,16 +201,16 @@ export async function POST(req: NextRequest) {
       // Try without developer_id if the column doesn't exist
       console.log('Insert with developer_id failed, trying without:', insertError)
       result = await sql`
-        INSERT INTO captcha_sites (email, site_name, domain, site_key, secret_hash, is_active)
-        VALUES (${dev.email}, ${name}, ${domain.toLowerCase()}, ${siteKey}, ${secretHash}, true)
-        RETURNING id, domain, site_name, site_key, is_active, created_at, 0 as challenges_solved, 0 as challenges_failed
+        INSERT INTO captcha_sites (email, site_name, domain, site_key, secret_key, secret_hash, is_active)
+        VALUES (${dev.email}, ${name}, ${domain.toLowerCase()}, ${siteKey}, ${secretKey}, ${secretHash}, true)
+        RETURNING id, domain, site_name, site_key, secret_key, is_active, created_at, 0 as challenges_solved, 0 as challenges_failed
       `
     }
 
-    // Return the plain secret key only on creation (won't be stored)
+    // Return the plain secret key
     return NextResponse.json({ 
       site: result[0],
-      secretKey: secretKey // Only shown once on creation
+      secretKey: secretKey
     })
   } catch (error) {
     console.error('Failed to add site:', error)
