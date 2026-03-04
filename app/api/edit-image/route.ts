@@ -126,6 +126,94 @@ async function editWithFal(imageUrl: string, instruction: string): Promise<strin
   throw new Error('No edited image from Fal')
 }
 
+// Replicate image editing (uses various models)
+async function editWithReplicate(imageBase64: string, instruction: string): Promise<string> {
+  const apiKey = process.env.REPLICATE_API_KEY
+  if (!apiKey) throw new Error('Replicate not configured')
+
+  const imageDataUrl = `data:image/png;base64,${imageBase64}`
+
+  // Use Stability AI via Replicate
+  const response = await fetch('https://api.replicate.com/v1/predictions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      version: 'stability-ai/stable-diffusion-img2img',
+      input: {
+        prompt: instruction,
+        image: imageDataUrl,
+        prompt_strength: 0.35,
+        num_inference_steps: 30,
+        guidance_scale: 7.5,
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    console.error('Replicate API error:', response.status, error)
+    throw new Error(`Replicate failed: ${response.status}`)
+  }
+
+  const prediction = await response.json()
+  
+  // Poll for result
+  let result = prediction
+  let attempts = 0
+  while ((result.status === 'starting' || result.status === 'processing') && attempts < 30) {
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    const statusResponse = await fetch(prediction.urls.status, {
+      headers: { 'Authorization': `Bearer ${apiKey}` }
+    })
+    result = await statusResponse.json()
+    attempts++
+  }
+
+  if (result.status === 'failed') {
+    throw new Error(`Replicate failed: ${result.error}`)
+  }
+
+  if (result.output && result.output[0]) {
+    return result.output[0]
+  }
+  throw new Error('No edited image from Replicate')
+}
+
+// Hugging Face image editing (free tier)
+async function editWithHuggingFace(imageBase64: string, instruction: string): Promise<string> {
+  const apiKey = process.env.HUGGINGFACE_API_KEY
+  if (!apiKey) throw new Error('HuggingFace not configured')
+
+  // Use stable-diffusion-image-variation endpoint
+  const response = await fetch(
+    'https://api-inference.huggingface.co/models/h94/IP-Adapter-Flux',
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: instruction,
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    console.error('HuggingFace API error:', response.status, error)
+    throw new Error(`HuggingFace failed: ${response.status}`)
+  }
+
+  // Returns image as bytes
+  const buffer = await response.arrayBuffer()
+  const base64 = Buffer.from(buffer).toString('base64')
+  return `data:image/png;base64,${base64}`
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { imageUrl, instruction } = await request.json()
@@ -151,7 +239,25 @@ export async function POST(request: NextRequest) {
       errors.push(`Mistral: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
-    // Fallback to Stability
+    // Fallback to Replicate
+    if (!editedImageUrl) {
+      try {
+        editedImageUrl = await editWithReplicate(imageBase64, instruction)
+      } catch (err) {
+        errors.push(`Replicate: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
+    }
+
+    // Fallback to HuggingFace (free)
+    if (!editedImageUrl) {
+      try {
+        editedImageUrl = await editWithHuggingFace(imageBase64, instruction)
+      } catch (err) {
+        errors.push(`HuggingFace: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
+    }
+
+    // Fallback to Stability (paid)
     if (!editedImageUrl) {
       try {
         editedImageUrl = await editWithStability(imageBase64, instruction)
@@ -173,6 +279,8 @@ export async function POST(request: NextRequest) {
       console.error('All edit providers failed:', errors.join('; '))
       console.log('Configured API keys:', {
         mistral: !!process.env.MISTRAL_API_KEY,
+        replicate: !!process.env.REPLICATE_API_KEY,
+        huggingface: !!process.env.HUGGINGFACE_API_KEY,
         stability: !!process.env.STABILITY_API_KEY,
         fal: !!process.env.FAL_KEY,
       })
