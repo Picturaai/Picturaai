@@ -8,6 +8,43 @@ async function imageUrlToBase64(url: string): Promise<string> {
   return Buffer.from(buffer).toString('base64')
 }
 
+// Fireworks AI image-to-image editing
+async function editWithFireworks(imageBase64: string, instruction: string): Promise<string> {
+  const apiKey = process.env.FIREWORKS_API_KEY
+  if (!apiKey) throw new Error('Fireworks API not configured')
+
+  // Convert base64 to buffer and create a data URL for the API
+  const imageDataUrl = `data:image/png;base64,${imageBase64}`
+
+  const response = await fetch('https://api.fireworks.ai/inference/v1/image_generation/ideogram/v2', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: instruction,
+      image: imageDataUrl,
+      image_literal: 'data:image/png;base64',
+      cfg_scale: 7.0,
+      output_format: 'png',
+      num_images: 1,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    console.error('Fireworks API error:', response.status, error)
+    throw new Error(`Fireworks editing failed: ${response.status}`)
+  }
+
+  const data = await response.json()
+  if (data.image && data.image.b64) {
+    return `data:image/png;base64,${data.image.b64}`
+  }
+  throw new Error('No edited image from Fireworks')
+}
+
 // Stability AI image-to-image editing
 async function editWithStability(imageBase64: string, instruction: string): Promise<string> {
   const apiKey = process.env.STABILITY_API_KEY
@@ -94,20 +131,31 @@ export async function POST(request: NextRequest) {
     let editedImageUrl: string | null = null
     const errors: string[] = []
 
-    // Try Fal first (simpler API, better for instruction following)
+    // Convert image to base64 for providers that need it
+    const imageBase64 = await imageUrlToBase64(imageUrl)
+
+    // Try Fireworks first (good quality, uses Mistral)
     try {
-      editedImageUrl = await editWithFal(imageUrl, instruction)
+      editedImageUrl = await editWithFireworks(imageBase64, instruction)
     } catch (err) {
-      errors.push(`Fal: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`Fireworks: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
     // Fallback to Stability
     if (!editedImageUrl) {
       try {
-        const imageBase64 = await imageUrlToBase64(imageUrl)
         editedImageUrl = await editWithStability(imageBase64, instruction)
       } catch (err) {
         errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
+    }
+
+    // Last fallback to Fal
+    if (!editedImageUrl) {
+      try {
+        editedImageUrl = await editWithFal(imageUrl, instruction)
+      } catch (err) {
+        errors.push(`Fal: ${err instanceof Error ? err.message : 'Unknown error'}`)
       }
     }
 

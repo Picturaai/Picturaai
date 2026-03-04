@@ -4,6 +4,19 @@ import { neon } from '@neondatabase/serverless'
 
 const sql = neon(process.env.DATABASE_URL!)
 
+// Auto-migrate database schema - add columns if they don't exist
+async function migrateSchema() {
+  try {
+    // Add signup_method column to developers table if it doesn't exist
+    await sql`ALTER TABLE developers ADD COLUMN IF NOT EXISTS signup_method VARCHAR(50) DEFAULT 'pictura'`
+  } catch (e) {
+    // Column might already exist, ignore
+  }
+}
+
+// Run migration on module load
+migrateSchema()
+
 export async function GET(request: NextRequest) {
   try {
     // Try cookie first

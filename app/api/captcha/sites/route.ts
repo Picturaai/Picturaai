@@ -69,6 +69,14 @@ export async function GET(request: NextRequest) {
       console.log('Table check:', tableError)
     }
 
+    // Add secret_key column if it doesn't exist (for displaying secret key)
+    try {
+      await sql`ALTER TABLE captcha_sites ADD COLUMN IF NOT EXISTS secret_key VARCHAR(64)`
+    } catch (colError) {
+      // Column might already exist
+      console.log('Column check:', colError)
+    }
+
     // Parse dev.id as integer to avoid "invalid input syntax for integer" error
     const devId = parseInt(dev.id, 10)
     const isValidDevId = !isNaN(devId)
