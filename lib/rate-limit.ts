@@ -20,30 +20,24 @@ async function ensureTable() {
   const sql = getDb()
   
   try {
-    // Check if table exists by querying it
-    await sql`SELECT 1 FROM rate_limits LIMIT 1`
+    // Try to create with full schema
+    await sql`
+      CREATE TABLE IF NOT EXISTS rate_limits (
+        identifier TEXT PRIMARY KEY,
+        count INTEGER NOT NULL DEFAULT 0,
+        reset_at TIMESTAMPTZ NOT NULL
+      )
+    `
+    console.log('[RateLimit] Table created or already exists')
   } catch (e) {
-    // Table doesn't exist - create it
-    console.log('[RateLimit] Creating table...')
+    // Table might already exist with different columns - try to add them
+    console.log('[RateLimit] Table creation result:', e)
     try {
-      // Try with reset_at first (new schema)
-      await sql`
-        CREATE TABLE IF NOT EXISTS rate_limits (
-          identifier TEXT PRIMARY KEY,
-          count INTEGER NOT NULL DEFAULT 0,
-          reset_at TIMESTAMPTZ NOT NULL
-        )
-      `
-    } catch (createErr) {
-      console.log('[RateLimit] Create error:', createErr)
-    }
-  }
-  
-  // Check if we have reset_at column, add if missing
-  try {
-    await sql`SELECT reset_at FROM rate_limits LIMIT 1`
-  } catch (e) {
-    // Try with reset_date
+      await sql`ALTER TABLE rate_limits ADD COLUMN IF NOT EXISTS identifier TEXT`
+    } catch {}
+    try {
+      await sql`ALTER TABLE rate_limits ADD COLUMN IF NOT EXISTS count INTEGER DEFAULT 0`
+    } catch {}
     try {
       await sql`ALTER TABLE rate_limits ADD COLUMN IF NOT EXISTS reset_at TIMESTAMPTZ`
     } catch {}
