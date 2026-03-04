@@ -47,8 +47,11 @@ export async function getRateLimitInfo(identifier: string): Promise<{
       WHERE identifier = ${identifier}
     `
     
+    console.log('[RateLimit] getRateLimitInfo:', identifier, 'result:', result.length)
+    
     if (result.length === 0 || new Date(result[0].reset_at) <= now) {
       // No entry or expired - return fresh limits
+      console.log('[RateLimit] Returning fresh limits')
       return {
         limit: DAILY_LIMIT,
         remaining: DAILY_LIMIT,
@@ -58,14 +61,16 @@ export async function getRateLimitInfo(identifier: string): Promise<{
     }
     
     const entry = result[0]
-    return {
+    const info = {
       limit: DAILY_LIMIT,
       remaining: Math.max(0, DAILY_LIMIT - entry.count),
       used: entry.count,
       resetAt: new Date(entry.reset_at).toISOString(),
     }
+    console.log('[RateLimit] Returning existing limits:', info)
+    return info
   } catch (error) {
-    console.error('[v0] Rate limit check error:', error)
+    console.error('[RateLimit] Error:', error)
     // On error, allow the request (fail open)
     return {
       limit: DAILY_LIMIT,
@@ -86,6 +91,8 @@ export async function incrementUsage(identifier: string): Promise<void> {
     const now = new Date()
     const resetAt = getResetTime()
     
+    console.log('[RateLimit] incrementUsage:', identifier, 'resetAt:', resetAt.toISOString())
+    
     // Get current entry
     const result = await sql`
       SELECT count, reset_at FROM rate_limits 
@@ -94,6 +101,7 @@ export async function incrementUsage(identifier: string): Promise<void> {
     
     if (result.length === 0 || new Date(result[0].reset_at) <= now) {
       // Insert new entry or reset expired one
+      console.log('[RateLimit] Inserting new entry with count 1')
       await sql`
         INSERT INTO rate_limits (identifier, count, reset_at)
         VALUES (${identifier}, 1, ${resetAt.toISOString()})
@@ -102,6 +110,7 @@ export async function incrementUsage(identifier: string): Promise<void> {
       `
     } else {
       // Increment existing entry
+      console.log('[RateLimit] Incrementing existing entry')
       await sql`
         UPDATE rate_limits 
         SET count = count + 1 
@@ -109,7 +118,7 @@ export async function incrementUsage(identifier: string): Promise<void> {
       `
     }
   } catch (error) {
-    console.error('[v0] Rate limit increment error:', error)
+    console.error('[RateLimit] Increment error:', error)
     // Don't throw - continue even if rate limiting fails
   }
 }
