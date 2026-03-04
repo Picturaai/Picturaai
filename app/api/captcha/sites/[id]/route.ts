@@ -34,17 +34,33 @@ export async function DELETE(
 
     const { id } = await params
     const siteId = parseInt(id, 10)
+    const devId = parseInt(dev.id, 10)
 
     if (isNaN(siteId)) {
       return NextResponse.json({ error: 'Invalid site ID' }, { status: 400 })
     }
 
     // Ensure the site belongs to this developer
-    const result = await sql`
-      DELETE FROM captcha_sites 
-      WHERE id = ${siteId} AND developer_id = ${dev.id}
-      RETURNING id
-    `
+    let result
+    try {
+      if (!isNaN(devId)) {
+        result = await sql`
+          DELETE FROM captcha_sites 
+          WHERE id = ${siteId} AND developer_id = ${devId}
+          RETURNING id
+        `
+      } else {
+        throw new Error('No developer_id')
+      }
+    } catch (queryError) {
+      // Try without developer_id if column doesn't exist
+      console.log('Delete with developer_id failed, trying without:', queryError)
+      result = await sql`
+        DELETE FROM captcha_sites 
+        WHERE id = ${siteId} AND email = ${dev.email}
+        RETURNING id
+      `
+    }
 
     if (result.length === 0) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 })
