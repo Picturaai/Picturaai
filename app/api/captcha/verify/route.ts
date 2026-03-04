@@ -23,11 +23,12 @@ export async function POST(req: NextRequest) {
       await sql`
         CREATE TABLE IF NOT EXISTS captcha_sites (
           id SERIAL PRIMARY KEY,
-          developer_id INTEGER REFERENCES developers(id) ON DELETE CASCADE,
+          developer_id INTEGER,
           email VARCHAR(255),
           site_name VARCHAR(255) NOT NULL,
           domain VARCHAR(255) NOT NULL,
           site_key VARCHAR(64) UNIQUE NOT NULL,
+          secret_key VARCHAR(64),
           secret_hash VARCHAR(64) NOT NULL,
           is_active BOOLEAN DEFAULT true,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -39,11 +40,21 @@ export async function POST(req: NextRequest) {
       // Table might already exist
     }
 
-    // Verify secret key exists
-    const site = await sql`
-      SELECT id, domain FROM captcha_sites 
-      WHERE secret_hash = ${secretHash}
-    `
+    // Verify secret key exists (check both secret_key and secret_hash for backwards compatibility)
+    let site
+    try {
+      site = await sql`
+        SELECT id, domain FROM captcha_sites 
+        WHERE secret_key = ${secret} OR secret_hash = ${secretHash}
+      `
+    } catch (queryError) {
+      // If secret_key column doesn't exist, try only secret_hash
+      console.log('Query with secret_key failed, trying secret_hash only:', queryError)
+      site = await sql`
+        SELECT id, domain FROM captcha_sites 
+        WHERE secret_hash = ${secretHash}
+      `
+    }
 
     if (site.length === 0) {
       return NextResponse.json({ 

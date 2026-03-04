@@ -337,7 +337,7 @@ export function Studio() {
 
   const fetchRateLimit = useCallback(async () => {
     try {
-      const res = await fetch('/api/rate-limit')
+      const res = await fetch('/api/rate-limit', { credentials: 'include' })
       if (res.ok) setRateLimit(await res.json())
     } catch { /* silent */ }
   }, [])

@@ -28,18 +28,19 @@ export async function POST(req: NextRequest) {
       .replace(/\/$/, '')
       .replace(/^www\./, '')
 
-    // Generate keys
-    const siteKey = generateKey('pc_site', 24)
-    const secretKey = generateKey('pc_secret', 32)
+    // Generate keys with pic_ prefix
+    const siteKey = generateKey('pic', 24)
+    const secretKey = generateKey('pic', 32)
     const secretHash = crypto.createHash('sha256').update(secretKey).digest('hex')
 
-    // Store in database
+    // Store in database (both secret_key and secret_hash)
     await sql`
       INSERT INTO captcha_sites (
         email,
         site_name,
         domain,
         site_key,
+        secret_key,
         secret_hash,
         created_at
       ) VALUES (
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
         ${siteName},
         ${cleanDomain},
         ${siteKey},
+        ${secretKey},
         ${secretHash},
         NOW()
       )

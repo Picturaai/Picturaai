@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     // Get developer data
     const developers = await sql`
       SELECT id, email, full_name, name, credits_balance, currency, created_at, last_login, 
-             tier, phone, country_code, referral_source, email_verified, is_active
+             tier, phone, country_code, referral_source, email_verified, is_active, signup_method
       FROM developers
       WHERE id = ${session.developerId}
     `
@@ -108,6 +108,7 @@ export async function GET(req: NextRequest) {
       isActive: developer.is_active,
       createdAt: developer.created_at,
       lastLogin: developer.last_login,
+      signupMethod: developer.signup_method || 'pictura',
       apiKeys: apiKeys.map((k) => ({
         id: k.id,
         name: k.name,

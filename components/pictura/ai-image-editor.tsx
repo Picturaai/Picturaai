@@ -59,6 +59,8 @@ export function AIImageEditor({ imageUrl, onClose, onSave }: AIImageEditorProps)
 
     setIsProcessing(true)
     try {
+      console.log('Calling edit API with instruction:', editInstruction)
+      
       const res = await fetch('/api/edit-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,12 +70,13 @@ export function AIImageEditor({ imageUrl, onClose, onSave }: AIImageEditorProps)
         }),
       })
 
+      const data = await res.json()
+      console.log('Edit API response:', res.status, data)
+
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Edit failed')
+        throw new Error(data.error || `Edit failed with status ${res.status}`)
       }
 
-      const data = await res.json()
       const newUrl = data.url
 
       const newHistory = history.slice(0, historyIndex + 1)
