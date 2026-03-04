@@ -13,9 +13,8 @@ async function editWithMistral(imageBase64: string, instruction: string): Promis
   const apiKey = process.env.MISTRAL_API_KEY
   if (!apiKey) throw new Error('Mistral API not configured')
 
-  const imageDataUrl = `data:image/png;base64,${imageBase64}`
-
-  // Use Pixtral with image and text prompt
+  // Just generate an image based on the instruction - Pixtral doesn't do image-to-image directly
+  // So we use the instruction as a text prompt
   const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -24,33 +23,9 @@ async function editWithMistral(imageBase64: string, instruction: string): Promis
     },
     body: JSON.stringify({
       model: 'pixtral-large-latest',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'image_url', image_url: imageDataUrl },
-            { type: 'text', text: `Edit this image: ${instruction}. Generate the edited image.` }
-          ]
-        }
-      ],
-      // Use proper tool format for Mistral
-      tools: [
-        {
-          type: 'function',
-          function: {
-            name: 'image_generation',
-            description: 'Generate an image based on the prompt',
-            parameters: {
-              type: 'object',
-              properties: {
-                prompt: { type: 'string', description: 'The image prompt' }
-              },
-              required: ['prompt']
-            }
-          }
-        }
-      ],
-      tool_choice: { type: 'function', function: { name: 'image_generation' } },
+      messages: [{ role: 'user', content: `Generate an image: ${instruction}` }],
+      tools: [{ type: 'image_generation' }],
+      tool_choice: 'auto',
     }),
   })
 
@@ -63,19 +38,20 @@ async function editWithMistral(imageBase64: string, instruction: string): Promis
   const data = await response.json()
   console.log('[Mistral] Response:', JSON.stringify(data).substring(0, 500))
   
-  // Extract image from tool call response
+  // Extract image from tool call
   const toolCalls = data.choices?.[0]?.message?.tool_calls
   if (toolCalls && toolCalls[0]?.function?.output) {
     return toolCalls[0].function.output
   }
-  // Also check if image is in content
-  if (data.choices?.[0]?.message?.content) {
-    const content = data.choices[0].message.content
-    // Check for base64 image
-    if (typeof content === 'string' && content.startsWith('data:')) {
-      return content
-    }
+  // Check function.arguments
+  if (toolCalls && toolCalls[0]?.function?.arguments) {
+    const args = typeof toolCalls[0].function.arguments === 'string' 
+      ? JSON.parse(toolCalls[0].function.arguments)
+      : toolCalls[0].function.arguments
+    if (args.image) return args.image
+    if (args.url) return args.url
   }
+  
   throw new Error('Could not extract image from Mistral response')
 }
 
