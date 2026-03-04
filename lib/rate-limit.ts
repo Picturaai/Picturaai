@@ -2,9 +2,13 @@ import { neon } from '@neondatabase/serverless'
 
 const DAILY_LIMIT = 5
 
-// In-memory rate limit storage (works reliably in serverless)
-// Note: This resets on each function cold start, but provides rate limiting within a session
-const rateLimitStore = new Map<string, { count: number; resetAt: Date }>()
+// Persistent rate limit storage using database
+// Uses a separate table to avoid schema conflicts
+
+function getDb() {
+  const sql = neon(process.env.DATABASE_URL!)
+  return sql
+}
 
 function getResetTime(): Date {
   const now = new Date()
@@ -13,47 +17,129 @@ function getResetTime(): Date {
   return tomorrow
 }
 
+// Ensure the rate limit table exists
+async function ensureTable() {
+  const sql = getDb()
+  // Create table with sessions column to store session ID as primary key
+  await sql`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      session_id TEXT PRIMARY KEY,
+      credits_used INTEGER DEFAULT 0,
+      credits_reset_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `
+}
+
 export async function getRateLimitInfo(identifier: string): Promise<{
   limit: number
   remaining: number
   used: number
   resetAt: string
 }> {
-  const now = new Date()
-  const stored = rateLimitStore.get(identifier)
-  
-  if (!stored || stored.resetAt <= now) {
-    // No entry or expired - return fresh limits
-    const resetAt = getResetTime()
-    rateLimitStore.set(identifier, { count: 0, resetAt })
+  try {
+    await ensureTable()
+    const sql = getDb()
+    const now = new Date()
+    
+    // Get session info
+    const result = await sql`
+      SELECT credits_used, credits_reset_at FROM user_sessions 
+      WHERE session_id = ${identifier}
+    `
+    
+    if (result.length === 0) {
+      // New session - return fresh limits
+      const resetAt = getResetTime()
+      await sql`
+        INSERT INTO user_sessions (session_id, credits_used, credits_reset_at)
+        VALUES (${identifier}, 0, ${resetAt.toISOString()})
+      `
+      return {
+        limit: DAILY_LIMIT,
+        remaining: DAILY_LIMIT,
+        used: 0,
+        resetAt: resetAt.toISOString(),
+      }
+    }
+    
+    const session = result[0]
+    const resetAt = new Date(session.credits_reset_at)
+    
+    // Check if expired
+    if (resetAt <= now) {
+      const newResetAt = getResetTime()
+      await sql`
+        UPDATE user_sessions 
+        SET credits_used = 0, credits_reset_at = ${newResetAt.toISOString()}
+        WHERE session_id = ${identifier}
+      `
+      return {
+        limit: DAILY_LIMIT,
+        remaining: DAILY_LIMIT,
+        used: 0,
+        resetAt: newResetAt.toISOString(),
+      }
+    }
+    
+    return {
+      limit: DAILY_LIMIT,
+      remaining: Math.max(0, DAILY_LIMIT - session.credits_used),
+      used: session.credits_used,
+      resetAt: resetAt.toISOString(),
+    }
+  } catch (error) {
+    console.error('[RateLimit] Error:', error)
+    // Fail open
     return {
       limit: DAILY_LIMIT,
       remaining: DAILY_LIMIT,
       used: 0,
-      resetAt: resetAt.toISOString(),
+      resetAt: getResetTime().toISOString(),
     }
-  }
-  
-  return {
-    limit: DAILY_LIMIT,
-    remaining: Math.max(0, DAILY_LIMIT - stored.count),
-    used: stored.count,
-    resetAt: stored.resetAt.toISOString(),
   }
 }
 
 export async function incrementUsage(identifier: string): Promise<void> {
-  const now = new Date()
-  const resetAt = getResetTime()
-  
-  let stored = rateLimitStore.get(identifier)
-  
-  if (!stored || stored.resetAt <= now) {
-    // New or expired - start fresh
-    rateLimitStore.set(identifier, { count: 1, resetAt })
-  } else {
-    // Increment existing
-    stored.count++
-    rateLimitStore.set(identifier, stored)
+  try {
+    await ensureTable()
+    const sql = getDb()
+    const now = new Date()
+    const resetAt = getResetTime()
+    
+    // Get current
+    const result = await sql`
+      SELECT credits_used, credits_reset_at FROM user_sessions 
+      WHERE session_id = ${identifier}
+    `
+    
+    if (result.length === 0) {
+      // New session
+      await sql`
+        INSERT INTO user_sessions (session_id, credits_used, credits_reset_at)
+        VALUES (${identifier}, 1, ${resetAt.toISOString()})
+      `
+    } else {
+      const session = result[0]
+      const sessionResetAt = new Date(session.credits_reset_at)
+      
+      if (sessionResetAt <= now) {
+        // Expired - reset
+        await sql`
+          UPDATE user_sessions 
+          SET credits_used = 1, credits_reset_at = ${resetAt.toISOString()}
+          WHERE session_id = ${identifier}
+        `
+      } else {
+        // Increment
+        await sql`
+          UPDATE user_sessions 
+          SET credits_used = credits_used + 1
+          WHERE session_id = ${identifier}
+        `
+      }
+    }
+  } catch (error) {
+    console.error('[RateLimit] Increment error:', error)
   }
 }
