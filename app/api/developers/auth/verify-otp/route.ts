@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
 
     // Get credits for currency (100 free images equivalent)
     const currency = record.currency || 'USD'
-    let credits = CURRENCY_CREDITS[currency] || CURRENCY_CREDITS['USD']
+    const baseCredits = Number(CURRENCY_CREDITS[currency] || CURRENCY_CREDITS['USD'])
+    const credits = Number.isFinite(baseCredits) ? baseCredits : Number(CURRENCY_CREDITS['USD'])
     let bonusCredits = 0
     let promoCodeUsed = ''
 
@@ -101,8 +102,12 @@ export async function POST(req: NextRequest) {
       
       if (promoResult.length > 0) {
         const promo = promoResult[0]
-        bonusCredits = promo.bonus_credits
-        promoCodeUsed = promo.code
+        const promoBonusValue = Number(promo.bonus_credits)
+
+        if (Number.isFinite(promoBonusValue)) {
+          bonusCredits = promoBonusValue
+          promoCodeUsed = promo.code
+        }
         
         // Increment promo code usage only when legacy DB has uses_count column
         if (hasUsesCountColumn) {
