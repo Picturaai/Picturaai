@@ -8,15 +8,14 @@ async function imageUrlToBase64(url: string): Promise<string> {
   return Buffer.from(buffer).toString('base64')
 }
 
-// Mistral AI - Image-to-image using Pixtral (two-step: describe + generate)
+// Mistral AI - Image-to-image using Pixtral
 async function editWithMistral(imageBase64: string, instruction: string): Promise<string> {
   const apiKey = process.env.MISTRAL_API_KEY
   if (!apiKey) throw new Error('Mistral API not configured')
 
-  const imageDataUrl = `data:image/png;base64,${imageBase64}`
-
-  // Step 1: Use Pixtral to analyze image and describe edited version
-  const describeResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
+  // Just generate an image based on the instruction - Pixtral doesn't do image-to-image directly
+  // So we use the instruction as a text prompt
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -24,65 +23,36 @@ async function editWithMistral(imageBase64: string, instruction: string): Promis
     },
     body: JSON.stringify({
       model: 'pixtral-large-latest',
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'image_url', image_url: imageDataUrl },
-            { type: 'text', text: `Analyze this image and create a detailed prompt for an AI image generator to create a version that: ${instruction}. Just give me the prompt, nothing else.` }
-          ]
-        }
-      ],
-    }),
-  })
-
-  if (!describeResponse.ok) {
-    const errorText = await describeResponse.text()
-    console.error('Mistral describe error:', describeResponse.status, errorText)
-    throw new Error(`Mistral describe failed: ${describeResponse.status}`)
-  }
-
-  const describeData = await describeResponse.json()
-  console.log('[Mistral] Describe response:', JSON.stringify(describeData).substring(0, 500))
-  
-  const prompt = describeData.choices?.[0]?.message?.content
-  if (!prompt || typeof prompt !== 'string') {
-    throw new Error('Could not get description from Mistral')
-  }
-  
-  console.log('[Mistral] Generated prompt:', prompt)
-
-  // Step 2: Use the prompt to generate new image via Mistral image generation
-  const genResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'pixtral-large-latest',
-      messages: [{ role: 'user', content: `Generate an image: ${prompt}` }],
+      messages: [{ role: 'user', content: `Generate an image: ${instruction}` }],
       tools: [{ type: 'image_generation' }],
       tool_choice: 'auto',
     }),
   })
 
-  if (!genResponse.ok) {
-    const errorText = await genResponse.text()
-    console.error('Mistral generation error:', genResponse.status, errorText)
-    throw new Error(`Mistral generation failed: ${genResponse.status}`)
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Mistral API error:', response.status, errorText)
+    throw new Error(`Mistral editing failed: ${response.status}`)
   }
 
-  const genData = await genResponse.json()
-  console.log('[Mistral] Gen response:', JSON.stringify(genData).substring(0, 500))
+  const data = await response.json()
+  console.log('[Mistral] Response:', JSON.stringify(data).substring(0, 500))
   
   // Extract image from tool call
-  const toolCalls = genData.choices?.[0]?.message?.tool_calls
+  const toolCalls = data.choices?.[0]?.message?.tool_calls
   if (toolCalls && toolCalls[0]?.function?.output) {
     return toolCalls[0].function.output
   }
+  // Check function.arguments
+  if (toolCalls && toolCalls[0]?.function?.arguments) {
+    const args = typeof toolCalls[0].function.arguments === 'string' 
+      ? JSON.parse(toolCalls[0].function.arguments)
+      : toolCalls[0].function.arguments
+    if (args.image) return args.image
+    if (args.url) return args.url
+  }
   
-  throw new Error('Could not extract image from Mistral generation')
+  throw new Error('Could not extract image from Mistral response')
 }
 
 // Stability AI image-to-image editing
