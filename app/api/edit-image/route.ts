@@ -182,39 +182,6 @@ async function editWithReplicate(imageBase64: string, instruction: string): Prom
   throw new Error('No edited image from Replicate')
 }
 
-// Hugging Face image editing (free tier)
-async function editWithHuggingFace(imageBase64: string, instruction: string): Promise<string> {
-  const apiKey = process.env.HUGGINGFACE_API_KEY
-  if (!apiKey) throw new Error('HuggingFace not configured')
-
-  // Use Stability Diffusion XL - free on HF Inference (2000 requests/month)
-  // Send as JSON with the image encoded
-  const response = await fetch(
-    'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-refiner-1.0',
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: instruction,
-      }),
-    }
-  )
-
-  if (!response.ok) {
-    const error = await response.text()
-    console.error('HuggingFace API error:', response.status, error)
-    throw new Error(`HuggingFace failed: ${response.status}`)
-  }
-
-  // Returns image as bytes
-  const buffer = await response.arrayBuffer()
-  const resultBase64 = Buffer.from(buffer).toString('base64')
-  return `data:image/png;base64,${resultBase64}`
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { imageUrl, instruction } = await request.json()
@@ -226,18 +193,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Try multiple providers with fallback
+    // Try multiple providers with fallback (best first)
     let editedImageUrl: string | null = null
     const errors: string[] = []
 
     // Convert image to base64 for providers that need it
     const imageBase64 = await imageUrlToBase64(imageUrl)
 
-    // Try Mistral first (Pixtral)
+    // Try Stability first (best quality, charges at end of month)
     try {
-      editedImageUrl = await editWithMistral(imageBase64, instruction)
+      editedImageUrl = await editWithStability(imageBase64, instruction)
     } catch (err) {
-      errors.push(`Mistral: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
     // Fallback to Replicate
@@ -249,25 +216,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback to HuggingFace (free)
-    if (!editedImageUrl) {
-      try {
-        editedImageUrl = await editWithHuggingFace(imageBase64, instruction)
-      } catch (err) {
-        errors.push(`HuggingFace: ${err instanceof Error ? err.message : 'Unknown error'}`)
-      }
-    }
-
-    // Fallback to Stability (paid)
-    if (!editedImageUrl) {
-      try {
-        editedImageUrl = await editWithStability(imageBase64, instruction)
-      } catch (err) {
-        errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
-      }
-    }
-
-    // Last fallback to Fal
+    // Fallback to Fal
     if (!editedImageUrl) {
       try {
         editedImageUrl = await editWithFal(imageUrl, instruction)
@@ -276,12 +225,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Last fallback to Mistral
+    if (!editedImageUrl) {
+      try {
+        editedImageUrl = await editWithMistral(imageBase64, instruction)
+      } catch (err) {
+        errors.push(`Mistral: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
+    }
+
     if (!editedImageUrl) {
       console.error('All edit providers failed:', errors.join('; '))
       console.log('Configured API keys:', {
         mistral: !!process.env.MISTRAL_API_KEY,
         replicate: !!process.env.REPLICATE_API_KEY,
-        huggingface: !!process.env.HUGGINGFACE_API_KEY,
         stability: !!process.env.STABILITY_API_KEY,
         fal: !!process.env.FAL_KEY,
       })

@@ -51,6 +51,8 @@ import {
   Sparkles,
   Zap,
   Crown,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { PicturaLogo, PicturaIcon } from '@/components/pictura/pictura-logo'
 import { PatternAvatar } from '@/components/pictura/pattern-avatar'
@@ -59,6 +61,7 @@ interface ApiKey {
   id: string
   name: string
   keyPreview: string
+  secret_key?: string // Full API key for display
   createdAt: string
   lastUsed: string | null
   requestsCount: number
@@ -109,6 +112,7 @@ export default function DeveloperDashboard() {
   const [creatingKey, setCreatingKey] = useState(false)
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null)
   const [copiedKey, setCopiedKey] = useState(false)
+  const [showSecretFor, setShowSecretFor] = useState<string | null>(null) // Track which key is revealed
   
   // Delete confirmation
   const [keyToDelete, setKeyToDelete] = useState<ApiKey | null>(null)
@@ -702,7 +706,9 @@ export default function DeveloperDashboard() {
                                 <p className="font-medium text-sm sm:text-base truncate">{key.name}</p>
                                 {!key.isActive && <Badge variant="secondary" className="text-[10px] sm:text-xs">Inactive</Badge>}
                               </div>
-                              <code className="text-xs sm:text-sm text-muted-foreground font-mono block truncate">{key.keyPreview}</code>
+                              <code className="text-xs sm:text-sm text-muted-foreground font-mono block truncate">
+                                {showSecretFor === key.id && key.secret_key ? key.secret_key : key.keyPreview}
+                              </code>
                             </div>
                           </div>
                           <div className="flex items-center justify-between sm:justify-end gap-2 pl-11 sm:pl-0">
@@ -710,10 +716,24 @@ export default function DeveloperDashboard() {
                               {key.requestsCount.toLocaleString()} requests
                             </p>
                             <div className="flex items-center gap-1">
+                              {/* Reveal/Hide button */}
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => copyToClipboard(key.keyPreview)}
+                                onClick={() => setShowSecretFor(showSecretFor === key.id ? null : key.id)}
+                                className="text-muted-foreground h-8 w-8 p-0"
+                                title={showSecretFor === key.id ? 'Hide key' : 'Reveal key'}
+                              >
+                                {showSecretFor === key.id ? (
+                                  <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                ) : (
+                                  <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(key.secret_key || key.keyPreview)}
                                 className="text-muted-foreground h-8 w-8 p-0"
                               >
                                 <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

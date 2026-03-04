@@ -63,9 +63,9 @@ export async function GET(req: NextRequest) {
 
     const developer = developers[0]
 
-    // Get API keys (including active status)
+    // Get API keys (including secret_key for display)
     const apiKeys = await sql`
-      SELECT id, name, key_prefix, created_at, last_used_at, requests_count, is_active
+      SELECT id, name, key_prefix, secret_key, created_at, last_used_at, requests_count, is_active
       FROM api_keys
       WHERE developer_id = ${developer.id}
       ORDER BY created_at DESC
@@ -113,6 +113,7 @@ export async function GET(req: NextRequest) {
         id: k.id,
         name: k.name,
         keyPreview: k.key_prefix + '••••••••••••••••',
+        secret_key: k.secret_key || null, // Full key for reveal
         createdAt: k.created_at,
         lastUsed: k.last_used_at,
         requestsCount: k.requests_count || 0,
