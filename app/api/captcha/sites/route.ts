@@ -46,9 +46,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Ensure captcha_sites table exists
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS captcha_sites (
+          id SERIAL PRIMARY KEY,
+          developer_id INTEGER REFERENCES developers(id) ON DELETE CASCADE,
+          email VARCHAR(255),
+          site_name VARCHAR(255) NOT NULL,
+          domain VARCHAR(255) NOT NULL,
+          site_key VARCHAR(64) UNIQUE NOT NULL,
+          secret_hash VARCHAR(64) NOT NULL,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          challenges_solved INTEGER DEFAULT 0,
+          challenges_failed INTEGER DEFAULT 0
+        )
+      `
+    } catch (tableError) {
+      // Table might already exist
+      console.log('Table check:', tableError)
+    }
+
     const sites = await sql`
       SELECT 
-        id, domain, site_name, site_key, secret_hash, is_active, created_at,
+        id, domain, site_name, site_key, is_active, created_at,
         COALESCE(challenges_solved, 0) as challenges_solved,
         COALESCE(challenges_failed, 0) as challenges_failed
       FROM captcha_sites 
@@ -75,6 +97,35 @@ export async function POST(req: NextRequest) {
 
     if (!domain) {
       return NextResponse.json({ error: 'Domain is required' }, { status: 400 })
+    }
+
+    // Ensure captcha_sites table exists with all required columns
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS captcha_sites (
+          id SERIAL PRIMARY KEY,
+          developer_id INTEGER REFERENCES developers(id) ON DELETE CASCADE,
+          email VARCHAR(255),
+          site_name VARCHAR(255) NOT NULL,
+          domain VARCHAR(255) NOT NULL,
+          site_key VARCHAR(64) UNIQUE NOT NULL,
+          secret_hash VARCHAR(64) NOT NULL,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          challenges_solved INTEGER DEFAULT 0,
+          challenges_failed INTEGER DEFAULT 0
+        )
+      `
+    } catch (tableError) {
+      console.log('Table creation check:', tableError)
+    }
+
+    // Ensure developer_id column exists (for backwards compatibility)
+    try {
+      await sql`ALTER TABLE captcha_sites ADD COLUMN IF NOT EXISTS developer_id INTEGER REFERENCES developers(id) ON DELETE CASCADE`
+    } catch (colError) {
+      // Column might already exist - continue
+      console.log('Column check:', colError)
     }
 
     // Check if domain already exists for this developer
