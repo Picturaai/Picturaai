@@ -989,25 +989,6 @@ export default function DeveloperDashboard() {
                     </div>
                   </div>
 
-                  {/* Signup Method */}
-                  <div className="mt-4">
-                    <Label className="text-xs text-muted-foreground">Sign up Method</Label>
-                    <div className="mt-1 flex items-center gap-2">
-                      {developer.signupMethod === 'pictura' ? (
-                        <>
-                          <Badge variant="outline" className="text-xs bg-[#C87941]/10 text-[#C87941] border-[#C87941]/20">
-                            <span className="mr-1">🔐</span>
-                            Signed up with Pictura
-                          </Badge>
-                        </>
-                      ) : (
-                        <Badge variant="outline" className="text-xs">
-                          {developer.signupMethod}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div>
                       <Label className="text-xs text-muted-foreground">Account Created</Label>

@@ -28,6 +28,7 @@ interface Developer {
   id: string
   name: string
   email: string
+  signupMethod?: string
 }
 
 export default function CaptchaDashboard() {
@@ -84,6 +85,10 @@ export default function CaptchaDashboard() {
       if (res.ok) {
         const data = await res.json()
         setSites(data.sites || [])
+        // Set developer signup method from the API response
+        if (data.signupMethod) {
+          setDeveloper(prev => prev ? { ...prev, signupMethod: data.signupMethod } : null)
+        }
       }
     } catch (error) {
       console.error('Failed to fetch sites:', error)
@@ -460,6 +465,18 @@ export default function CaptchaDashboard() {
                 <div>
                   <label className="text-xs text-muted-foreground">Email</label>
                   <p className="text-sm font-medium text-foreground">{developer?.email}</p>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Sign up Method</label>
+                  <p className="text-sm font-medium text-foreground mt-1">
+                    {developer?.signupMethod === 'pictura' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <span className="text-primary">🔐</span> Signed up with Pictura
+                      </span>
+                    ) : (
+                      developer?.signupMethod || 'Pictura'
+                    )}
+                  </p>
                 </div>
               </div>
             </div>

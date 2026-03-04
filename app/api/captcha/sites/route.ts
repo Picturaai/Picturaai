@@ -28,7 +28,7 @@ async function getDevFromSession(request?: NextRequest) {
   if (!sessionToken) return null
   
   const sessions = await sql`
-    SELECT d.id, d.name, d.email 
+    SELECT d.id, d.name, d.email, d.signup_method 
     FROM developer_sessions s
     JOIN developers d ON d.id = s.developer_id
     WHERE s.session_token = ${sessionToken}
@@ -102,7 +102,10 @@ export async function GET(request: NextRequest) {
       `
     }
 
-    return NextResponse.json({ sites })
+    return NextResponse.json({ 
+      sites,
+      signupMethod: dev.signup_method || 'pictura'
+    })
   } catch (error) {
     console.error('Failed to fetch sites:', error)
     return NextResponse.json({ error: 'Failed to fetch sites: ' + (error instanceof Error ? error.message : 'Unknown error') }, { status: 500 })
