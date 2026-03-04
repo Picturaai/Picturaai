@@ -61,12 +61,19 @@ async function editWithMistral(imageBase64: string, instruction: string): Promis
   }
 
   const data = await response.json()
+  console.log('[Mistral] Response:', JSON.stringify(data).substring(0, 500))
+  
   // Extract image from tool call response
   const toolCalls = data.choices?.[0]?.message?.tool_calls
-  if (toolCalls && toolCalls[0]?.function?.arguments) {
-    const args = JSON.parse(toolCalls[0].function.arguments)
-    if (args.image) {
-      return args.image
+  if (toolCalls && toolCalls[0]?.function?.output) {
+    return toolCalls[0].function.output
+  }
+  // Also check if image is in content
+  if (data.choices?.[0]?.message?.content) {
+    const content = data.choices[0].message.content
+    // Check for base64 image
+    if (typeof content === 'string' && content.startsWith('data:')) {
+      return content
     }
   }
   throw new Error('Could not extract image from Mistral response')
