@@ -43,32 +43,69 @@ export async function GET(request: NextRequest) {
   try {
     const dev = await getDevFromSession(request)
     if (!dev) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized - please log in again' }, { status: 401 })
     }
 
-    const sites = await sql`
-      SELECT 
-        id, domain, site_name, site_key, secret_hash, is_active, created_at,
-        COALESCE(challenges_solved, 0) as challenges_solved,
-        COALESCE(challenges_failed, 0) as challenges_failed
-      FROM captcha_sites 
-      WHERE developer_id = ${dev.id}
-      ORDER BY created_at DESC
-    `
+    // Ensure captcha_sites table exists
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS captcha_sites (
+          id SERIAL PRIMARY KEY,
+          developer_id INTEGER,
+          email VARCHAR(255),
+          site_name VARCHAR(255) NOT NULL,
+          domain VARCHAR(255) NOT NULL,
+          site_key VARCHAR(64) UNIQUE NOT NULL,
+          secret_hash VARCHAR(64) NOT NULL,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          challenges_solved INTEGER DEFAULT 0,
+          challenges_failed INTEGER DEFAULT 0
+        )
+      `
+    } catch (tableError) {
+      console.log('Table check:', tableError)
+    }
+
+    let sites
+    try {
+      sites = await sql`
+        SELECT 
+          id, domain, site_name, site_key, is_active, created_at,
+          COALESCE(challenges_solved, 0) as challenges_solved,
+          COALESCE(challenges_failed, 0) as challenges_failed
+        FROM captcha_sites 
+        WHERE developer_id = ${dev.id}
+        ORDER BY created_at DESC
+      `
+    } catch (queryError) {
+      // If developer_id column doesn't exist, try without it
+      console.log('Query with developer_id failed, trying without:', queryError)
+      sites = await sql`
+        SELECT 
+          id, domain, site_name, site_key, is_active, created_at,
+          COALESCE(challenges_solved, 0) as challenges_solved,
+          COALESCE(challenges_failed, 0) as challenges_failed
+        FROM captcha_sites 
+        WHERE email = ${dev.email}
+        ORDER BY created_at DESC
+      `
+    }
 
     return NextResponse.json({ sites })
   } catch (error) {
     console.error('Failed to fetch sites:', error)
-    return NextResponse.json({ error: 'Failed to fetch sites' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch sites: ' + (error instanceof Error ? error.message : 'Unknown error') }, { status: 500 })
   }
 }
 
 // POST - Add a new site
 export async function POST(req: NextRequest) {
+  let dev
   try {
-    const dev = await getDevFromSession(req)
+    dev = await getDevFromSession(req)
     if (!dev) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized - please log in again' }, { status: 401 })
     }
 
     const { domain, siteName } = await req.json()
@@ -77,11 +114,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Domain is required' }, { status: 400 })
     }
 
-    // Check if domain already exists for this developer
-    const existing = await sql`
-      SELECT id FROM captcha_sites 
-      WHERE developer_id = ${dev.id} AND domain = ${domain.toLowerCase()}
-    `
+    // Ensure captcha_sites table exists with all required columns
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS captcha_sites (
+          id SERIAL PRIMARY KEY,
+          developer_id INTEGER,
+          email VARCHAR(255),
+          site_name VARCHAR(255) NOT NULL,
+          domain VARCHAR(255) NOT NULL,
+          site_key VARCHAR(64) UNIQUE NOT NULL,
+          secret_hash VARCHAR(64) NOT NULL,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          challenges_solved INTEGER DEFAULT 0,
+          challenges_failed INTEGER DEFAULT 0
+        )
+      `
+    } catch (tableError) {
+      console.error('Table creation error:', tableError)
+    }
+
+    // Check if domain already exists (handle case where developer_id column might not exist yet)
+    let existing
+    try {
+      existing = await sql`
+        SELECT id FROM captcha_sites 
+        WHERE developer_id = ${dev.id} AND domain = ${domain.toLowerCase()}
+      `
+    } catch (queryError) {
+      // If developer_id column doesn't exist, try without it
+      console.log('Query with developer_id failed, trying without:', queryError)
+      existing = await sql`
+        SELECT id FROM captcha_sites 
+        WHERE domain = ${domain.toLowerCase()}
+      `
+    }
     
     if (existing.length > 0) {
       return NextResponse.json({ error: 'Domain already registered' }, { status: 400 })
@@ -92,11 +160,23 @@ export async function POST(req: NextRequest) {
     const secretHash = crypto.createHash('sha256').update(secretKey).digest('hex')
     const name = siteName || domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('.')[0]
 
-    const result = await sql`
-      INSERT INTO captcha_sites (developer_id, email, site_name, domain, site_key, secret_hash, is_active)
-      VALUES (${dev.id}, ${dev.email}, ${name}, ${domain.toLowerCase()}, ${siteKey}, ${secretHash}, true)
-      RETURNING id, domain, site_name, site_key, is_active, created_at, 0 as challenges_solved, 0 as challenges_failed
-    `
+    // Try to insert with developer_id, fall back to without if column doesn't exist
+    let result
+    try {
+      result = await sql`
+        INSERT INTO captcha_sites (developer_id, email, site_name, domain, site_key, secret_hash, is_active)
+        VALUES (${dev.id}, ${dev.email}, ${name}, ${domain.toLowerCase()}, ${siteKey}, ${secretHash}, true)
+        RETURNING id, domain, site_name, site_key, is_active, created_at, 0 as challenges_solved, 0 as challenges_failed
+      `
+    } catch (insertError) {
+      // Try without developer_id if the column doesn't exist
+      console.log('Insert with developer_id failed, trying without:', insertError)
+      result = await sql`
+        INSERT INTO captcha_sites (email, site_name, domain, site_key, secret_hash, is_active)
+        VALUES (${dev.email}, ${name}, ${domain.toLowerCase()}, ${siteKey}, ${secretHash}, true)
+        RETURNING id, domain, site_name, site_key, is_active, created_at, 0 as challenges_solved, 0 as challenges_failed
+      `
+    }
 
     // Return the plain secret key only on creation (won't be stored)
     return NextResponse.json({ 
@@ -105,6 +185,6 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     console.error('Failed to add site:', error)
-    return NextResponse.json({ error: 'Failed to add site' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to add site: ' + (error instanceof Error ? error.message : 'Unknown error') }, { status: 500 })
   }
 }

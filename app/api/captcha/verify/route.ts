@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { neon } from '@neondatabase/serverless'
+import crypto from 'crypto'
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -14,10 +15,34 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
+    // Hash the secret to compare against secret_hash
+    const secretHash = crypto.createHash('sha256').update(secret).digest('hex')
+
+    // Ensure captcha_sites table exists with required columns
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS captcha_sites (
+          id SERIAL PRIMARY KEY,
+          developer_id INTEGER,
+          email VARCHAR(255),
+          site_name VARCHAR(255) NOT NULL,
+          domain VARCHAR(255) NOT NULL,
+          site_key VARCHAR(64) UNIQUE NOT NULL,
+          secret_hash VARCHAR(64) NOT NULL,
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          challenges_solved INTEGER DEFAULT 0,
+          challenges_failed INTEGER DEFAULT 0
+        )
+      `
+    } catch (tableError) {
+      // Table might already exist
+    }
+
     // Verify secret key exists
     const site = await sql`
       SELECT id, domain FROM captcha_sites 
-      WHERE secret_key = ${secret}
+      WHERE secret_hash = ${secretHash}
     `
 
     if (site.length === 0) {
