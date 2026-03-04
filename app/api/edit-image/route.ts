@@ -187,9 +187,10 @@ async function editWithHuggingFace(imageBase64: string, instruction: string): Pr
   const apiKey = process.env.HUGGINGFACE_API_KEY
   if (!apiKey) throw new Error('HuggingFace not configured')
 
-  // Use stable-diffusion-image-variation endpoint
+  // Use Stability Diffusion XL - free on HF Inference (2000 requests/month)
+  // Send as JSON with the image encoded
   const response = await fetch(
-    'https://api-inference.huggingface.co/models/h94/IP-Adapter-Flux',
+    'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-refiner-1.0',
     {
       method: 'POST',
       headers: {
@@ -210,8 +211,8 @@ async function editWithHuggingFace(imageBase64: string, instruction: string): Pr
 
   // Returns image as bytes
   const buffer = await response.arrayBuffer()
-  const base64 = Buffer.from(buffer).toString('base64')
-  return `data:image/png;base64,${base64}`
+  const resultBase64 = Buffer.from(buffer).toString('base64')
+  return `data:image/png;base64,${resultBase64}`
 }
 
 export async function POST(request: NextRequest) {
