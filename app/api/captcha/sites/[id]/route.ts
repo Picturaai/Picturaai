@@ -33,11 +33,16 @@ export async function DELETE(
     }
 
     const { id } = await params
+    const siteId = parseInt(id, 10)
+
+    if (isNaN(siteId)) {
+      return NextResponse.json({ error: 'Invalid site ID' }, { status: 400 })
+    }
 
     // Ensure the site belongs to this developer
     const result = await sql`
       DELETE FROM captcha_sites 
-      WHERE id = ${id}::uuid AND developer_id = ${dev.id}
+      WHERE id = ${siteId} AND developer_id = ${dev.id}
       RETURNING id
     `
 
