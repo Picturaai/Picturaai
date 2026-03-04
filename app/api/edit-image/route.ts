@@ -8,41 +8,58 @@ async function imageUrlToBase64(url: string): Promise<string> {
   return Buffer.from(buffer).toString('base64')
 }
 
-// Fireworks AI image-to-image editing
-async function editWithFireworks(imageBase64: string, instruction: string): Promise<string> {
-  const apiKey = process.env.FIREWORKS_API_KEY
-  if (!apiKey) throw new Error('Fireworks API not configured')
+// Replicate Stable Diffusion XL image-to-image
+async function editWithReplicate(imageBase64: string, instruction: string): Promise<string> {
+  const apiKey = process.env.REPLICATE_API_KEY
+  if (!apiKey) throw new Error('Replicate not configured')
 
-  // Convert base64 to buffer and create a data URL for the API
   const imageDataUrl = `data:image/png;base64,${imageBase64}`
 
-  const response = await fetch('https://api.fireworks.ai/inference/v1/image_generation/ideogram/v2', {
+  // Start the prediction
+  const startResponse = await fetch('https://api.replicate.com/v1/predictions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      prompt: instruction,
-      image: imageDataUrl,
-      image_literal: 'data:image/png;base64',
-      cfg_scale: 7.0,
-      output_format: 'png',
-      num_images: 1,
+      version: '005e8e93b2a7c4da9b96b0c4e6a8b5a5e8e93b2a7c4da9b96b0c4e6a8b5a5',
+      input: {
+        prompt: instruction,
+        image: imageDataUrl,
+        prompt_strength: 0.35,
+        num_inference_steps: 30,
+        guidance_scale: 7.5,
+      },
     }),
   })
 
-  if (!response.ok) {
-    const error = await response.text()
-    console.error('Fireworks API error:', response.status, error)
-    throw new Error(`Fireworks editing failed: ${response.status}`)
+  if (!startResponse.ok) {
+    const error = await startResponse.text()
+    console.error('Replicate start error:', startResponse.status, error)
+    throw new Error(`Replicate failed: ${startResponse.status}`)
   }
 
-  const data = await response.json()
-  if (data.image && data.image.b64) {
-    return `data:image/png;base64,${data.image.b64}`
+  const prediction = await startResponse.json()
+  
+  // Poll for result
+  let result = prediction
+  while (result.status === 'starting' || result.status === 'processing') {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    const statusResponse = await fetch(prediction.urls.status, {
+      headers: { 'Authorization': `Bearer ${apiKey}` }
+    })
+    result = await statusResponse.json()
   }
-  throw new Error('No edited image from Fireworks')
+
+  if (result.status === 'failed') {
+    throw new Error(`Replicate failed: ${result.error}`)
+  }
+
+  if (result.output && result.output[0]) {
+    return result.output[0]
+  }
+  throw new Error('No edited image from Replicate')
 }
 
 // Stability AI image-to-image editing
@@ -134,11 +151,11 @@ export async function POST(request: NextRequest) {
     // Convert image to base64 for providers that need it
     const imageBase64 = await imageUrlToBase64(imageUrl)
 
-    // Try Fireworks first (good quality, uses Mistral)
+    // Try Replicate first (Stable Diffusion XL)
     try {
-      editedImageUrl = await editWithFireworks(imageBase64, instruction)
+      editedImageUrl = await editWithReplicate(imageBase64, instruction)
     } catch (err) {
-      errors.push(`Fireworks: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`Replicate: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
     // Fallback to Stability
@@ -162,7 +179,7 @@ export async function POST(request: NextRequest) {
     if (!editedImageUrl) {
       console.error('All edit providers failed:', errors.join('; '))
       console.log('Configured API keys:', {
-        fireworks: !!process.env.FIREWORKS_API_KEY,
+        replicate: !!process.env.REPLICATE_API_KEY,
         stability: !!process.env.STABILITY_API_KEY,
         fal: !!process.env.FAL_KEY,
       })
