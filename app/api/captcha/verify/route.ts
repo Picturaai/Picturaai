@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       await sql`
         CREATE TABLE IF NOT EXISTS captcha_sites (
           id SERIAL PRIMARY KEY,
-          developer_id INTEGER,
+          developer_id INTEGER REFERENCES developers(id) ON DELETE CASCADE,
           email VARCHAR(255),
           site_name VARCHAR(255) NOT NULL,
           domain VARCHAR(255) NOT NULL,

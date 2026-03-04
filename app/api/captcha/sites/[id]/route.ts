@@ -40,22 +40,11 @@ export async function DELETE(
     }
 
     // Ensure the site belongs to this developer
-    let result
-    try {
-      result = await sql`
-        DELETE FROM captcha_sites 
-        WHERE id = ${siteId} AND developer_id = ${dev.id}
-        RETURNING id
-      `
-    } catch (queryError) {
-      // Try without developer_id if column doesn't exist
-      console.log('Delete with developer_id failed, trying without:', queryError)
-      result = await sql`
-        DELETE FROM captcha_sites 
-        WHERE id = ${siteId} AND email = ${dev.email}
-        RETURNING id
-      `
-    }
+    const result = await sql`
+      DELETE FROM captcha_sites 
+      WHERE id = ${siteId} AND developer_id = ${dev.id}
+      RETURNING id
+    `
 
     if (result.length === 0) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 })

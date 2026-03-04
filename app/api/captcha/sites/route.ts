@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       await sql`
         CREATE TABLE IF NOT EXISTS captcha_sites (
           id SERIAL PRIMARY KEY,
-          developer_id INTEGER,
+          developer_id INTEGER REFERENCES developers(id) ON DELETE CASCADE,
           email VARCHAR(255),
           site_name VARCHAR(255) NOT NULL,
           domain VARCHAR(255) NOT NULL,
@@ -64,33 +64,19 @@ export async function GET(request: NextRequest) {
         )
       `
     } catch (tableError) {
+      // Table might already exist
       console.log('Table check:', tableError)
     }
 
-    let sites
-    try {
-      sites = await sql`
-        SELECT 
-          id, domain, site_name, site_key, is_active, created_at,
-          COALESCE(challenges_solved, 0) as challenges_solved,
-          COALESCE(challenges_failed, 0) as challenges_failed
-        FROM captcha_sites 
-        WHERE developer_id = ${dev.id}
-        ORDER BY created_at DESC
-      `
-    } catch (queryError) {
-      // If developer_id column doesn't exist, try without it
-      console.log('Query with developer_id failed, trying without:', queryError)
-      sites = await sql`
-        SELECT 
-          id, domain, site_name, site_key, is_active, created_at,
-          COALESCE(challenges_solved, 0) as challenges_solved,
-          COALESCE(challenges_failed, 0) as challenges_failed
-        FROM captcha_sites 
-        WHERE email = ${dev.email}
-        ORDER BY created_at DESC
-      `
-    }
+    const sites = await sql`
+      SELECT 
+        id, domain, site_name, site_key, is_active, created_at,
+        COALESCE(challenges_solved, 0) as challenges_solved,
+        COALESCE(challenges_failed, 0) as challenges_failed
+      FROM captcha_sites 
+      WHERE developer_id = ${dev.id}
+      ORDER BY created_at DESC
+    `
 
     return NextResponse.json({ sites })
   } catch (error) {
@@ -119,7 +105,7 @@ export async function POST(req: NextRequest) {
       await sql`
         CREATE TABLE IF NOT EXISTS captcha_sites (
           id SERIAL PRIMARY KEY,
-          developer_id INTEGER,
+          developer_id INTEGER REFERENCES developers(id) ON DELETE CASCADE,
           email VARCHAR(255),
           site_name VARCHAR(255) NOT NULL,
           domain VARCHAR(255) NOT NULL,
@@ -132,24 +118,22 @@ export async function POST(req: NextRequest) {
         )
       `
     } catch (tableError) {
-      console.error('Table creation error:', tableError)
+      console.log('Table creation check:', tableError)
     }
 
-    // Check if domain already exists (handle case where developer_id column might not exist yet)
-    let existing
+    // Ensure developer_id column exists (for backwards compatibility)
     try {
-      existing = await sql`
-        SELECT id FROM captcha_sites 
-        WHERE developer_id = ${dev.id} AND domain = ${domain.toLowerCase()}
-      `
-    } catch (queryError) {
-      // If developer_id column doesn't exist, try without it
-      console.log('Query with developer_id failed, trying without:', queryError)
-      existing = await sql`
-        SELECT id FROM captcha_sites 
-        WHERE domain = ${domain.toLowerCase()}
-      `
+      await sql`ALTER TABLE captcha_sites ADD COLUMN IF NOT EXISTS developer_id INTEGER REFERENCES developers(id) ON DELETE CASCADE`
+    } catch (colError) {
+      // Column might already exist - continue
+      console.log('Column check:', colError)
     }
+
+    // Check if domain already exists for this developer
+    const existing = await sql`
+      SELECT id FROM captcha_sites 
+      WHERE developer_id = ${dev.id} AND domain = ${domain.toLowerCase()}
+    `
     
     if (existing.length > 0) {
       return NextResponse.json({ error: 'Domain already registered' }, { status: 400 })
