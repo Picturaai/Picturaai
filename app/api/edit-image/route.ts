@@ -8,55 +8,49 @@ async function imageUrlToBase64(url: string): Promise<string> {
   return Buffer.from(buffer).toString('base64')
 }
 
-// OpenRouter image editing (supports Flux, Gemini, etc.)
-async function editWithOpenRouter(imageBase64: string, instruction: string): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY
-  if (!apiKey) throw new Error('OpenRouter API not configured')
+// Mistral AI - Image-to-image using Pixtral
+async function editWithMistral(imageBase64: string, instruction: string): Promise<string> {
+  const apiKey = process.env.MISTRAL_API_KEY
+  if (!apiKey) throw new Error('Mistral API not configured')
 
   const imageDataUrl = `data:image/png;base64,${imageBase64}`
 
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  // Use Pixtral with image and text prompt
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://picturaai.com',
-      'X-Title': 'PicturaAI',
     },
     body: JSON.stringify({
-      model: 'black-forest-labs/flux.1-dev',
+      model: 'pixtral-large-latest',
       messages: [
         {
           role: 'user',
           content: [
-            { type: 'image_url', image_url: { url: imageDataUrl } },
+            { type: 'image_url', image_url: imageDataUrl },
             { type: 'text', text: instruction }
           ]
         }
       ],
-      modalities: ['image'],
-      image_config: {
-        prompt_strength: 0.35
-      }
+      tools: [{ type: 'image_generation' }],
+      tool_choice: 'auto',
     }),
   })
 
   if (!response.ok) {
-    const error = await response.text()
-    console.error('OpenRouter API error:', response.status, error)
-    throw new Error(`OpenRouter editing failed: ${response.status}`)
+    const errorText = await response.text()
+    console.error('Mistral API error:', response.status, errorText)
+    throw new Error(`Mistral editing failed: ${response.status}`)
   }
 
   const data = await response.json()
-  // OpenRouter returns base64 image in data.image[0].url
-  if (data.image && data.image[0]?.url) {
-    return data.image[0].url
+  // Extract image from tool call response
+  const toolCalls = data.choices?.[0]?.message?.tool_calls
+  if (toolCalls && toolCalls[0]?.function?.output) {
+    return toolCalls[0].function.output
   }
-  // Check for image in message content
-  if (data.choices?.[0]?.message?.content?.[0]?.image_url?.url) {
-    return data.choices[0].message.content[0].image_url.url
-  }
-  throw new Error('No edited image from OpenRouter')
+  throw new Error('Could not extract image from Mistral response')
 }
 
 // Stability AI image-to-image editing
@@ -148,11 +142,11 @@ export async function POST(request: NextRequest) {
     // Convert image to base64 for providers that need it
     const imageBase64 = await imageUrlToBase64(imageUrl)
 
-    // Try OpenRouter first (Flux - backed by Mistral)
+    // Try Mistral first (Pixtral)
     try {
-      editedImageUrl = await editWithOpenRouter(imageBase64, instruction)
+      editedImageUrl = await editWithMistral(imageBase64, instruction)
     } catch (err) {
-      errors.push(`OpenRouter: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`Mistral: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
     // Fallback to Stability
@@ -176,7 +170,7 @@ export async function POST(request: NextRequest) {
     if (!editedImageUrl) {
       console.error('All edit providers failed:', errors.join('; '))
       console.log('Configured API keys:', {
-        openrouter: !!process.env.OPENROUTER_API_KEY,
+        mistral: !!process.env.MISTRAL_API_KEY,
         stability: !!process.env.STABILITY_API_KEY,
         fal: !!process.env.FAL_KEY,
       })
