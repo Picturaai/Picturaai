@@ -8,58 +8,55 @@ async function imageUrlToBase64(url: string): Promise<string> {
   return Buffer.from(buffer).toString('base64')
 }
 
-// Replicate Stable Diffusion XL image-to-image
-async function editWithReplicate(imageBase64: string, instruction: string): Promise<string> {
-  const apiKey = process.env.REPLICATE_API_KEY
-  if (!apiKey) throw new Error('Replicate not configured')
+// OpenRouter image editing (supports Flux, Gemini, etc.)
+async function editWithOpenRouter(imageBase64: string, instruction: string): Promise<string> {
+  const apiKey = process.env.OPENROUTER_API_KEY
+  if (!apiKey) throw new Error('OpenRouter API not configured')
 
   const imageDataUrl = `data:image/png;base64,${imageBase64}`
 
-  // Start the prediction
-  const startResponse = await fetch('https://api.replicate.com/v1/predictions', {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://picturaai.com',
+      'X-Title': 'PicturaAI',
     },
     body: JSON.stringify({
-      version: '005e8e93b2a7c4da9b96b0c4e6a8b5a5e8e93b2a7c4da9b96b0c4e6a8b5a5',
-      input: {
-        prompt: instruction,
-        image: imageDataUrl,
-        prompt_strength: 0.35,
-        num_inference_steps: 30,
-        guidance_scale: 7.5,
-      },
+      model: 'black-forest-labs/flux.1-dev',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: imageDataUrl } },
+            { type: 'text', text: instruction }
+          ]
+        }
+      ],
+      modalities: ['image'],
+      image_config: {
+        prompt_strength: 0.35
+      }
     }),
   })
 
-  if (!startResponse.ok) {
-    const error = await startResponse.text()
-    console.error('Replicate start error:', startResponse.status, error)
-    throw new Error(`Replicate failed: ${startResponse.status}`)
+  if (!response.ok) {
+    const error = await response.text()
+    console.error('OpenRouter API error:', response.status, error)
+    throw new Error(`OpenRouter editing failed: ${response.status}`)
   }
 
-  const prediction = await startResponse.json()
-  
-  // Poll for result
-  let result = prediction
-  while (result.status === 'starting' || result.status === 'processing') {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    const statusResponse = await fetch(prediction.urls.status, {
-      headers: { 'Authorization': `Bearer ${apiKey}` }
-    })
-    result = await statusResponse.json()
+  const data = await response.json()
+  // OpenRouter returns base64 image in data.image[0].url
+  if (data.image && data.image[0]?.url) {
+    return data.image[0].url
   }
-
-  if (result.status === 'failed') {
-    throw new Error(`Replicate failed: ${result.error}`)
+  // Check for image in message content
+  if (data.choices?.[0]?.message?.content?.[0]?.image_url?.url) {
+    return data.choices[0].message.content[0].image_url.url
   }
-
-  if (result.output && result.output[0]) {
-    return result.output[0]
-  }
-  throw new Error('No edited image from Replicate')
+  throw new Error('No edited image from OpenRouter')
 }
 
 // Stability AI image-to-image editing
@@ -151,11 +148,11 @@ export async function POST(request: NextRequest) {
     // Convert image to base64 for providers that need it
     const imageBase64 = await imageUrlToBase64(imageUrl)
 
-    // Try Replicate first (Stable Diffusion XL)
+    // Try OpenRouter first (Flux - backed by Mistral)
     try {
-      editedImageUrl = await editWithReplicate(imageBase64, instruction)
+      editedImageUrl = await editWithOpenRouter(imageBase64, instruction)
     } catch (err) {
-      errors.push(`Replicate: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`OpenRouter: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
     // Fallback to Stability
@@ -179,7 +176,7 @@ export async function POST(request: NextRequest) {
     if (!editedImageUrl) {
       console.error('All edit providers failed:', errors.join('; '))
       console.log('Configured API keys:', {
-        replicate: !!process.env.REPLICATE_API_KEY,
+        openrouter: !!process.env.OPENROUTER_API_KEY,
         stability: !!process.env.STABILITY_API_KEY,
         fal: !!process.env.FAL_KEY,
       })
