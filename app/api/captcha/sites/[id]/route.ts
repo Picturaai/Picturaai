@@ -6,7 +6,7 @@ const sql = neon(process.env.DATABASE_URL!)
 
 async function getDevFromSession() {
   const cookieStore = await cookies()
-  const sessionId = cookieStore.get('dev_session')?.value
+  const sessionId = cookieStore.get('pictura_session')?.value
   
   if (!sessionId) return null
   
@@ -29,22 +29,38 @@ export async function DELETE(
   try {
     const dev = await getDevFromSession()
     if (!dev) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized - please log in again' }, { status: 401 })
     }
 
     const { id } = await params
     const siteId = parseInt(id, 10)
+    const devId = parseInt(dev.id, 10)
 
     if (isNaN(siteId)) {
       return NextResponse.json({ error: 'Invalid site ID' }, { status: 400 })
     }
 
     // Ensure the site belongs to this developer
-    const result = await sql`
-      DELETE FROM captcha_sites 
-      WHERE id = ${siteId} AND developer_id = ${dev.id}
-      RETURNING id
-    `
+    let result
+    try {
+      if (!isNaN(devId)) {
+        result = await sql`
+          DELETE FROM captcha_sites 
+          WHERE id = ${siteId} AND developer_id = ${devId}
+          RETURNING id
+        `
+      } else {
+        throw new Error('No developer_id')
+      }
+    } catch (queryError) {
+      // Try without developer_id if column doesn't exist
+      console.log('Delete with developer_id failed, trying without:', queryError)
+      result = await sql`
+        DELETE FROM captcha_sites 
+        WHERE id = ${siteId} AND email = ${dev.email}
+        RETURNING id
+      `
+    }
 
     if (result.length === 0) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 })
@@ -53,6 +69,6 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete site:', error)
-    return NextResponse.json({ error: 'Failed to delete site' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to delete site: ' + (error instanceof Error ? error.message : 'Unknown error') }, { status: 500 })
   }
 }
