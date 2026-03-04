@@ -3,6 +3,8 @@ import { put } from '@vercel/blob'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 
+console.log('[TextToImage] Module loaded')
+
 // Provider-specific generation functions
 async function generateWithZyLabs(prompt: string): Promise<string> {
   const apiKey = process.env.ZYLABS_API_KEY
@@ -391,8 +393,10 @@ function extractImageUrl(data: Record<string, unknown>): string {
 }
 
 export async function POST(request: Request) {
+  console.log('[TextToImage] POST request received')
   try {
     const { prompt, model = 'pi-1.0' } = await request.json()
+    console.log('[TextToImage] Prompt:', prompt.substring(0, 50), 'Model:', model)
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       return NextResponse.json({ error: 'A text prompt is required' }, { status: 400 })
@@ -400,9 +404,12 @@ export async function POST(request: Request) {
 
     // Check rate limit using session ID
     const sessionId = await getOrCreateSessionId()
+    console.log('[TextToImage] Session ID:', sessionId)
     const rateLimitInfo = await getRateLimitInfo(sessionId)
+    console.log('[TextToImage] Rate limit before:', rateLimitInfo)
 
     if (rateLimitInfo.remaining <= 0) {
+      console.log('[TextToImage] Rate limit reached!')
       return NextResponse.json(
         {
           error: 'Daily limit reached. You can generate up to 5 images per day during beta.',
@@ -494,8 +501,10 @@ export async function POST(request: Request) {
     })
 
     // Increment usage after successful generation
+    console.log('[TextToImage] Incrementing usage...')
     await incrementUsage(sessionId)
     const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
+    console.log('[TextToImage] Rate limit after:', updatedRateLimitInfo)
 
     return NextResponse.json({
       url: blob.url,
