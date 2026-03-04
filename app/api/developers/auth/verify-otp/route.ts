@@ -57,21 +57,38 @@ export async function POST(req: NextRequest) {
 
     // Check for promo code and apply bonus credits
     if (record.promo_code) {
-      const promoResult = await sql`
-        SELECT * FROM promo_codes 
-        WHERE code = ${record.promo_code.toUpperCase()} 
-        AND is_active = true 
-        AND (max_uses IS NULL OR uses_count < max_uses)
-        AND (expires_at IS NULL OR expires_at > NOW())
+      const promoUsesCountColumn = await sql`
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'promo_codes' AND column_name = 'uses_count'
+        LIMIT 1
       `
+      const hasUsesCountColumn = promoUsesCountColumn.length > 0
+
+      const promoResult = hasUsesCountColumn
+        ? await sql`
+            SELECT * FROM promo_codes
+            WHERE code = ${record.promo_code.toUpperCase()}
+              AND is_active = true
+              AND (max_uses IS NULL OR uses_count < max_uses)
+              AND (expires_at IS NULL OR expires_at > NOW())
+          `
+        : await sql`
+            SELECT * FROM promo_codes
+            WHERE code = ${record.promo_code.toUpperCase()}
+              AND is_active = true
+              AND (expires_at IS NULL OR expires_at > NOW())
+          `
       
       if (promoResult.length > 0) {
         const promo = promoResult[0]
         bonusCredits = promo.bonus_credits
         promoCodeUsed = promo.code
         
-        // Increment promo code usage
-        await sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE id = ${promo.id}`
+        // Increment promo code usage only when legacy DB has uses_count column
+        if (hasUsesCountColumn) {
+          await sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE id = ${promo.id}`
+        }
       }
     }
 
@@ -121,8 +138,8 @@ export async function POST(req: NextRequest) {
     const keyHash = hashPassword(apiKey)
     
     await sql`
-      INSERT INTO api_keys (developer_id, key_hash, key_prefix, name)
-      VALUES (${dev.id}, ${keyHash}, ${apiKey.slice(0, 12)}, 'Default Key')
+      INSERT INTO api_keys (developer_id, key_hash, key_prefix, name, secret_key)
+      VALUES (${dev.id}, ${keyHash}, ${apiKey.slice(0, 12)}, 'Default Key', ${apiKey})
     `
 
     // Log credit transaction for base credits
