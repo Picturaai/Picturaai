@@ -9,7 +9,6 @@ import {
   Upload, Loader2, ArrowRight, Info,
   ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
   ChevronDown, Check, Wand2, RefreshCw, Pencil,
-  Video,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -18,7 +17,7 @@ import { AIImageEditor } from './ai-image-editor'
 import { playSuccessSound, playLimitSound } from '@/lib/sounds'
 import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 
-type Mode = 'text' | 'image' | 'video'
+type Mode = 'text' | 'image'
 type Feedback = 'up' | 'down' | null
 
 const TOUR_STEPS = [
@@ -293,11 +292,6 @@ export function Studio() {
   const [tourStep, setTourStep] = useState(-1) // -1 = not showing
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
-  
-  // Video generation state
-  const [videoLoading, setVideoLoading] = useState(false)
-  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null)
-  const [videoLimit, setVideoLimit] = useState({ used: 0, remaining: 2, limit: 2, isBeta: true })
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [improving, setImproving] = useState(false)
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
@@ -492,58 +486,8 @@ export function Studio() {
     }
   }
 
-  // Video generation handler
-  const handleGenerateVideo = async () => {
-    if (!prompt.trim()) return
-    if (videoLimit.remaining <= 0) {
-      toast.error('You\'ve reached your daily video limit. Try again tomorrow!')
-      return
-    }
-
-    setVideoLoading(true)
-    try {
-      const res = await fetch('/api/v1/video', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: prompt.trim() }),
-      })
-
-      const data = await res.json()
-      
-      if (!res.ok) {
-        if (res.status === 429) {
-          toast.error(data.message || 'Daily limit reached')
-        } else {
-          toast.error(data.error || 'Video generation failed. Please try again.')
-        }
-        return
-      }
-
-      setGeneratedVideo(data.videoUrl)
-      setVideoLimit(prev => ({
-        ...prev,
-        used: prev.used + 1,
-        remaining: prev.remaining - 1
-      }))
-      toast.success('Video generated!')
-
-    } catch {
-      toast.error('Something went wrong. Please try again.')
-    } finally {
-      setVideoLoading(false)
-    }
-  }
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) { 
-      e.preventDefault()
-      if (mode === 'video') {
-        handleGenerateVideo()
-      } else {
-        handleGenerate()
-      }
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate() }
   }
 
   const handleDownload = (img: GeneratedImage) => {
@@ -781,7 +725,7 @@ export function Studio() {
           <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
             {/* Loading card at top when generating */}
             <AnimatePresence>
-              {(loading || videoLoading) && (
+              {loading && (
                 <motion.div
                   initial={{ opacity: 0, y: -10, height: 0 }}
                   animate={{ opacity: 1, y: 0, height: 'auto' }}
@@ -795,25 +739,17 @@ export function Studio() {
                         <svg className="absolute inset-0 h-full w-full animate-spin" style={{ animationDuration: '3s' }} viewBox="0 0 56 56" aria-hidden="true">
                           <circle cx="28" cy="28" r="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="6 10" className="text-primary/40" />
                         </svg>
-                        {mode === 'video' ? (
-                          <Video size={20} />
-                        ) : (
-                          <PicturaIcon size={20} />
-                        )}
+                        <PicturaIcon size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground">
-                          {mode === 'video' ? 'Generating video...' : mode === 'image' ? 'Transforming image...' : 'Generating image...'}
-                        </p>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {prompt || (mode === 'image' ? 'Transforming your image' : mode === 'video' ? 'Creating your video' : 'Processing your request')}
-                        </p>
+<p className="text-sm font-semibold text-foreground">{mode === 'image' ? 'Transforming image...' : 'Generating image...'}</p>
+  <p className="mt-0.5 truncate text-xs text-muted-foreground">{prompt || (mode === 'image' ? 'Transforming your image' : 'Processing your request')}</p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
                             className="h-full rounded-full bg-primary"
                             initial={{ width: '0%' }}
                             animate={{ width: '90%' }}
-                            transition={{ duration: mode === 'video' ? 60 : 15, ease: 'easeOut' }}
+                            transition={{ duration: 15, ease: 'easeOut' }}
                           />
                         </div>
                       </div>
@@ -822,40 +758,6 @@ export function Studio() {
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {/* Video Result */}
-            {generatedVideo && (
-              <div className="mb-6">
-                <div className="rounded-2xl border border-green-200 bg-green-50 p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-green-800">Your Video is Ready!</h3>
-                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Beta</span>
-                  </div>
-                  <video 
-                    src={generatedVideo} 
-                    controls 
-                    className="w-full rounded-xl"
-                    autoPlay
-                  />
-                  <div className="mt-3 flex gap-2">
-                    <a 
-                      href={generatedVideo} 
-                      download="pictura-video.mp4"
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download
-                    </a>
-                    <button 
-                      onClick={() => setGeneratedVideo(null)}
-                      className="px-4 py-2 text-green-700 text-sm hover:bg-green-100 rounded-lg"
-                    >
-                      Generate Another
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {images.map((img, i) => {
@@ -1019,25 +921,19 @@ export function Studio() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={mode === 'video' ? 'Describe the video you want to create...' : mode === 'text' ? 'Describe the image you want to create...' : 'Describe how to transform this image...'}
+              placeholder={mode === 'text' ? 'Describe the image you want to create...' : 'Describe how to transform this image...'}
               rows={1}
-              disabled={loading || videoLoading}
+              disabled={loading}
               className="flex-1 resize-none bg-transparent py-2 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 disabled:opacity-50"
             />
 
             <button
-              onClick={mode === 'video' ? handleGenerateVideo : handleGenerate}
-              disabled={(mode === 'video' ? videoLoading : loading) || !prompt.trim() || (mode !== 'video' && rateLimit.remaining <= 0) || (mode === 'video' && videoLimit.remaining <= 0)}
+              onClick={handleGenerate}
+              disabled={loading || !prompt.trim() || rateLimit.remaining <= 0}
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
-              aria-label={mode === 'video' ? 'Generate video' : 'Generate image'}
+              aria-label="Generate image"
             >
-              {mode === 'video' ? (
-                videoLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Video className="h-4 w-4" />
-                )
-              ) : loading ? (
+              {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <SendIcon className="h-4 w-4" />
@@ -1108,49 +1004,22 @@ export function Studio() {
               >
                 Image to Image
               </button>
-              <button
-                onClick={() => { setMode('video'); setPrompt('') }}
-                className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all flex items-center gap-1 ${
-                  mode === 'video'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Video className="w-3 h-3" />
-                Video
-                <span className="text-[9px] bg-green-100 text-green-700 px-1 rounded-full">Beta</span>
-              </button>
             </div>
 
             <div className="flex items-center gap-3">
-              {mode === 'video' ? (
-                <>
-                  <span className="text-[11px] font-medium text-green-600">
-                    {videoLimit.remaining}/2 videos left today
-                  </span>
-                  <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                    Beta
-                  </span>
-                </>
-              ) : (
-                <>
-                  {rateLimit.remaining <= 2 && rateLimit.remaining > 0 && (
-                    <span className="text-[11px] font-medium text-accent-foreground">
-                      {rateLimit.remaining} left today
-                    </span>
-                  )}
-                  {rateLimit.remaining <= 0 && (
-                    <span className="text-[11px] font-medium text-destructive">
-                      Limit reached
-                    </span>
-                  )}
-                </>
-              )}
-              {mode !== 'video' && (
-                <span className="text-[10px] text-muted-foreground/40 font-mono">
-                  {selectedModel} &middot; 1024
+              {rateLimit.remaining <= 2 && rateLimit.remaining > 0 && (
+                <span className="text-[11px] font-medium text-accent-foreground">
+                  {rateLimit.remaining} left today
                 </span>
               )}
+              {rateLimit.remaining <= 0 && (
+                <span className="text-[11px] font-medium text-destructive">
+                  Limit reached
+                </span>
+              )}
+              <span className="text-[10px] text-muted-foreground/40 font-mono">
+                {selectedModel} &middot; 1024
+              </span>
             </div>
           </div>
         </div>
