@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { 
   Plus, Copy, Check, Trash2, Globe, Key, BarChart3, Settings,
-  Shield, ExternalLink, RefreshCw, AlertCircle, CheckCircle2
+  Shield, ExternalLink, RefreshCw, AlertCircle, CheckCircle2,
+  Eye, EyeOff
 } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
@@ -355,13 +356,19 @@ export default function CaptchaDashboard() {
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => setShowSecretFor(showSecretFor === site.id ? null : site.id)}
-                              className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                              className="text-muted-foreground hover:text-primary transition-colors"
+                              title={showSecretFor === site.id ? 'Hide secret key' : 'Show secret key'}
                             >
-                              {showSecretFor === site.id ? 'Hide' : 'Show'}
+                              {showSecretFor === site.id ? (
+                                <EyeOff className="h-3.5 w-3.5" />
+                              ) : (
+                                <Eye className="h-3.5 w-3.5" />
+                              )}
                             </button>
                             <button
                               onClick={() => copyToClipboard(site.secret_key, `secret-${site.id}`)}
                               className="text-muted-foreground hover:text-primary transition-colors"
+                              title="Copy secret key"
                             >
                               {copiedKey === `secret-${site.id}` ? (
                                 <Check className="h-3.5 w-3.5 text-primary" />

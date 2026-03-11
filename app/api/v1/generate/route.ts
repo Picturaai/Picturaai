@@ -4,6 +4,80 @@ import { hashPassword } from '@/lib/email'
 
 const sql = neon(process.env.DATABASE_URL!)
 
+// Alibaba Cloud Model Studio (DashScope) - Text to Image
+async function generateWithAlibaba(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY
+  if (!apiKey) throw new Error('Alibaba/DashScope not configured')
+
+  // Use Alibaba's image generation model
+  const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-to-image/generation', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'X-DashScope-Async': 'enable', // Use async for better results
+    },
+    body: JSON.stringify({
+      model: 'image-generation', // Alibaba's image generation model
+      input: {
+        prompt: prompt.trim(),
+      },
+      parameters: {
+        size: `${width}x${height}`,
+        n: 1,
+        steps: 30,
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Alibaba generation failed: ${response.status} - ${error}`)
+  }
+
+  const data = await response.json()
+  
+  // Handle async response
+  if (data.request_id) {
+    // Poll for result
+    const result = await pollAlibabaGeneration(apiKey, data.request_id)
+    return result
+  }
+
+  // Handle sync response
+  if (data.output?.images?.[0]?.url) {
+    return data.output.images[0].url
+  }
+  
+  throw new Error('No image from Alibaba')
+}
+
+async function pollAlibabaGeneration(apiKey: string, requestId: string): Promise<string> {
+  const maxAttempts = 30
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    const response = await fetch(
+      `https://dashscope.aliyuncs.com/api/v1/services/aigc/text-to-image/generation/${requestId}`,
+      {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      }
+    )
+    
+    const data = await response.json()
+    
+    if (data.output?.images?.[0]?.url) {
+      return data.output.images[0].url
+    }
+    
+    if (data.code === 'Failed' || data.message?.includes('failed')) {
+      throw new Error('Alibaba generation failed')
+    }
+  }
+  
+  throw new Error('Alibaba generation timeout')
+}
+
 // Mistral AI - Primary provider for Pictura 1.5
 async function generateWithMistral(prompt: string, width: number, height: number): Promise<string> {
   const apiKey = process.env.MISTRAL_API_KEY
@@ -173,10 +247,29 @@ async function generateWithBFL(prompt: string, width: number, height: number): P
 }
 
 // Pictura AI Image Generation Engine (Internal)
-// Uses all 12 providers with automatic failover - Mistral first for best quality
-async function generateWithPicturaEngine(prompt: string, width: number, height: number): Promise<string> {
+// Uses all providers with automatic failover - Alibaba first for best quality
+async function generateWithPicturaEngine(prompt: string, width: number, height: number, model?: string): Promise<string> {
+  
+  // If specific model requested, try that first
+  if (model === 'qwen-2.0-pro') {
+    try {
+      return await generateWithQwen(prompt, width, height)
+    } catch (err) {
+      console.error('Qwen failed, trying other providers:', err)
+    }
+  }
+  
+  if (model === 'alibaba') {
+    try {
+      return await generateWithAlibaba(prompt, width, height)
+    } catch (err) {
+      console.error('Alibaba failed, trying other providers:', err)
+    }
+  }
+  
   const providers = [
-    generateWithMistral,      // Mistral AI (primary)
+    generateWithAlibaba,      // Alibaba Cloud Model Studio (first - your main API!)
+    generateWithMistral,      // Mistral AI
     generateWithStability,    // Stability AI SD3
     generateWithOpenAI,       // OpenAI DALL-E 3
     generateWithBFL,          // Black Forest Labs Flux Pro
@@ -186,7 +279,7 @@ async function generateWithPicturaEngine(prompt: string, width: number, height: 
     generateWithTogether,     // Together AI
     generateWithFireworks,    // Fireworks AI
     generateWithDeepInfra,    // DeepInfra
-    (p: string) => generateWithHuggingFace(p), // HuggingFace (no size param)
+    (p: string) => generateWithHuggingFace(p), // HuggingFace
     generateWithZyLabs,       // ZyLabs
   ]
   
@@ -299,6 +392,53 @@ async function generateWithZyLabs(prompt: string, width: number, height: number)
   throw new Error('No image from ZyLabs')
 }
 
+// Qwen 2.0 Pro via Replicate
+async function generateWithQwen(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.REPLICATE_API_KEY
+  if (!apiKey) throw new Error('Replicate not configured for Qwen')
+
+  // Use Qwen2-VL model via Replicate
+  const response = await fetch('https://api.replicate.com/v1/predictions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      version: '5ca9d8f7d3c2a9a4e5b3c8f0d7a2b9c1e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b',
+      input: {
+        prompt,
+        width,
+        height,
+        num_outputs: 1,
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Qwen failed: ${response.status} - ${error}`)
+  }
+
+  const data = await response.json()
+  
+  // Wait for prediction to complete if it's async
+  if (data.status === 'starting' || data.status === 'processing') {
+    // Poll for completion
+    let prediction = data
+    while (prediction.status === 'starting' || prediction.status === 'processing') {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      const pollResponse = await fetch(`https://api.replicate.com/v1/predictions/${data.id}`, {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      })
+      prediction = await pollResponse.json()
+    }
+    return prediction.output?.[0] || throw new Error('No Qwen image returned')
+  }
+
+  return data.output?.[0] || throw new Error('No Qwen image returned')
+}
+
 // Cost per image in USD - very affordable!
 const COST_PER_IMAGE_USD = 0.01
 
@@ -396,7 +536,7 @@ export async function POST(request: NextRequest) {
     // Generate image using Pictura AI Engine
     let imageUrl: string
     try {
-      imageUrl = await generateWithPicturaEngine(prompt, width || 1024, height || 1024)
+      imageUrl = await generateWithPicturaEngine(prompt, width || 1024, height || 1024, model)
     } catch {
       return NextResponse.json({ 
         error: 'Image generation failed. Please try again.',
@@ -470,6 +610,8 @@ export async function GET() {
     models: [
       { id: 'pi-1.5-turbo', name: 'Pictura 1.5 Turbo', description: 'Fast, high-quality image generation' },
       { id: 'pi-1.0', name: 'Pictura 1.0', description: 'Balanced quality and speed' },
+      { id: 'qwen-2.0-pro', name: 'Qwen 2.0 Pro', description: 'Advanced image generation with Qwen 2.0' },
+      { id: 'alibaba', name: 'Alibaba Cloud', description: 'Alibaba Model Studio image generation' },
     ],
     pricing: {
       per_image_usd: COST_PER_IMAGE_USD,
