@@ -862,17 +862,36 @@ export function Studio() {
                 You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
               </p>
 
-              <div className="mt-8 flex flex-wrap justify-center gap-2" data-tour="suggestions">
-                {(mode === 'video' ? VIDEO_EXAMPLES.slice(0, 4) : PROMPT_EXAMPLES.slice(0, 4)).map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    onClick={() => setPrompt(suggestion)}
-                    className="rounded-full border border-border/50 bg-card px-4 py-2 text-xs text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground hover:bg-card/80"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
+              {mode === 'video' ? (
+                <div className="mt-8 w-full max-w-2xl" data-tour="suggestions">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {VIDEO_EXAMPLES.slice(0, 4).map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        onClick={() => setPrompt(suggestion)}
+                        className="rounded-2xl border border-border/50 bg-card px-4 py-2 text-xs leading-relaxed text-muted-foreground transition-all hover:border-primary/30 hover:bg-card/80 hover:text-foreground"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground/80">
+                    Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-8 flex flex-wrap justify-center gap-2" data-tour="suggestions">
+                  {PROMPT_EXAMPLES.slice(0, 4).map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => setPrompt(suggestion)}
+                      className="rounded-full border border-border/50 bg-card px-4 py-2 text-xs text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground hover:bg-card/80"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
         ) : (
@@ -970,16 +989,14 @@ export function Studio() {
                       <div className="relative aspect-square overflow-hidden bg-muted/30">
                         <button onClick={() => setLightbox(img)} className="relative block h-full w-full">
                           {img.url ? (
-                            <Image
+                            <img
                               src={img.url}
-                              alt={img.prompt}
-                              fill
-                              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              alt="Generated creation"
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                              loading="lazy"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none'
                               }}
-                              loading="lazy"
                             />
                           ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -1366,12 +1383,14 @@ export function Studio() {
                         {isVideo ? (
                           <video src={img.url} className="h-full w-full object-cover" muted />
                         ) : (
-                          <Image
+                          <img
                             src={img.url}
-                            alt={img.prompt}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            sizes="160px"
+                            alt="Saved creation"
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                            }}
                           />
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
@@ -1437,13 +1456,11 @@ export function Studio() {
               {/* Image */}
               <div className="relative bg-muted/30">
                 {lightbox.url ? (
-                  <Image
+                  <img
                     src={lightbox.url}
-                    alt={lightbox.prompt}
-                    width={1024}
-                    height={1024}
+                    alt="Generated creation"
                     className="w-full h-auto max-h-[50vh] sm:max-h-[65vh] object-contain"
-                    priority
+                    loading="eager"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
                 ) : (
