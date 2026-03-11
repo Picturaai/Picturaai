@@ -339,6 +339,12 @@ export function Studio() {
   const [showExhausted, setShowExhausted] = useState(false)
   const [tourStep, setTourStep] = useState(-1) // -1 = not showing
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
+function getPromptExamplesForMode(mode: Mode, imageExamples: string[], videoExamples: string[]): string[] {
+  if (mode === 'text') return imageExamples
+  if (mode === 'image') return IMG2IMG_EXAMPLES
+  return videoExamples
+}
+
   const [modelOpen, setModelOpen] = useState(false)
 
   // auto-switch model with mode
@@ -453,16 +459,10 @@ export function Studio() {
         method: 'POST',
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ prompt: prompt.trim(), mode }),
-  const activePromptExamples = useMemo(() => {
-    switch (mode) {
-      case 'text':
-        return imageExamples
-      case 'image':
-        return IMG2IMG_EXAMPLES
-      default:
-        return videoExamples
-    }
-  }, [mode, imageExamples, videoExamples])
+  const activePromptExamples = useMemo(
+    () => getPromptExamplesForMode(mode, imageExamples, videoExamples),
+    [mode, imageExamples, videoExamples],
+  )
 
   const pickNextPlaceholderIndex = useCallback((prev: number) => {
     const total = activePromptExamples.length
