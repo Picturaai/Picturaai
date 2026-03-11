@@ -1118,7 +1118,7 @@ export function Studio() {
               >
                 <Video className="w-3 h-3" />
                 Video
-                <span className="text-[9px] bg-green-100 text-green-700 px-1 rounded-full">Beta</span>
+                <span className="text-[9px] bg-orange-100 text-orange-700 px-1 rounded-full">Beta</span>
               </button>
             </div>
 
