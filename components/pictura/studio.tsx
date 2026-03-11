@@ -453,14 +453,20 @@ export function Studio() {
         method: 'POST',
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ prompt: prompt.trim(), mode }),
-      })
-      if (!res.ok) throw new Error('Failed')
-      const { improved } = await res.json()
-      if (improved) {
-        setPrompt(improved)
-        toast.success('Prompt improved')
-      }
-    } catch {
+  const activePromptExamples = useMemo(
+    () => (mode === 'text' ? imageExamples : mode === 'image' ? IMG2IMG_EXAMPLES : videoExamples),
+    [mode, imageExamples, videoExamples],
+  )
+
+
+        if (activePromptExamples.length <= 1) return 0
+
+          next = Math.floor(Math.random() * activePromptExamples.length)
+
+  }, [prompt, activePromptExamples])
+    if (activePromptExamples.length === 0) return
+    setPlaceholderIdx(Math.floor(Math.random() * activePromptExamples.length))
+  }, [activePromptExamples])
       toast.error('Could not improve prompt')
     } finally {
       setImproving(false)
