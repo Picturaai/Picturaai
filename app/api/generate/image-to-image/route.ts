@@ -23,25 +23,47 @@ async function generateWithQwenEdit(prompt: string, sourceImageUrl: string): Pro
   const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
   if (!apiKey) return null
 
-  const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'X-DashScope-Async': 'enable',
-    },
-    body: JSON.stringify({
-      model: 'wanx2.1-imageedit',
-      input: { prompt: prompt.trim(), image_url: sourceImageUrl },
-      parameters: { size: '1024*1024' },
-    }),
-  })
+  const candidateModels = [
+    process.env.ALIBABA_IMAGE_EDIT_MODEL,
+    'wan2.2-imageedit-plus',
+    'wanx2.1-imageedit',
+    'qwen-image-edit',
+  ].filter((m): m is string => Boolean(m))
 
-  if (!response.ok) return null
-  const data = await response.json()
-  const taskId = data.output?.task_id
-  if (taskId) return pollQwenTask(apiKey, taskId)
-  return data.output?.results?.[0]?.url || data.output?.url || null
+  for (const model of candidateModels) {
+    const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-DashScope-Async': 'enable',
+      },
+      body: JSON.stringify({
+        model,
+        input: { prompt: prompt.trim(), image_url: sourceImageUrl },
+        parameters: { size: '1024*1024' },
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      console.log(`[img2img:qwen] model=${model} failed`, response.status, errorText.slice(0, 300))
+      continue
+    }
+
+    const data = await response.json()
+    const taskId = data.output?.task_id
+    if (taskId) {
+      const polled = await pollQwenTask(apiKey, taskId)
+      if (polled) return polled
+      continue
+    }
+
+    const direct = data.output?.results?.[0]?.url || data.output?.images?.[0]?.url || data.output?.image_url || data.output?.url
+    if (direct) return direct
+  }
+
+  return null
 }
 
 

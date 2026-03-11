@@ -27,32 +27,45 @@ async function generateWithQwen(prompt: string): Promise<string> {
   const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
   if (!apiKey) throw new Error('Alibaba API key not configured')
 
-  const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'X-DashScope-Async': 'enable',
-    },
-    body: JSON.stringify({
-      model: 'wanx2.1-t2i-turbo',
-      input: { prompt: prompt.trim() },
-      parameters: { size: '1024*1024' },
-    }),
-  })
+  const candidateModels = [
+    process.env.ALIBABA_IMAGE_MODEL,
+    'wan2.2-t2i-plus',
+    'wan2.2-t2i',
+    'wanx2.1-t2i-turbo',
+  ].filter((m): m is string => Boolean(m))
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Qwen image generation failed: ${response.status} ${errorText}`)
+  let lastError = 'Alibaba text-to-image failed'
+
+  for (const model of candidateModels) {
+    const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-DashScope-Async': 'enable',
+      },
+      body: JSON.stringify({
+        model,
+        input: { prompt: prompt.trim() },
+        parameters: { size: '1024*1024' },
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      lastError = `model=${model} status=${response.status} body=${errorText}`
+      continue
+    }
+
+    const data = await response.json()
+    const taskId = data.output?.task_id
+    if (taskId) return pollAlibabaTask(apiKey, taskId)
+    const directUrl = data.output?.results?.[0]?.url || data.output?.images?.[0]?.url || data.output?.image_url || data.output?.url
+    if (directUrl) return directUrl
+    lastError = `model=${model} returned no task_id/image URL`
   }
 
-  const data = await response.json()
-  const taskId = data.output?.task_id
-  if (taskId) return pollAlibabaTask(apiKey, taskId)
-  const directUrl = data.output?.results?.[0]?.url || data.output?.url
-  if (directUrl) return directUrl
-
-  throw new Error('No image URL from Qwen')
+  throw new Error(lastError)
 }
 
 // Provider-specific generation functions
