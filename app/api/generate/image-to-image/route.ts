@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     }
 
     // Check rate limit using session ID
-    const sessionId = await getOrCreateSessionId()
+    const sessionId = await getOrCreateSessionId(request)
     const rateLimitInfo = await getRateLimitInfo(sessionId)
 
     if (rateLimitInfo.remaining <= 0) {

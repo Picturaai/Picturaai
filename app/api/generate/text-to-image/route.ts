@@ -466,7 +466,7 @@ export async function POST(request: Request) {
     }
 
     // Check rate limit using session ID
-    const sessionId = await getOrCreateSessionId()
+    const sessionId = await getOrCreateSessionId(request)
     console.log('[TextToImage] Session ID:', sessionId)
     const rateLimitInfo = await getRateLimitInfo(sessionId)
     console.log('[TextToImage] Rate limit before:', rateLimitInfo)

@@ -20,6 +20,12 @@ import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 type Mode = 'text' | 'image' | 'video'
 type Feedback = 'up' | 'down' | null
 
+
+const VIDEO_LOADING_HINTS = [
+  'Adding audio layers and cinematic timing...',
+  'Enhancing motion and scene continuity...',
+  'Almost ready — final rendering in progress...',
+]
 const TOUR_STEPS = [
   {
     title: 'Welcome to Pictura Studio',
@@ -324,9 +330,19 @@ export function Studio() {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorImage, setEditorImage] = useState<string | null>(null)
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
+  const [videoLoadingHintIndex, setVideoLoadingHintIndex] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!(loading && mode === 'video')) return
+    setVideoLoadingHintIndex(0)
+    const interval = setInterval(() => {
+      setVideoLoadingHintIndex((prev) => (prev + 1) % VIDEO_LOADING_HINTS.length)
+    }, 1600)
+    return () => clearInterval(interval)
+  }, [loading, mode])
 
   // Rotate prompt suggestions every 4s when input is empty
   useEffect(() => {
@@ -806,7 +822,7 @@ export function Studio() {
                           {mode === 'video' ? 'Generating your video with PicturaGen...' : mode === 'image' ? 'Transforming image...' : 'Generating image...'}
                         </p>
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {prompt || (mode === 'video' ? 'This may take a little longer while we render cinematic frames.' : mode === 'image' ? 'Transforming your image' : 'Processing your request')}
+                          {prompt || (mode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : mode === 'image' ? 'Transforming your image' : 'Processing your request')}
                         </p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div

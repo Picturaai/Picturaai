@@ -4,9 +4,9 @@ import { getOrCreateSessionId } from '@/lib/session'
 import type { GeneratedImage } from '@/lib/types'
 
 // GET - Load user's saved gallery
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const sessionId = await getOrCreateSessionId()
+    const sessionId = await getOrCreateSessionId(request)
     const galleryPath = `pictura/galleries/${sessionId}.json`
 
     // List blobs to find this user's gallery file
@@ -33,7 +33,7 @@ export async function GET() {
 // POST - Save image to user's gallery
 export async function POST(request: Request) {
   try {
-    const sessionId = await getOrCreateSessionId()
+    const sessionId = await getOrCreateSessionId(request)
     const image: GeneratedImage = await request.json()
 
     if (!image.url || !image.prompt) {

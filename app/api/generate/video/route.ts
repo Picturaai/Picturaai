@@ -102,7 +102,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 })
     }
 
-    const sessionId = await getOrCreateSessionId()
+    const sessionId = await getOrCreateSessionId(request)
     const videoLimit = await getVideoRateLimitInfo(sessionId)
     if (videoLimit.remaining <= 0) {
       return NextResponse.json({ error: 'Daily video limit reached (3/day).', rateLimitInfo: videoLimit }, { status: 429 })
