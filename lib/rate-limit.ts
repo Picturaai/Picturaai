@@ -1,7 +1,7 @@
 import { neon } from '@neondatabase/serverless'
 
 const DAILY_LIMIT = 5
-const DAILY_VIDEO_LIMIT = 3
+const DAILY_VIDEO_LIMIT = 2
 
 // Persistent rate limit storage using database
 // Uses a separate table to avoid schema conflicts

@@ -495,7 +495,7 @@ export function Studio() {
         })
       } else {
         if (videoRateLimit.remaining <= 0) {
-          toast.error('Daily video limit reached (3/day).')
+          toast.error('Daily video limit reached (2/day).')
           return
         }
         res = await fetch('/api/generate/video', {
@@ -586,8 +586,9 @@ export function Studio() {
     setTourStep((s) => s + 1)
   }
 
-  const creditsUsed = rateLimit.used
-  const creditsTotal = rateLimit.limit
+  const currentLimitInfo = mode === 'video' ? videoRateLimit : rateLimit
+  const creditsUsed = currentLimitInfo.used
+  const creditsTotal = currentLimitInfo.limit
   const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
 
   if (!mounted) return null
@@ -691,7 +692,7 @@ export function Studio() {
                 />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-foreground">{rateLimit.remaining}</span>
+            <span className="text-xs font-semibold text-foreground">{currentLimitInfo.remaining}</span>
             <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>
           </div>
 
@@ -749,8 +750,8 @@ export function Studio() {
                   <PicturaIcon size={24} />
                 </div>
               </div>
-<p className="mt-8 text-sm font-semibold text-foreground">{mode === 'image' ? 'Transforming your image' : 'Creating your image'}</p>
-  <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
+<p className="mt-8 text-sm font-semibold text-foreground">{mode === 'video' ? 'Creating your video' : mode === 'image' ? 'Transforming your image' : 'Creating your image'}</p>
+  <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
               {/* Thin progress bar */}
               <div className="mt-5 h-1 w-48 overflow-hidden rounded-full bg-secondary">
                 <motion.div
@@ -772,25 +773,22 @@ export function Studio() {
               className="flex flex-col items-center"
             >
               <PicturaIcon size={56} />
-              <h2 className="mt-5 text-xl font-semibold text-foreground">What will you create?</h2>
+              <h2 className="mt-5 text-xl font-semibold text-foreground">{mode === 'video' ? 'What video will you create?' : 'What will you create?'}</h2>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                Type a description below and Pictura will generate an image for you.
-                You have <strong className="text-foreground">{rateLimit.remaining} generation{rateLimit.remaining !== 1 ? 's' : ''}</strong> remaining today.
+                {mode === 'video'
+                  ? 'Describe your scene and PicturaGen will create a cinematic video for you.'
+                  : 'Type a description below and Pictura will generate an image for you.'}
+                You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
               </p>
 
               <div className="mt-8 flex flex-wrap justify-center gap-2" data-tour="suggestions">
-                {[
-                  'A serene Japanese garden at dawn',
-                  'Astronaut riding a horse on Mars',
-                  'Oil painting of a coastal sunset',
-                  'Macro photo of morning dew on a leaf',
-                ].map((s) => (
+                {(mode === 'video' ? VIDEO_EXAMPLES.slice(0, 4) : PROMPT_EXAMPLES.slice(0, 4)).map((suggestion) => (
                   <button
-                    key={s}
-                    onClick={() => setPrompt(s)}
+                    key={suggestion}
+                    onClick={() => setPrompt(suggestion)}
                     className="rounded-full border border-border/50 bg-card px-4 py-2 text-xs text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground hover:bg-card/80"
                   >
-                    {s}
+                    {suggestion}
                   </button>
                 ))}
               </div>

@@ -96,6 +96,9 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.ZYLABS_API_KEY
 
+    const hasAlibabaKey = Boolean(process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY)
+
+
     // If we have a file, upload it to Blob first to get a public URL
     let sourceImageUrl = imageUrl || ''
     if (image) {
@@ -186,8 +189,11 @@ export async function POST(request: Request) {
     }
 
     if (!generatedImageUrl) {
+      const configHint = !apiKey && !hasAlibabaKey
+        ? 'No provider key found. Add ZYLABS_API_KEY or ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
+        : undefined
       return NextResponse.json(
-        { error: 'Image transformation failed. Please try again.' },
+        { error: 'Image transformation failed. Please try again.', details: configHint },
         { status: 500 }
       )
     }
