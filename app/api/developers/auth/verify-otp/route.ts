@@ -51,27 +51,68 @@ export async function POST(req: NextRequest) {
 
     // Get credits for currency (100 free images equivalent)
     const currency = record.currency || 'USD'
-    let credits = CURRENCY_CREDITS[currency] || CURRENCY_CREDITS['USD']
+    const baseCredits = Number(CURRENCY_CREDITS[currency] || CURRENCY_CREDITS['USD'])
+    const credits = Number.isFinite(baseCredits) ? baseCredits : Number(CURRENCY_CREDITS['USD'])
     let bonusCredits = 0
     let promoCodeUsed = ''
 
     // Check for promo code and apply bonus credits
     if (record.promo_code) {
-      const promoResult = await sql`
-        SELECT * FROM promo_codes 
-        WHERE code = ${record.promo_code.toUpperCase()} 
-        AND is_active = true 
-        AND (max_uses IS NULL OR uses_count < max_uses)
-        AND (expires_at IS NULL OR expires_at > NOW())
+      const promoColumns = await sql`
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'promo_codes'
       `
+      const promoColumnSet = new Set(promoColumns.map((column) => column.column_name))
+      const hasUsesCountColumn = promoColumnSet.has('uses_count')
+      const hasMaxUsesColumn = promoColumnSet.has('max_uses')
+      const hasExpiresAtColumn = promoColumnSet.has('expires_at')
+
+      let promoResult
+
+      if (hasUsesCountColumn && hasMaxUsesColumn && hasExpiresAtColumn) {
+        promoResult = await sql`
+          SELECT * FROM promo_codes
+          WHERE code = ${record.promo_code.toUpperCase()}
+            AND is_active = true
+            AND (max_uses IS NULL OR uses_count < max_uses)
+            AND (expires_at IS NULL OR expires_at > NOW())
+        `
+      } else if (hasUsesCountColumn && hasMaxUsesColumn) {
+        promoResult = await sql`
+          SELECT * FROM promo_codes
+          WHERE code = ${record.promo_code.toUpperCase()}
+            AND is_active = true
+            AND (max_uses IS NULL OR uses_count < max_uses)
+        `
+      } else if (hasExpiresAtColumn) {
+        promoResult = await sql`
+          SELECT * FROM promo_codes
+          WHERE code = ${record.promo_code.toUpperCase()}
+            AND is_active = true
+            AND (expires_at IS NULL OR expires_at > NOW())
+        `
+      } else {
+        promoResult = await sql`
+          SELECT * FROM promo_codes
+          WHERE code = ${record.promo_code.toUpperCase()}
+            AND is_active = true
+        `
+      }
       
       if (promoResult.length > 0) {
         const promo = promoResult[0]
-        bonusCredits = promo.bonus_credits
-        promoCodeUsed = promo.code
+        const promoBonusValue = Number(promo.bonus_credits)
+
+        if (Number.isFinite(promoBonusValue)) {
+          bonusCredits = promoBonusValue
+          promoCodeUsed = promo.code
+        }
         
-        // Increment promo code usage
-        await sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE id = ${promo.id}`
+        // Increment promo code usage only when legacy DB has uses_count column
+        if (hasUsesCountColumn) {
+          await sql`UPDATE promo_codes SET uses_count = uses_count + 1 WHERE id = ${promo.id}`
+        }
       }
     }
 
@@ -120,10 +161,24 @@ export async function POST(req: NextRequest) {
     const apiKey = `pk_live_${generateToken(24)}`
     const keyHash = hashPassword(apiKey)
     
-    await sql`
-      INSERT INTO api_keys (developer_id, key_hash, key_prefix, name)
-      VALUES (${dev.id}, ${keyHash}, ${apiKey.slice(0, 12)}, 'Default Key')
+    const apiKeysColumns = await sql`
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = 'api_keys' AND column_name = 'secret_key'
+      LIMIT 1
     `
+
+    if (apiKeysColumns.length > 0) {
+      await sql`
+        INSERT INTO api_keys (developer_id, key_hash, key_prefix, name, secret_key)
+        VALUES (${dev.id}, ${keyHash}, ${apiKey.slice(0, 12)}, 'Default Key', ${apiKey})
+      `
+    } else {
+      await sql`
+        INSERT INTO api_keys (developer_id, key_hash, key_prefix, name)
+        VALUES (${dev.id}, ${keyHash}, ${apiKey.slice(0, 12)}, 'Default Key')
+      `
+    }
 
     // Log credit transaction for base credits
     await sql`
