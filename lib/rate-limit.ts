@@ -29,11 +29,13 @@ async function ensureTable() {
       credits_reset_at TIMESTAMPTZ,
       video_used INTEGER DEFAULT 0,
       video_reset_at TIMESTAMPTZ,
+      tour_completed BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `
   await sql`ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS video_used INTEGER DEFAULT 0`
   await sql`ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS video_reset_at TIMESTAMPTZ`
+  await sql`ALTER TABLE user_sessions ADD COLUMN IF NOT EXISTS tour_completed BOOLEAN DEFAULT FALSE`
 }
 
 export async function getRateLimitInfo(identifier: string): Promise<{
@@ -236,5 +238,47 @@ export async function incrementUsage(identifier: string): Promise<void> {
     }
   } catch (error) {
     console.error('[RateLimit] Increment error:', error)
+  }
+}
+
+
+export async function getTourPreference(identifier: string): Promise<{ completed: boolean }> {
+  try {
+    await ensureTable()
+    const sql = getDb()
+    const result = await sql`
+      SELECT tour_completed FROM user_sessions
+      WHERE session_id = ${identifier}
+    `
+
+    if (result.length === 0) {
+      const resetAt = getResetTime()
+      await sql`
+        INSERT INTO user_sessions (session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed)
+        VALUES (${identifier}, 0, ${resetAt.toISOString()}, 0, ${resetAt.toISOString()}, FALSE)
+      `
+      return { completed: false }
+    }
+
+    return { completed: Boolean(result[0].tour_completed) }
+  } catch (error) {
+    console.error('[TourPreference] Error:', error)
+    return { completed: false }
+  }
+}
+
+export async function setTourPreference(identifier: string, completed: boolean): Promise<void> {
+  try {
+    await ensureTable()
+    const sql = getDb()
+    const resetAt = getResetTime()
+    await sql`
+      INSERT INTO user_sessions (session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed)
+      VALUES (${identifier}, 0, ${resetAt.toISOString()}, 0, ${resetAt.toISOString()}, ${completed})
+      ON CONFLICT (session_id)
+      DO UPDATE SET tour_completed = ${completed}
+    `
+  } catch (error) {
+    console.error('[TourPreference] Set error:', error)
   }
 }

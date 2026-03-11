@@ -14,11 +14,21 @@ export function generateSessionId(): string {
 
 function getStableFingerprint(request?: RequestLike): string | null {
   if (!request) return null
+
+  const explicitFingerprint = request.headers.get('x-client-fingerprint')
+  if (explicitFingerprint && explicitFingerprint.trim()) {
+    return createHash('sha256').update(explicitFingerprint.trim()).digest('hex')
+  }
+
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     || request.headers.get('x-real-ip')
+    || request.headers.get('cf-connecting-ip')
     || 'unknown-ip'
   const ua = request.headers.get('user-agent') || 'unknown-ua'
-  const raw = `${ip}|${ua}`
+  const acceptLanguage = request.headers.get('accept-language') || 'unknown-lang'
+  const secChUa = request.headers.get('sec-ch-ua') || 'unknown-ch-ua'
+  const secChPlatform = request.headers.get('sec-ch-ua-platform') || 'unknown-platform'
+  const raw = `${ip}|${ua}|${acceptLanguage}|${secChUa}|${secChPlatform}`
   return createHash('sha256').update(raw).digest('hex')
 }
 

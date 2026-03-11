@@ -338,9 +338,18 @@ export function Studio() {
   const [editorImage, setEditorImage] = useState<string | null>(null)
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
   const [videoLoadingHintIndex, setVideoLoadingHintIndex] = useState(0)
+  const [clientFingerprint, setClientFingerprint] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
+
+  const buildAuthHeaders = useCallback((headers?: HeadersInit) => {
+    const nextHeaders = new Headers(headers || {})
+    if (clientFingerprint) {
+      nextHeaders.set('x-client-fingerprint', clientFingerprint)
+    }
+    return nextHeaders
+  }, [clientFingerprint])
 
   useEffect(() => {
     if (!(loading && mode === 'video')) return
@@ -350,6 +359,25 @@ export function Studio() {
     }, 1600)
     return () => clearInterval(interval)
   }, [loading, mode])
+
+
+  useEffect(() => {
+    const raw = [
+      navigator.userAgent,
+      navigator.language,
+      navigator.platform,
+      String(navigator.hardwareConcurrency || 0),
+      String(navigator.maxTouchPoints || 0),
+      `${screen.width}x${screen.height}`,
+    ].join('|')
+
+    let hash = 0
+    for (let i = 0; i < raw.length; i++) {
+      hash = ((hash << 5) - hash) + raw.charCodeAt(i)
+      hash |= 0
+    }
+    setClientFingerprint(`fp-${Math.abs(hash)}`)
+  }, [])
 
   // Rotate prompt suggestions every 4s when input is empty
   useEffect(() => {
@@ -368,7 +396,7 @@ export function Studio() {
     try {
       const res = await fetch('/api/improve-prompt', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ prompt: prompt.trim(), mode }),
       })
       if (!res.ok) throw new Error('Failed')
@@ -387,7 +415,7 @@ export function Studio() {
   const fetchRateLimit = useCallback(async () => {
     try {
       console.log('[Client] Fetching rate limit...')
-      const res = await fetch('/api/rate-limit', { credentials: 'include' })
+      const res = await fetch('/api/rate-limit', { credentials: 'include', headers: buildAuthHeaders() })
       console.log('[Client] Rate limit response:', res.status, res.ok)
       if (res.ok) {
         const data = await res.json()
@@ -397,22 +425,22 @@ export function Studio() {
     } catch (e) { 
       console.error('[Client] Rate limit error:', e)
     }
-  }, [])
+  }, [buildAuthHeaders])
 
   const fetchVideoRateLimit = useCallback(async () => {
     try {
-      const res = await fetch('/api/rate-limit/video', { credentials: 'include' })
+      const res = await fetch('/api/rate-limit/video', { credentials: 'include', headers: buildAuthHeaders() })
       if (res.ok) {
         const data = await res.json()
         setVideoRateLimit(data)
       }
     } catch { /* silent */ }
-  }, [])
+  }, [buildAuthHeaders])
 
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
     try {
-      const res = await fetch('/api/gallery', { credentials: 'include' })
+      const res = await fetch('/api/gallery', { credentials: 'include', headers: buildAuthHeaders() })
       if (res.ok) {
         const { images: saved } = await res.json()
         if (saved && saved.length > 0) {
@@ -429,20 +457,28 @@ export function Studio() {
         }
       }
     } catch { /* silent */ }
-  }, [])
+  }, [buildAuthHeaders])
 
   useEffect(() => {
     setMounted(true)
     fetchRateLimit()
     fetchVideoRateLimit()
     loadGallery()
-    // Show tour on first visit only
-    try {
-      if (!localStorage.getItem('pictura_tour_done')) {
+
+    const loadTourPreference = async () => {
+      try {
+        const res = await fetch('/api/studio/preferences', { credentials: 'include', headers: buildAuthHeaders() })
+        const data = res.ok ? await res.json() : { completed: false }
+        if (!data.completed) {
+          setTimeout(() => setTourStep(0), 600)
+        }
+      } catch {
         setTimeout(() => setTourStep(0), 600)
       }
-    } catch { /* silent */ }
-  }, [fetchRateLimit, fetchVideoRateLimit, loadGallery])
+    }
+
+    loadTourPreference()
+  }, [fetchRateLimit, fetchVideoRateLimit, loadGallery, buildAuthHeaders])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -489,7 +525,7 @@ export function Studio() {
         res = await fetch('/api/generate/text-to-image', {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
         })
       } else if (mode === 'image') {
@@ -500,6 +536,7 @@ export function Studio() {
         res = await fetch('/api/generate/image-to-image', { 
           method: 'POST', 
           credentials: 'include',
+          headers: buildAuthHeaders(),
           body: formData 
         })
       } else {
@@ -510,7 +547,7 @@ export function Studio() {
         res = await fetch('/api/generate/video', {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
         })
       }
@@ -534,7 +571,8 @@ export function Studio() {
         toast.success('Video generated!')
         fetch('/api/gallery', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(videoItem),
         }).catch(() => { /* silent */ })
       } else {
@@ -553,7 +591,8 @@ export function Studio() {
         // Persist image to gallery
         fetch('/api/gallery', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify({ ...data, mediaKind: 'image' }),
         }).catch(() => { /* silent */ })
       }
@@ -594,9 +633,16 @@ export function Studio() {
     if (type === 'down') toast('We\'ll use this to improve Pictura.')
   }
 
-  const dismissTour = () => {
+  const dismissTour = async () => {
     setTourStep(-1)
-    try { localStorage.setItem('pictura_tour_done', '1') } catch { /* silent */ }
+    try {
+      await fetch('/api/studio/preferences', {
+        method: 'POST',
+        credentials: 'include',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ completed: true }),
+      })
+    } catch { /* silent */ }
   }
   const nextTourStep = () => {
     if (tourStep >= TOUR_STEPS.length - 1) { dismissTour(); return }
@@ -1211,7 +1257,7 @@ export function Studio() {
                 {"Oops! You've used all your credits"}
               </h3>
               <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                {"You've exhausted your 5 free image generations for today. We're working hard to increase limits as Pictura grows."}
+                {`You've exhausted your ${currentLimitInfo.limit} free ${mode === 'video' ? 'video' : 'image'} generation${currentLimitInfo.limit !== 1 ? 's' : ''} for today. We're working hard to increase limits as Pictura grows.`}
               </p>
 
               <div className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-secondary/50 px-4 py-2.5">
@@ -1440,7 +1486,7 @@ export function Studio() {
                   <PicturaIcon size={18} className="flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-semibold text-foreground">Generated Image</span>
+                      <span className="text-xs font-semibold text-foreground">{lightbox.type === 'text-to-video' ? 'Generated Video' : 'Generated Image'}</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                         {lightbox.type === 'text-to-image' ? 'Text to Image' : lightbox.type === 'image-to-image' ? 'Image to Image' : 'Text to Video'}
                       </span>
