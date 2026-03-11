@@ -73,9 +73,6 @@ export async function POST(request: Request) {
     }
 
     const apiKey = process.env.ZYLABS_API_KEY
-    if (!apiKey) {
-      return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
-    }
 
     // If we have a file, upload it to Blob first to get a public URL
     let sourceImageUrl = imageUrl || ''
@@ -92,7 +89,7 @@ export async function POST(request: Request) {
     console.log('[v0] img2img sourceImageUrl:', sourceImageUrl)
     console.log('[v0] img2img prompt:', prompt.trim())
 
-    if (model === 'qwen-edit') {
+    if (model === 'pi-1.5-turbo' || !apiKey) {
       const qwenImage = await generateWithQwenEdit(prompt, sourceImageUrl)
       if (qwenImage) {
         const imageResponse = await fetch(qwenImage)
@@ -128,16 +125,19 @@ export async function POST(request: Request) {
     let data: Record<string, unknown> | null = null
     let generatedImageUrl: string | null = null
 
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${apiKey}` },
-    })
+    let response: Response | null = null
+    if (apiKey) {
+      response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      })
+    }
 
-    if (response.ok) {
+    if (response?.ok) {
       data = await response.json()
       console.log('[v0] img2img response:', JSON.stringify(data).slice(0, 500))
       generatedImageUrl = extractImageUrl(data!)
-    } else {
+    } else if (response) {
       console.log('[v0] img2img GET failed:', response.status, await response.text().catch(() => ''))
     }
 
@@ -152,15 +152,17 @@ export async function POST(request: Request) {
       })
       const fallbackUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20188/text+to+image?${fallbackParams.toString()}`
 
-      const fallbackRes = await fetch(fallbackUrl, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${apiKey}` },
-      })
+      if (apiKey) {
+        const fallbackRes = await fetch(fallbackUrl, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${apiKey}` },
+        })
 
-      if (fallbackRes.ok) {
-        data = await fallbackRes.json()
-        console.log('[v0] img2img fallback response:', JSON.stringify(data).slice(0, 500))
-        generatedImageUrl = extractImageUrl(data!)
+        if (fallbackRes.ok) {
+          data = await fallbackRes.json()
+          console.log('[v0] img2img fallback response:', JSON.stringify(data).slice(0, 500))
+          generatedImageUrl = extractImageUrl(data!)
+        }
       }
     }
 

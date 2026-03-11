@@ -474,30 +474,26 @@ export async function POST(request: Request) {
     // Pictura 1.0 uses free/fast providers first
     // All 10 providers are tried in order - just add the API key to enable
     let imageUrl: string
-    const providers = model === 'qwen-image'
+    const providers = model === 'pi-1.5-turbo'
       ? [
           generateWithQwen,
           generateWithMistral,
           generateWithStability,
           generateWithOpenAI,
-        ]
-      : model === 'pi-1.5-turbo'
-      ? [
-          generateWithMistral,     // Mistral AI (primary for 1.5)
-          generateWithStability,   // Stability AI SD3
-          generateWithOpenAI,      // OpenAI DALL-E 3
-          generateWithBFL,         // Black Forest Labs Flux Pro
-          generateWithReplicate,   // Replicate
-          generateWithLeonardo,    // Leonardo AI
-          generateWithFal,         // Fal AI
-          generateWithTogether,    // Together AI
-          generateWithFireworks,   // Fireworks AI
-          generateWithDeepInfra,   // DeepInfra
-          generateWithHuggingFace, // HuggingFace
-          generateWithZyLabs,      // ZyLabs
+          generateWithBFL,
+          generateWithReplicate,
+          generateWithLeonardo,
+          generateWithFal,
+          generateWithTogether,
+          generateWithFireworks,
+          generateWithDeepInfra,
+          generateWithHuggingFace,
+          generateWithZyLabs,
         ]
       : [
+
           generateWithZyLabs,      // ZyLabs (fast, free tier)
+          generateWithQwen,        // Alibaba Qwen fallback
           generateWithTogether,    // Together AI (free tier)
           generateWithDeepInfra,   // DeepInfra
           generateWithHuggingFace, // HuggingFace

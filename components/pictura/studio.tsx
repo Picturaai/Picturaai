@@ -8,7 +8,7 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw, Pencil, Rocket, Clapperboard,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -66,8 +66,6 @@ const TOUR_STEPS = [
 const MODELS = [
   { id: 'pi-1.0', name: 'Pictura pi-1.0', status: 'active' as const, description: 'General purpose image generation' },
   { id: 'pi-1.5-turbo', name: 'Pictura pi-1.5 Turbo', status: 'active' as const, description: 'Faster, higher quality output' },
-  { id: 'qwen-image', name: 'Qwen Image', status: 'active' as const, description: 'Alibaba Qwen text-to-image model' },
-  { id: 'qwen-edit', name: 'Qwen Edit', status: 'active' as const, description: 'Alibaba Qwen image editing model' },
   { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture' },
 ]
 

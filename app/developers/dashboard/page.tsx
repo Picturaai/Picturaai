@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -101,7 +101,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 }
 
 export default function DeveloperDashboard() {
-  const router = useRouter()
+  const searchParams = useSearchParams()
   const [developer, setDeveloper] = useState<Developer | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'api-keys' | 'usage' | 'billing' | 'settings' | 'playground'>('overview')
@@ -127,6 +127,9 @@ export default function DeveloperDashboard() {
   const [showPricingModal, setShowPricingModal] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState<{name: string, credits: number, price: number} | null>(null)
   const [processingPayment, setProcessingPayment] = useState(false)
+  const [editableName, setEditableName] = useState('')
+  const [savingName, setSavingName] = useState(false)
+  const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null)
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -171,6 +174,52 @@ export default function DeveloperDashboard() {
   useEffect(() => {
     fetchDashboard()
   }, [fetchDashboard])
+
+  useEffect(() => {
+    if (developer?.name) setEditableName(developer.name)
+  }, [developer?.name])
+
+  useEffect(() => {
+    const paymentState = searchParams.get('payment')
+    const pendingUrl = localStorage.getItem('pictura_pending_payment_url')
+    if (pendingUrl) setPendingPaymentUrl(pendingUrl)
+
+    if (paymentState === 'success') {
+      localStorage.removeItem('pictura_pending_payment_url')
+      setPendingPaymentUrl(null)
+      toast.success('Payment successful! Credits will reflect shortly.')
+    } else if (paymentState === 'cancel' || paymentState === 'cancelled') {
+      toast.info('Payment pending. You can continue from your saved payment link.')
+    }
+  }, [searchParams])
+
+  const handleUpdateName = async () => {
+    if (!editableName.trim() || !developer || editableName.trim() === developer.name) return
+    setSavingName(true)
+    try {
+      const token = localStorage.getItem('pictura_session')
+      const res = await fetch('/api/developers/profile', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ name: editableName.trim() }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to update name')
+        return
+      }
+      toast.success('Profile updated')
+      fetchDashboard()
+    } catch {
+      toast.error('Failed to update name')
+    } finally {
+      setSavingName(false)
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -320,11 +369,11 @@ export default function DeveloperDashboard() {
       <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-[#FFFCF8]/95 backdrop-blur-md border-b border-[#EADBCB]">
         <button 
           onClick={() => setSidebarOpen(true)} 
-          className="w-9 h-9 rounded-xl border border-[#E8D7C6] bg-[#FFF8F0] hover:bg-[#F7EBDD] flex items-center justify-center transition-colors active:scale-95 text-[#7A573A]"
+          className="w-10 h-10 rounded-2xl border border-[#E8D7C6] bg-gradient-to-br from-[#FFF9F2] to-[#F7EBDD] hover:from-[#FDF1E3] hover:to-[#F3E3D3] flex items-center justify-center transition-all active:scale-95 text-[#7A573A]"
         >
           <Menu className="h-4 w-4" />
         </button>
-        <PicturaLogo size="sm" />
+        <Link href="/" className="transition-opacity hover:opacity-80"><PicturaLogo size="sm" /></Link>
         <button onClick={() => setActiveTab('settings')} className="active:scale-95 transition-transform">
           <PatternAvatar name={developer.name || 'Developer'} email={developer.email} size="sm" />
         </button>
@@ -347,7 +396,7 @@ export default function DeveloperDashboard() {
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-[#C87941]/10 to-transparent">
-            <PicturaLogo size="sm" />
+            <Link href="/" className="transition-opacity hover:opacity-80" onClick={() => setSidebarOpen(false)}><PicturaLogo size="sm" /></Link>
             <button 
               onClick={() => setSidebarOpen(false)} 
               className="w-8 h-8 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors"
@@ -414,7 +463,7 @@ export default function DeveloperDashboard() {
           <div className="p-4 border-t border-[#EADBCB] bg-[#FCF5EC]">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-[#B0473B] bg-[#FDEEEA] hover:bg-[#FADFD8] transition-colors font-medium border border-[#F2CCC2]"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm text-[#A34232] bg-gradient-to-r from-[#FDF1EE] to-[#FCE6E2] hover:from-[#FBE7E2] hover:to-[#F7D8D1] transition-colors font-semibold border border-[#F1C8BE]"
             >
               <LogOut className="h-4 w-4" />
               Sign Out
@@ -427,7 +476,7 @@ export default function DeveloperDashboard() {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex flex-col w-72 min-h-screen bg-[#F8F1E8] border-r border-[#E4D5C5]">
           <div className="p-5 border-b border-[#E4D5C5] bg-gradient-to-r from-[#F4E5D4] to-[#F8F1E8]">
-            <PicturaIcon className="w-9 h-9" />
+            <Link href="/" className="inline-flex transition-opacity hover:opacity-80"><PicturaIcon className="w-9 h-9" /></Link>
             <span className="text-sm font-semibold text-[#6E4D32] mt-2 block">Developer Dashboard</span>
           </div>
           
@@ -868,6 +917,18 @@ export default function DeveloperDashboard() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Manage your credits and payment methods</p>
               </div>
 
+              {pendingPaymentUrl && (
+                <Card className="border border-[#E3BE95] bg-[#FFF5E8] rounded-2xl">
+                  <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-[#7B4E28]">Payment Pending</p>
+                      <p className="text-xs text-[#9A6B45]">Your previous checkout was not completed. Continue payment anytime.</p>
+                    </div>
+                    <Button onClick={() => window.location.href = pendingPaymentUrl} className={`${primaryButtonClass} h-8 text-xs`}>Continue Payment</Button>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card className={panelCardClass}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm sm:text-base text-[#6B4A2C]">Current Plan</CardTitle>
@@ -1046,12 +1107,18 @@ export default function DeveloperDashboard() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <Label className="text-xs text-muted-foreground">Full Name</Label>
-                      <Input value={developer.name} disabled className="mt-1 text-sm border-[#E8D8C9] bg-[#FFFCF8]" />
+                      <Input value={editableName} onChange={(e) => setEditableName(e.target.value)} className="mt-1 text-sm border-[#E8D8C9] bg-[#FFFCF8]" />
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Email Address</Label>
                       <Input value={developer.email} disabled className="mt-1 text-sm border-[#E8D8C9] bg-[#FFFCF8]" />
                     </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button onClick={handleUpdateName} disabled={savingName || !editableName.trim() || editableName.trim() === developer.name} className={`${primaryButtonClass} h-8 text-xs`}>
+                      {savingName ? 'Saving...' : 'Save Profile'}
+                    </Button>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-3">
@@ -1356,6 +1423,8 @@ export default function DeveloperDashboard() {
                   })
                   const data = await res.json()
                   if (data.success && data.authorizationUrl) {
+                    localStorage.setItem('pictura_pending_payment_url', data.authorizationUrl)
+                    setPendingPaymentUrl(data.authorizationUrl)
                     window.location.href = data.authorizationUrl
                   } else {
                     toast.error(data.error || 'Payment initialization failed')
