@@ -402,21 +402,21 @@ export default function DeveloperDashboard() {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-white border-r">
-          <div className="p-6 border-b">
-            <PicturaLogo />
-            <Badge className="mt-2 text-xs bg-[#C87941]/10 text-[#C87941] hover:bg-[#C87941]/20">Developer Portal</Badge>
+        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-gray-50 border-r">
+          <div className="p-4 border-b border-gray-200">
+            <PicturaIcon className="w-8 h-8" />
+            <span className="text-sm font-medium text-gray-600 mt-2 block">Developer Dashboard</span>
           </div>
           
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 p-3 space-y-0.5">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
                   activeTab === item.id
-                    ? 'bg-[#C87941]/10 text-[#C87941] font-medium'
-                    : 'text-muted-foreground hover:bg-muted'
+                    ? 'bg-white text-gray-900 font-medium shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -498,70 +498,45 @@ export default function DeveloperDashboard() {
               {/* Stats Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* ATM Card Design - Brand Color */}
-                <Card className="col-span-full sm:col-span-2 md:col-span-1 border-0 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #C87941 0%, #A65D2E 50%, #8B4D26 100%)' }}>
-                  {/* Chip pattern */}
-                  <div className="absolute top-4 left-4 w-10 h-7 rounded-md bg-gradient-to-br from-yellow-200 via-yellow-300 to-yellow-400 opacity-90">
-                    <div className="absolute inset-0.5 grid grid-cols-3 gap-px">
-                      {[...Array(6)].map((_, i) => (
-                        <div key={i} className="bg-yellow-400/50 rounded-sm" />
-                      ))}
-                    </div>
-                  </div>
+                <Card className="col-span-full sm:col-span-2 md:col-span-1 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #10A37F 0%, #0D8C6D 50%, #0A6B56 100%)', border: 'none' }}>
                   {/* Contactless icon */}
                   <div className="absolute top-4 right-4">
-                    <svg className="w-6 h-6 text-white/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg className="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M8.5 14.5c2-2 5-2 7 0M6 12c3.5-3.5 8.5-3.5 12 0M3.5 9.5c5-5 12-5 17 0" strokeLinecap="round"/>
                     </svg>
                   </div>
-                  {/* Background pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                      <defs>
-                        <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                          <circle cx="1" cy="1" r="0.5" fill="white"/>
-                        </pattern>
-                      </defs>
-                      <rect width="100" height="100" fill="url(#grid)"/>
-                    </svg>
-                  </div>
-                  {/* Holographic strip */}
-                  <div className="absolute bottom-12 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
                   
-                  <CardContent className="p-4 pt-14 relative text-white">
+                  <CardContent className="p-5 pt-5 relative text-white">
                     <div className="mb-4">
-                      <p className="text-[9px] uppercase tracking-[0.2em] text-white/70 mb-1">Available Balance</p>
-                      <div className="text-2xl sm:text-3xl font-bold tracking-tight">{formatCurrency(developer.creditsBalance)}</div>
+                      <p className="text-[10px] uppercase tracking-wider text-white/70 mb-1">Available Credits</p>
+                      <div className="text-2xl sm:text-3xl font-semibold tracking-tight">{formatCurrency(developer.creditsBalance)}</div>
                     </div>
                     <div className="flex items-end justify-between">
                       <div>
-                        <p className="text-[8px] uppercase tracking-wider text-white/60 mb-0.5">Card Holder</p>
-                        <p className="text-xs font-medium tracking-wide truncate max-w-[120px]">{developer.name?.toUpperCase()}</p>
+                        <p className="text-[9px] uppercase tracking-wider text-white/50 mb-0.5">Account</p>
+                        <p className="text-xs font-medium tracking-wide truncate max-w-[140px]">{developer.name}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-[8px] uppercase tracking-wider text-white/60 mb-0.5">Tier</p>
+                        <p className="text-[9px] uppercase tracking-wider text-white/50 mb-0.5">Plan</p>
                         <p className="text-xs font-medium">{developer.tier?.toUpperCase() || 'FREE'}</p>
-                      </div>
-                      <div className="flex gap-1">
-                        <div className="w-6 h-6 rounded-full bg-white/30" />
-                        <div className="w-6 h-6 rounded-full bg-white/20 -ml-3" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border border-gray-200">
                   <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
-                    <CardDescription className="flex items-center gap-1.5 text-xs">
+                    <CardDescription className="flex items-center gap-1.5 text-xs text-gray-500">
                       <Activity className="h-3.5 w-3.5" />
                       This Month
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
-                    <div className="text-lg sm:text-xl font-bold">{developer.usage.thisMonth.toLocaleString()}</div>
+                    <div className="text-xl sm:text-2xl font-semibold text-gray-900">{developer.usage.thisMonth.toLocaleString()}</div>
                     {developer.usage.lastMonth > 0 && (
-                      <p className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-0.5">
-                        <ArrowUpRight className="h-2.5 w-2.5 text-[#C87941]" />
-                        <span className="text-[#C87941]">
+                      <p className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-0.5">
+                        <ArrowUpRight className="h-2.5 w-2.5" />
+                        <span>
                           {Math.round(((developer.usage.thisMonth - developer.usage.lastMonth) / developer.usage.lastMonth) * 100)}%
                         </span>
                         vs last month
@@ -570,29 +545,29 @@ export default function DeveloperDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border border-gray-200">
                   <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
-                    <CardDescription className="flex items-center gap-1.5 text-xs">
+                    <CardDescription className="flex items-center gap-1.5 text-xs text-gray-500">
                       <BarChart3 className="h-3.5 w-3.5" />
                       Total Requests
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
-                    <div className="text-lg sm:text-xl font-bold">{developer.usage.totalRequests.toLocaleString()}</div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">All time</p>
+                    <div className="text-xl sm:text-2xl font-semibold text-gray-900">{developer.usage.totalRequests.toLocaleString()}</div>
+                    <p className="text-[10px] text-gray-500 mt-0.5">All time</p>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border border-gray-200">
                   <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
-                    <CardDescription className="flex items-center gap-1.5 text-xs">
+                    <CardDescription className="flex items-center gap-1.5 text-xs text-gray-500">
                       <Key className="h-3.5 w-3.5" />
                       API Keys
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
-                    <div className="text-lg sm:text-xl font-bold">{developer.apiKeys.filter(k => k.isActive).length}</div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <div className="text-xl sm:text-2xl font-semibold text-gray-900">{developer.apiKeys.filter(k => k.isActive).length}</div>
+                    <p className="text-[10px] text-gray-500 mt-0.5">
                       {developer.apiKeys.length} total
                     </p>
                   </CardContent>
@@ -601,26 +576,26 @@ export default function DeveloperDashboard() {
 
               {/* Quick Actions */}
               <div className="grid gap-3 sm:grid-cols-2">
-                <Card className="cursor-pointer hover:border-[#C87941]/50 transition-colors group" onClick={() => setActiveTab('api-keys')}>
+                <Card className="cursor-pointer hover:bg-gray-50 transition-colors group border border-gray-200" onClick={() => setActiveTab('api-keys')}>
                   <CardContent className="flex items-center gap-3 p-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#C87941]/10 flex items-center justify-center group-hover:bg-[#C87941]/20 transition-colors shrink-0">
-                      <Key className="h-5 w-5 text-[#C87941]" />
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors shrink-0">
+                      <Key className="h-5 w-5 text-gray-600" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-sm font-medium">Manage API Keys</h3>
-                      <p className="text-xs text-muted-foreground truncate">Create and manage your keys</p>
+                      <h3 className="text-sm font-medium text-gray-900">API Keys</h3>
+                      <p className="text-xs text-gray-500 truncate">Create and manage keys</p>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="cursor-pointer hover:border-[#C87941]/50 transition-colors group" onClick={() => window.open('/api-docs', '_blank')}>
+                <Card className="cursor-pointer hover:bg-gray-50 transition-colors group border border-gray-200" onClick={() => window.open('/api-docs', '_blank')}>
                   <CardContent className="flex items-center gap-3 p-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#C87941]/10 flex items-center justify-center group-hover:bg-[#C87941]/20 transition-colors shrink-0">
-                      <Book className="h-5 w-5 text-[#C87941]" />
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors shrink-0">
+                      <Book className="h-5 w-5 text-gray-600" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-sm font-medium">Documentation</h3>
-                      <p className="text-xs text-muted-foreground truncate">Learn how to use the API</p>
+                      <h3 className="text-sm font-medium text-gray-900">Documentation</h3>
+                      <p className="text-xs text-gray-500 truncate">API reference & guides</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -628,28 +603,28 @@ export default function DeveloperDashboard() {
 
               {/* Recent Transactions */}
               {developer.transactions && developer.transactions.length > 0 && (
-                <Card>
+                <Card className="border border-gray-200">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm sm:text-base">Recent Transactions</CardTitle>
+                    <CardTitle className="text-sm sm:text-base text-gray-900">Recent Activity</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       {developer.transactions.slice(0, 5).map((tx) => (
-                        <div key={tx.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div key={tx.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 ${tx.amount > 0 ? 'bg-[#C87941]/10' : 'bg-muted'}`}>
+                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 ${tx.amount > 0 ? 'bg-green-100' : 'bg-gray-100'}`}>
                               {tx.type === 'signup_bonus' || tx.type === 'promo' ? (
-                                <Gift className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-muted-foreground'}`} />
+                                <Gift className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-green-600' : 'text-gray-500'}`} />
                               ) : (
-                                <DollarSign className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-muted-foreground'}`} />
+                                <DollarSign className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-green-600' : 'text-gray-500'}`} />
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs sm:text-sm font-medium truncate">{tx.description}</p>
-                              <p className="text-[10px] sm:text-xs text-muted-foreground">{formatDate(tx.createdAt)}</p>
+                              <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{tx.description}</p>
+                              <p className="text-[10px] sm:text-xs text-gray-500">{formatDate(tx.createdAt)}</p>
                             </div>
                           </div>
-                          <div className={`text-xs sm:text-sm font-medium shrink-0 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-muted-foreground'}`}>
+                          <div className={`text-xs sm:text-sm font-medium shrink-0 ${tx.amount > 0 ? 'text-green-600' : 'text-gray-500'}`}>
                             {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
                           </div>
                         </div>
