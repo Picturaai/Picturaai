@@ -846,16 +846,15 @@ export function Studio() {
           </div>
         ) : !hasResults && !loading ? (
           /* Empty state */
-          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-            <motion.div
+          <div className={`flex h-full flex-col px-6 text-center ${mode === 'video' ? 'items-stretch justify-start overflow-y-auto py-8 sm:items-center sm:justify-center sm:py-0' : 'items-center justify-center'}`}><motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
-              className="flex flex-col items-center"
+              className={`flex flex-col ${mode === 'video' ? 'items-stretch sm:items-center' : 'items-center'}`}
             >
               <PicturaIcon size={56} />
-              <h2 className="mt-5 text-xl font-semibold text-foreground">{mode === 'video' ? 'What video will you create?' : 'What will you create?'}</h2>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+              <h2 className="mt-5 text-xl font-semibold text-foreground sm:text-2xl">{mode === 'video' ? 'What video will you create?' : 'What will you create?'}</h2>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
                 {mode === 'video'
                   ? 'Describe your scene and PicturaGen will create an amazing cinematic video for you.'
                   : 'Type a description below and Pictura will generate an image for you.'}
@@ -1108,12 +1107,27 @@ export function Studio() {
           <div data-tour="prompt" className="flex items-end gap-2 rounded-2xl border border-border/50 bg-background p-2 transition-colors focus-within:border-primary/30">
             <div className="flex items-center gap-1 pb-0.5">
               <button
-                onClick={() => { if (mode === 'text') { fileInputRef.current?.click() } else { setMode('text'); handleFileChange(null) } }}
+                onClick={() => {
+                  if (mode === 'video') {
+                    toast('Image reference for video is coming soon.')
+                    return
+                  }
+                  if (mode === 'text') {
+                    fileInputRef.current?.click()
+                    return
+                  }
+                  setMode('text')
+                  handleFileChange(null)
+                }}
                 className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
-                  mode === 'image' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  mode === 'image'
+                    ? 'bg-primary/10 text-primary'
+                    : mode === 'video'
+                      ? 'text-muted-foreground/40'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
-                title={mode === 'text' ? 'Upload reference image' : 'Remove reference'}
-                aria-label="Toggle image mode"
+                title={mode === 'video' ? 'Image reference for video coming soon' : mode === 'text' ? 'Upload reference image' : 'Remove reference'}
+                aria-label={mode === 'video' ? 'Image reference for video coming soon' : 'Toggle image mode'}
               >
                 {mode === 'image' ? <ImageIcon className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
               </button>
