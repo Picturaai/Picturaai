@@ -472,6 +472,65 @@ export function Landing() {
         </div>
       </section>
 
+
+      {/* Video Generation */}
+      <section className="border-t border-border/40 py-20 md:py-28">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 lg:grid-cols-2">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={0}
+            variants={fadeUp}
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              <Sparkles className="h-3 w-3" />
+              Video generation
+            </span>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+              Turn prompts into cinematic videos
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+              Create short AI videos from a text prompt with smooth motion, stylized scenes, and share-ready results right inside Studio.
+            </p>
+            <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Text to video from simple prompts</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Fast rendering with clear progress hints</li>
+              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Download and save to your gallery</li>
+            </ul>
+            <div className="mt-8">
+              <Link
+                href="/studio"
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Try Video Generation
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={1}
+            variants={fadeUp}
+            className="rounded-2xl border border-border/50 bg-card p-5"
+          >
+            <div className="rounded-xl border border-border/40 bg-secondary/30 p-4">
+              <p className="text-xs font-medium text-muted-foreground">Prompt</p>
+              <p className="mt-2 text-sm text-foreground">
+                Cinematic drone shot over a neon-lit city at sunset, smooth camera motion, 6 seconds
+              </p>
+            </div>
+            <div className="mt-4 rounded-xl border border-border/40 bg-background p-4">
+              <div className="aspect-video rounded-lg bg-gradient-to-br from-primary/20 via-secondary to-primary/10" />
+              <p className="mt-3 text-xs text-muted-foreground">Preview of generated video output in Studio</p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Gallery - Auto-scrolling cards */}
       <section className="py-20 md:py-28 overflow-hidden">
         <div className="mx-auto max-w-7xl px-6">

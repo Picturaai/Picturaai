@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
-  ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
+  Grid3X3, ChevronLeft,
   ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -1104,12 +1104,12 @@ export function Studio() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                )
-              })}
-            </div>
-            )}
+                              className={`rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                                  : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
+                              Looks good
+                              className={`rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                                  : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
+                              Needs work
 
           </div>
         )}
@@ -1491,8 +1491,8 @@ export function Studio() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                          <div className="absolute top-1.5 right-1.5 rounded-md bg-primary/20 px-1.5 py-0.5 text-[9px] font-medium text-primary backdrop-blur-sm">
+                            Liked
             onClick={() => setLightbox(null)}
           >
             <motion.div
@@ -1584,10 +1584,10 @@ export function Studio() {
                     <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{lightbox.prompt}</p>
                     <p className="text-[10px] text-muted-foreground/60 mt-3">
                       {new Date(lightbox.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
+                      className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium shadow-lg transition-all ${
+                      Looks good
+                      className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium shadow-lg transition-all ${
+                      Needs work
             </motion.div>
           </motion.div>
         )}
