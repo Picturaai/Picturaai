@@ -453,10 +453,11 @@ export function Studio() {
         method: 'POST',
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ prompt: prompt.trim(), mode }),
-  const activePromptExamples = useMemo(
-    () => (mode === 'text' ? imageExamples : mode === 'image' ? IMG2IMG_EXAMPLES : videoExamples),
-    [mode, imageExamples, videoExamples],
-  )
+  const activePromptExamples = useMemo(() => {
+    if (mode === 'text') return imageExamples
+    if (mode === 'image') return IMG2IMG_EXAMPLES
+    return videoExamples
+  }, [mode, imageExamples, videoExamples])
 
 
         if (activePromptExamples.length <= 1) return 0
