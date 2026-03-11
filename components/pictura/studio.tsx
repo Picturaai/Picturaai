@@ -300,6 +300,29 @@ const VIDEO_EXAMPLES = [
   'Aerial view of neon cyberpunk city with rain, 8 seconds',
 ]
 
+const IMAGE_EXAMPLES_BY_REGION: Record<string, string[]> = {
+  NG: [
+    'A vibrant Lagos street fashion portrait at golden hour with rich skin tones and cinematic depth',
+    'A serene waterfront morning in Lekki with soft mist, palm trees, and realistic lighting',
+  ],
+  US: [
+    'A cinematic portrait in downtown Manhattan at blue hour with neon reflections',
+    'A warm desert road-trip scene in Arizona with dramatic sunset light and dust particles',
+  ],
+  GB: [
+    'A rainy London alley at night with reflections, umbrellas, and moody film lighting',
+    'A cozy countryside cottage in the Cotswolds at sunrise with soft fog and detailed textures',
+  ],
+  IN: [
+    'A colorful Jaipur palace courtyard at sunrise with intricate architecture and flowing fabrics',
+    'A bustling Mumbai evening street with cinematic bokeh lights and realistic atmosphere',
+  ],
+  CA: [
+    'A peaceful Banff mountain lake with pine forests, mirror reflections, and crisp morning light',
+    'A cozy Toronto winter street scene with warm storefront lights and light snowfall',
+  ],
+}
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
@@ -356,6 +379,9 @@ export function Studio() {
     let hash = 0
     for (let i = 0; i < raw.length; i++) {
       hash = ((hash << 5) - hash) + raw.charCodeAt(i)
+  const [imageExamples, setImageExamples] = useState<string[]>(PROMPT_EXAMPLES)
+  const [visibleImageExamples, setVisibleImageExamples] = useState<string[]>(PROMPT_EXAMPLES.slice(0, 4))
+  const [ratingPromptOpen, setRatingPromptOpen] = useState(false)
       hash |= 0
     }
     return `fp-${Math.abs(hash)}`
@@ -379,12 +405,26 @@ export function Studio() {
   }, [loading, mode])
 
 
+    const regionalVideo = VIDEO_EXAMPLES_BY_REGION[region] || []
+    const mergedVideo = [...regionalVideo, ...VIDEO_EXAMPLES]
+    setVideoExamples(mergedVideo)
+    setVisibleVideoExamples(pickUniquePrompts(mergedVideo, 4))
 
-
-  // Rotate prompt suggestions every 4s when input is empty
+    const regionalImage = IMAGE_EXAMPLES_BY_REGION[region] || []
+    const mergedImage = [...regionalImage, ...PROMPT_EXAMPLES]
+    setImageExamples(mergedImage)
+    setVisibleImageExamples(pickUniquePrompts(mergedImage, 4))
   useEffect(() => {
-    if (prompt) return
-    const examples = mode === 'text' ? PROMPT_EXAMPLES : mode === 'image' ? IMG2IMG_EXAMPLES : VIDEO_EXAMPLES
+  }, [mode, imageExamples, videoExamples])
+
+  useEffect(() => {
+    if (mode !== 'text') return
+    const interval = setInterval(() => {
+      setVisibleImageExamples(pickUniquePrompts(imageExamples, 4))
+    }, 5500)
+    return () => clearInterval(interval)
+  }, [mode, imageExamples])
+    const examples = mode === 'text' ? imageExamples : mode === 'image' ? IMG2IMG_EXAMPLES : videoExamples
     const interval = setInterval(() => {
       setPlaceholderIdx((prev) => {
         if (examples.length <= 1) return 0
@@ -396,13 +436,13 @@ export function Studio() {
       })
     }, 4000)
     return () => clearInterval(interval)
-  }, [prompt, mode])
+  }, [prompt, mode, imageExamples, videoExamples])
 
   useEffect(() => {
-    const examples = mode === 'text' ? PROMPT_EXAMPLES : mode === 'image' ? IMG2IMG_EXAMPLES : VIDEO_EXAMPLES
+    const examples = mode === 'text' ? imageExamples : mode === 'image' ? IMG2IMG_EXAMPLES : videoExamples
     if (examples.length === 0) return
     setPlaceholderIdx(Math.floor(Math.random() * examples.length))
-  }, [mode])
+  }, [mode, imageExamples, videoExamples])
 
   // Improve prompt using AI
   const handleImprovePrompt = async () => {
@@ -676,6 +716,7 @@ export function Studio() {
 
   return (
     <div className="flex h-dvh flex-col bg-background">
+    setRatingPromptOpen(true)
       {/* Top bar */}
       <header className="flex items-center justify-between gap-2 border-b border-border/40 px-3 py-2.5 sm:px-4 md:px-6">
         {/* Left: logo + model switcher */}
@@ -878,9 +919,12 @@ export function Studio() {
                     Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
                   </p>
                 </div>
-              ) : (
-                <div className="mt-8 flex flex-wrap justify-center gap-2" data-tour="suggestions">
-                  {PROMPT_EXAMPLES.slice(0, 4).map((suggestion) => (
+          <div className={`flex h-full flex-col px-6 text-center ${mode === 'video' ? 'items-center justify-center overflow-y-auto py-6' : 'items-center justify-center'}`}>
+            <motion.div
+                <span className="block mt-1.5">
+                  You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
+                </span>
+                  {visibleImageExamples.map((suggestion) => (
                     <button
                       key={suggestion}
                       onClick={() => setPrompt(suggestion)}
@@ -1208,8 +1252,8 @@ export function Studio() {
           {/* Mode switcher + status */}
           <div className="mt-2 flex items-center justify-between px-1">
             <div className="flex items-center gap-1 rounded-lg bg-secondary/50 p-0.5" data-tour="mode-tabs">
-              <button
-                onClick={() => { setMode('text'); handleFileChange(null) }}
+                  const examples = mode === 'text' ? imageExamples : mode === 'image' ? IMG2IMG_EXAMPLES : videoExamples
+                  {(mode === 'text' ? imageExamples : mode === 'image' ? IMG2IMG_EXAMPLES : videoExamples)[placeholderIdx % (mode === 'text' ? imageExamples : mode === 'image' ? IMG2IMG_EXAMPLES : videoExamples).length]}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'text'
                     ? 'bg-background text-foreground shadow-sm'
@@ -1581,6 +1625,38 @@ export function Studio() {
               // Update the image in the gallery if it was edited
               setImages(prev => prev.map(img => 
                 img.url === editorImage ? { ...img, url: newUrl } : img
+
+      {/* Feedback prompt card */}
+      <AnimatePresence>
+        {ratingPromptOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[65] flex items-end justify-center bg-black/35 p-4 sm:items-center"
+            onClick={() => setRatingPromptOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 20, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 20, opacity: 0, scale: 0.98 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+              className="w-full max-w-sm rounded-2xl border border-border/40 bg-background p-4 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-sm font-semibold text-foreground">How would you rate this generation?</h3>
+              <p className="mt-1 text-xs text-muted-foreground">Your feedback helps us improve quality and prompts.</p>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <button onClick={() => { setRatingPromptOpen(false); toast('Thanks!') }} className="rounded-lg border border-border/50 bg-card px-2 py-2 text-xs hover:bg-secondary">😕 Poor</button>
+                <button onClick={() => { setRatingPromptOpen(false); toast('Thanks!') }} className="rounded-lg border border-border/50 bg-card px-2 py-2 text-xs hover:bg-secondary">🙂 Good</button>
+                <button onClick={() => { setRatingPromptOpen(false); toast.success('Awesome, thank you!') }} className="rounded-lg border border-primary/30 bg-primary/10 px-2 py-2 text-xs text-primary hover:bg-primary/15">🔥 Great</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
               ))
             }}
           />
