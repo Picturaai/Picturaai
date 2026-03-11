@@ -300,17 +300,17 @@ export default function DeveloperDashboard() {
     { id: 'settings', label: 'Settings', icon: Settings },
   ] as const
 
-  const panelCardClass = 'border border-[#EADBCB] bg-[#FFFCF8]'
-  const metricCardClass = 'border border-[#EEDFCC] bg-gradient-to-b from-[#FFFDF9] to-[#FAF1E7]'
+  const panelCardClass = 'border border-[#E8D8C8] bg-[#FFFCF8] rounded-2xl'
+  const metricCardClass = 'border border-[#EEDFCC] bg-gradient-to-b from-[#FFFDF9] to-[#F9F1E8] rounded-2xl'
   const primaryButtonClass = 'bg-[#C87941] hover:bg-[#B86D35] text-white'
 
   return (
-    <div className="min-h-screen bg-[#FCF8F3] overflow-x-hidden [&_[data-slot=card]]:shadow-none">
+    <div className="min-h-screen bg-[linear-gradient(180deg,#FDF9F4_0%,#FAF3EB_100%)] overflow-x-hidden [&_[data-slot=card]]:shadow-none">
       {/* Mobile Header */}
-      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b">
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-[#FFFCF8]/95 backdrop-blur-md border-b border-[#EADBCB]">
         <button 
           onClick={() => setSidebarOpen(true)} 
-          className="w-9 h-9 rounded-lg bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors active:scale-95"
+          className="w-9 h-9 rounded-xl border border-[#E8D7C6] bg-[#FFF8F0] hover:bg-[#F7EBDD] flex items-center justify-center transition-colors active:scale-95 text-[#7A573A]"
         >
           <Menu className="h-4 w-4" />
         </button>
@@ -331,7 +331,7 @@ export default function DeveloperDashboard() {
           onClick={() => setSidebarOpen(false)} 
         />
         <div 
-          className={`fixed inset-y-0 left-0 w-[280px] bg-white border-r transform transition-transform duration-300 ease-out flex flex-col ${
+          className={`fixed inset-y-0 left-0 w-[286px] bg-[#FFFCF8] border-r border-[#EADBCB] transform transition-transform duration-300 ease-out flex flex-col ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -347,7 +347,7 @@ export default function DeveloperDashboard() {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+          <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
             <p className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Menu</p>
             {navItems.map((item) => (
               <button
@@ -355,8 +355,8 @@ export default function DeveloperDashboard() {
                 onClick={() => { setActiveTab(item.id); setSidebarOpen(false) }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                   activeTab === item.id
-                    ? 'bg-[#C87941] text-white font-medium'
-                    : 'text-muted-foreground hover:bg-muted/80 active:scale-[0.98]'
+                    ? 'bg-gradient-to-r from-[#C87941] to-[#B96A34] text-white font-medium border border-[#B96A34]'
+                    : 'text-[#7A5B42] hover:bg-[#F5E9DC] active:scale-[0.98]'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -392,10 +392,10 @@ export default function DeveloperDashboard() {
           </div>
 
           {/* Sign Out */}
-          <div className="p-4 border-t bg-muted/30">
+          <div className="p-4 border-t border-[#EADBCB] bg-[#FCF5EC]">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-600 bg-red-50 hover:bg-red-100 transition-colors font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-[#B0473B] bg-[#FDEEEA] hover:bg-[#FADFD8] transition-colors font-medium border border-[#F2CCC2]"
             >
               <LogOut className="h-4 w-4" />
               Sign Out
@@ -404,23 +404,23 @@ export default function DeveloperDashboard() {
         </div>
       </div>
 
-      <div className="flex">
+      <div className="flex lg:items-stretch">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-[#F7F1EA] border-r border-[#EADBCB]">
-          <div className="p-4 border-b border-[#EADBCB]">
-            <PicturaIcon className="w-8 h-8" />
-            <span className="text-sm font-medium text-[#7B6048] mt-2 block">Developer Dashboard</span>
+        <aside className="hidden lg:flex flex-col w-72 min-h-screen bg-[#F8F1E8] border-r border-[#E4D5C5]">
+          <div className="p-5 border-b border-[#E4D5C5] bg-gradient-to-r from-[#F4E5D4] to-[#F8F1E8]">
+            <PicturaIcon className="w-9 h-9" />
+            <span className="text-sm font-semibold text-[#6E4D32] mt-2 block">Developer Dashboard</span>
           </div>
           
-          <nav className="flex-1 p-3 space-y-0.5">
+          <nav className="flex-1 p-4 space-y-1.5">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+                className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm transition-all ${
                   activeTab === item.id
-                    ? 'bg-[#FFF7EF] text-[#8E5A2D] font-medium border border-[#EDCCA9]'
-                    : 'text-[#755C45] hover:bg-[#F1E4D7]'
+                    ? 'bg-gradient-to-r from-[#C87941] to-[#B66933] text-white font-medium border border-[#B96A34]'
+                    : 'text-[#6F5239] hover:bg-[#F0E2D3]'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -429,11 +429,11 @@ export default function DeveloperDashboard() {
             ))}
           </nav>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-[#E4D5C5]">
             <Link
               href="/api-docs"
               target="_blank"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#6F5239] hover:bg-[#F1E4D6] transition-colors"
             >
               <Book className="h-4 w-4" />
               Documentation
@@ -441,10 +441,10 @@ export default function DeveloperDashboard() {
             </Link>
           </div>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-[#E4D5C5]">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors">
+                <button className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#EFE0D2] transition-colors border border-[#E9D9C9] bg-[#FFF9F2]">
                   <PatternAvatar name={developer.name || 'Developer'} email={developer.email} size="md" />
                   <div className="flex-1 text-left min-w-0">
                     <p className="text-sm font-medium truncate">{developer.name}</p>
@@ -490,13 +490,13 @@ export default function DeveloperDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl overflow-x-hidden bg-[radial-gradient(circle_at_top,_#fff8ef,_transparent_55%)]">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl overflow-x-hidden bg-[radial-gradient(circle_at_top,_#FFF6EA,_transparent_60%)]">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <div>
-                <h1 className="text-lg sm:text-xl font-semibold">Welcome back, {developer.name?.split(' ')[0]}</h1>
-                <p className="text-sm text-muted-foreground">Here's what's happening with your API</p>
+              <div className="rounded-2xl border border-[#EDDCC8] bg-[#FFF9F2] px-4 py-3">
+                <h1 className="text-lg sm:text-xl font-semibold text-[#3F2B1D]">Welcome back, {developer.name?.split(' ')[0]}</h1>
+                <p className="text-sm text-[#7A614B]">Here's what's happening with your API</p>
               </div>
 
               {/* Stats Grid */}
@@ -580,7 +580,7 @@ export default function DeveloperDashboard() {
 
               {/* Quick Actions */}
               <div className="grid gap-3 sm:grid-cols-2">
-                <Card className="cursor-pointer hover:bg-[#F8EFE6] transition-colors group border border-[#EEDFCC] bg-[#FFFCF8]" onClick={() => setActiveTab('api-keys')}>
+                <Card className="cursor-pointer hover:bg-[#F7E9DB] transition-colors group border border-[#E9D8C5] bg-[#FFFCF8] rounded-2xl" onClick={() => setActiveTab('api-keys')}>
                   <CardContent className="flex items-center gap-3 p-4">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors shrink-0">
                       <Key className="h-5 w-5 text-gray-600" />
@@ -592,7 +592,7 @@ export default function DeveloperDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="cursor-pointer hover:bg-[#F8EFE6] transition-colors group border border-[#EEDFCC] bg-[#FFFCF8]" onClick={() => window.open('/api-docs', '_blank')}>
+                <Card className="cursor-pointer hover:bg-[#F7E9DB] transition-colors group border border-[#E9D8C5] bg-[#FFFCF8] rounded-2xl" onClick={() => window.open('/api-docs', '_blank')}>
                   <CardContent className="flex items-center gap-3 p-4">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors shrink-0">
                       <Book className="h-5 w-5 text-gray-600" />
