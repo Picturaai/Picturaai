@@ -301,7 +301,7 @@ export default function DeveloperDashboard() {
   ] as const
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] overflow-x-hidden">
+    <div className="min-h-screen bg-[#FCF8F3] overflow-x-hidden [&_[data-slot=card]]:shadow-none">
       {/* Mobile Header */}
       <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b">
         <button 
@@ -332,7 +332,7 @@ export default function DeveloperDashboard() {
           }`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-[#C87941]/5 to-transparent">
+          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-[#C87941]/10 to-transparent">
             <PicturaLogo size="sm" />
             <button 
               onClick={() => setSidebarOpen(false)} 
@@ -402,10 +402,10 @@ export default function DeveloperDashboard() {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-gray-50 border-r">
-          <div className="p-4 border-b border-gray-200">
+        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-[#F7F1EA] border-r border-[#EADBCB]">
+          <div className="p-4 border-b border-[#EADBCB]">
             <PicturaIcon className="w-8 h-8" />
-            <span className="text-sm font-medium text-gray-600 mt-2 block">Developer Dashboard</span>
+            <span className="text-sm font-medium text-[#7B6048] mt-2 block">Developer Dashboard</span>
           </div>
           
           <nav className="flex-1 p-3 space-y-0.5">
@@ -415,8 +415,8 @@ export default function DeveloperDashboard() {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
                   activeTab === item.id
-                    ? 'bg-white text-gray-900 font-medium shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#FFF7EF] text-[#8E5A2D] font-medium border border-[#EDCCA9]'
+                    : 'text-[#755C45] hover:bg-[#F1E4D7]'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -498,7 +498,7 @@ export default function DeveloperDashboard() {
               {/* Stats Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* ATM Card Design - Brand Color */}
-                <Card className="col-span-full sm:col-span-2 md:col-span-1 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #10A37F 0%, #0D8C6D 50%, #0A6B56 100%)', border: 'none' }}>
+                <Card className="col-span-full sm:col-span-2 md:col-span-1 overflow-hidden relative border-0" style={{ background: 'linear-gradient(135deg, #C87941 0%, #A65D2E 52%, #8B4D26 100%)' }}>
                   {/* Contactless icon */}
                   <div className="absolute top-4 right-4">
                     <svg className="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -612,11 +612,11 @@ export default function DeveloperDashboard() {
                       {developer.transactions.slice(0, 5).map((tx) => (
                         <div key={tx.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 ${tx.amount > 0 ? 'bg-green-100' : 'bg-gray-100'}`}>
+                            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 ${tx.amount > 0 ? 'bg-[#F5E4D5]' : 'bg-gray-100'}`}>
                               {tx.type === 'signup_bonus' || tx.type === 'promo' ? (
-                                <Gift className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-green-600' : 'text-gray-500'}`} />
+                                <Gift className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-[#A65D2E]' : 'text-gray-500'}`} />
                               ) : (
-                                <DollarSign className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-green-600' : 'text-gray-500'}`} />
+                                <DollarSign className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${tx.amount > 0 ? 'text-[#A65D2E]' : 'text-gray-500'}`} />
                               )}
                             </div>
                             <div className="min-w-0">
@@ -624,7 +624,7 @@ export default function DeveloperDashboard() {
                               <p className="text-[10px] sm:text-xs text-gray-500">{formatDate(tx.createdAt)}</p>
                             </div>
                           </div>
-                          <div className={`text-xs sm:text-sm font-medium shrink-0 ${tx.amount > 0 ? 'text-green-600' : 'text-gray-500'}`}>
+                          <div className={`text-xs sm:text-sm font-medium shrink-0 ${tx.amount > 0 ? 'text-[#A65D2E]' : 'text-gray-500'}`}>
                             {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
                           </div>
                         </div>
