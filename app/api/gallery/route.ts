@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
 import { getOrCreateSessionId } from '@/lib/session'
+import { readJsonObject, uploadObject } from '@/lib/storage'
 import type { GeneratedImage } from '@/lib/types'
 
 // GET - Load user's saved gallery
@@ -9,20 +9,8 @@ export async function GET(request: Request) {
     const sessionId = await getOrCreateSessionId(request)
     const galleryPath = `pictura/galleries/${sessionId}.json`
 
-    // List blobs to find this user's gallery file
-    const { blobs } = await list({ prefix: galleryPath })
-
-    if (blobs.length === 0) {
-      return NextResponse.json({ images: [] })
-    }
-
-    // Fetch the gallery JSON
-    const res = await fetch(blobs[0].url)
-    if (!res.ok) {
-      return NextResponse.json({ images: [] })
-    }
-
-    const images: GeneratedImage[] = await res.json()
+    const images = await readJsonObject<GeneratedImage[]>(galleryPath)
+    if (!images) return NextResponse.json({ images: [] })
     return NextResponse.json({ images })
   } catch (error) {
     console.error('Gallery load error:', error)
@@ -45,24 +33,15 @@ export async function POST(request: Request) {
     // Load existing gallery
     let images: GeneratedImage[] = []
     try {
-      const { blobs } = await list({ prefix: galleryPath })
-      if (blobs.length > 0) {
-        const res = await fetch(blobs[0].url)
-        if (res.ok) {
-          images = await res.json()
-        }
-      }
+      const existing = await readJsonObject<GeneratedImage[]>(galleryPath)
+      if (existing) images = existing
     } catch { /* start fresh */ }
 
     // Add new image to the front (no cap - stored forever)
     images = [image, ...images]
 
     // Save updated gallery
-    await put(galleryPath, JSON.stringify(images), {
-      access: 'public',
-      contentType: 'application/json',
-      addRandomSuffix: false,
-    })
+    await uploadObject(galleryPath, JSON.stringify(images), 'application/json')
 
     return NextResponse.json({ success: true, count: images.length })
   } catch (error) {

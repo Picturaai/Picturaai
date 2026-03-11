@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
+import { uploadObject } from '@/lib/storage'
 
 console.log('[TextToImage] Module loaded')
 
@@ -561,10 +561,7 @@ export async function POST(request: Request) {
     const filename = `pictura/text-to-image/${timestamp}-${model}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
     // Upload to Vercel Blob
-    const blob = await put(filename, imageBuffer, {
-      access: 'public',
-      contentType: 'image/png',
-    })
+    const blob = await uploadObject(filename, imageBuffer, 'image/png')
 
     // Increment usage after successful generation
     console.log('[TextToImage] Incrementing usage...')

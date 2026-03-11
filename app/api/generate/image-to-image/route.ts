@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
+import { uploadObject } from '@/lib/storage'
 
 async function pollQwenTask(apiKey: string, taskId: string): Promise<string | null> {
   for (let i = 0; i < 30; i++) {
@@ -101,10 +101,7 @@ export async function POST(request: Request) {
     if (image) {
       const uploadTimestamp = Date.now()
       const uploadFilename = `pictura/uploads/${uploadTimestamp}-${image.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
-      const uploadBlob = await put(uploadFilename, image, {
-        access: 'public',
-        contentType: image.type,
-      })
+      const uploadBlob = await uploadObject(uploadFilename, image, image.type || 'application/octet-stream')
       sourceImageUrl = uploadBlob.url
     }
 
@@ -119,7 +116,7 @@ export async function POST(request: Request) {
           const imageBuffer = await imageResponse.arrayBuffer()
           const timestamp = Date.now()
           const filename = `pictura/image-to-image/${timestamp}-qwen-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
-          const blob = await put(filename, imageBuffer, { access: 'public', contentType: 'image/png' })
+          const blob = await uploadObject(filename, imageBuffer, 'image/png')
           await incrementUsage(sessionId)
           const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
           return NextResponse.json({
@@ -205,10 +202,7 @@ export async function POST(request: Request) {
     const timestamp = Date.now()
     const filename = `pictura/image-to-image/${timestamp}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
-    const blob = await put(filename, imageBuffer, {
-      access: 'public',
-      contentType: 'image/png',
-    })
+    const blob = await uploadObject(filename, imageBuffer, 'image/png')
 
     await incrementUsage(sessionId)
     const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
