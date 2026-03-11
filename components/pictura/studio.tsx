@@ -16,7 +16,7 @@ import { DownloadModal } from './download-modal'
 import { VideoDownloadModal } from './video-download-modal'
 import { AIImageEditor } from './ai-image-editor'
 import { playSuccessSound, playLimitSound } from '@/lib/sounds'
-import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
+import type { GeneratedMedia, RateLimitInfo } from '@/lib/types'
 
 type Mode = 'text' | 'image' | 'video'
 type Feedback = 'up' | 'down' | null
@@ -304,10 +304,10 @@ export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
-  const [images, setImages] = useState<GeneratedImage[]>([])
+  const [images, setImages] = useState<GeneratedMedia[]>([])
   const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 5, remaining: 5, used: 0, resetAt: '' })
   const [videoRateLimit, setVideoRateLimit] = useState<RateLimitInfo>({ limit: 3, remaining: 3, used: 0, resetAt: '' })
-  const [lightbox, setLightbox] = useState<GeneratedImage | null>(null)
+  const [lightbox, setLightbox] = useState<GeneratedMedia | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadPreview, setUploadPreview] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -332,12 +332,11 @@ export function Studio() {
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [improving, setImproving] = useState(false)
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
-  const [downloadImage, setDownloadImage] = useState<GeneratedImage | null>(null)
+  const [downloadImage, setDownloadImage] = useState<GeneratedMedia | null>(null)
   const [videoDownloadModalOpen, setVideoDownloadModalOpen] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorImage, setEditorImage] = useState<string | null>(null)
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
-  const [generatedVideoPrompt, setGeneratedVideoPrompt] = useState('')
   const [videoLoadingHintIndex, setVideoLoadingHintIndex] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -417,12 +416,14 @@ export function Studio() {
       if (res.ok) {
         const { images: saved } = await res.json()
         if (saved && saved.length > 0) {
-          // Merge: keep any in-session images + all saved, deduplicate by URL
+          // Merge: keep any in-session media + all saved, deduplicate by URL
           setImages((prev) => {
             const urlSet = new Set(prev.map((img) => img.url))
-            const merged = [...prev, ...saved.filter((img: GeneratedImage) => !urlSet.has(img.url))]
+            const merged = [...prev, ...saved.filter((img: GeneratedMedia) => !urlSet.has(img.url))]
             // Sort newest first by createdAt
             merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            const latestVideo = merged.find((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
+            if (latestVideo) setGeneratedVideoUrl(latestVideo.url)
             return merged
           })
         }
@@ -527,11 +528,18 @@ export function Studio() {
 
       if (mode === 'video') {
         setGeneratedVideoUrl(data.url)
-        setGeneratedVideoPrompt(prompt.trim())
+        const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
+        setImages((prev) => [videoItem, ...prev.filter((item) => item.url !== videoItem.url)])
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
         toast.success('Video generated!')
+        fetch('/api/gallery', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(videoItem),
+        }).catch(() => { /* silent */ })
       } else {
-        setImages((prev) => [data, ...prev])
+        const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
+        setImages((prev) => [imageItem, ...prev.filter((item) => item.url !== imageItem.url)])
         if (data.rateLimitInfo) {
           console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
           setRateLimit(data.rateLimitInfo)
@@ -542,14 +550,14 @@ export function Studio() {
       setPrompt('')
 
       if (mode !== 'video') {
-        // Persist to gallery
+        // Persist image to gallery
         fetch('/api/gallery', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify({ ...data, mediaKind: 'image' }),
         }).catch(() => { /* silent */ })
-        setTimeout(() => galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100)
       }
+      setTimeout(() => galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100)
 
       // Check if this was the last generation
       const updatedRemaining = mode === 'video' ? (data.rateLimitInfo?.remaining ?? videoRateLimit.remaining - 1) : (data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1)
@@ -572,7 +580,7 @@ export function Studio() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate() }
   }
 
-  const handleDownload = (img: GeneratedImage) => {
+  const handleDownload = (img: GeneratedMedia) => {
     setDownloadImage(img)
     setDownloadModalOpen(true)
   }
@@ -596,7 +604,9 @@ export function Studio() {
   }
 
   const currentLimitInfo = mode === 'video' ? videoRateLimit : rateLimit
-  const hasResults = mode === 'video' ? Boolean(generatedVideoUrl) : images.length > 0
+  const imageItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'image')
+  const videoItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
+  const hasResults = mode === 'video' ? videoItems.length > 0 : imageItems.length > 0
   const creditsUsed = currentLimitInfo.used
   const creditsTotal = currentLimitInfo.limit
   const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
@@ -847,39 +857,44 @@ export function Studio() {
               )}
             </AnimatePresence>
 
-            {mode === 'video' && generatedVideoUrl ? (
-              <motion.div
-                data-tour="video-result"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35 }}
-                className="overflow-hidden rounded-2xl border border-border/30 bg-card"
-              >
-                <div className="aspect-video bg-muted/30">
-                  <video src={generatedVideoUrl} controls className="h-full w-full" />
-                </div>
-                <div className="px-4 pb-4 pt-3">
-                  <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground">{generatedVideoPrompt || 'Latest generated video'}</p>
-                  <div className="mt-2.5 flex items-center gap-1.5">
-                    <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      Text to Video
-                    </span>
-                    <span className="text-[10px] font-mono text-muted-foreground/50">picturagen</span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-end border-t border-border/30 pt-3">
-                    <button
-                      onClick={() => setVideoDownloadModalOpen(true)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/40 transition-all hover:bg-secondary hover:text-foreground"
-                      aria-label="Download video"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
+            {mode === 'video' ? (
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                {videoItems.map((video, i) => (
+                  <motion.div
+                    key={video.url}
+                    data-tour={i === 0 ? 'video-result' : undefined}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: i * 0.04 }}
+                    className="overflow-hidden rounded-2xl border border-border/30 bg-card"
+                  >
+                    <div className="aspect-video bg-muted/30">
+                      <video src={video.url} controls className="h-full w-full" />
+                    </div>
+                    <div className="px-4 pb-4 pt-3">
+                      <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground">{video.prompt}</p>
+                      <div className="mt-2.5 flex items-center gap-1.5">
+                        <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          Text to Video
+                        </span>
+                        <span className="text-[10px] font-mono text-muted-foreground/50">{new Date(video.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-end border-t border-border/30 pt-3">
+                        <button
+                          onClick={() => { setGeneratedVideoUrl(video.url); setVideoDownloadModalOpen(true) }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/40 transition-all hover:bg-secondary hover:text-foreground"
+                          aria-label="Download video"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {images.map((img, i) => {
+              {imageItems.map((img, i) => {
                 const fb = feedbackMap[img.url] ?? null
                 return (
                   <motion.div
@@ -901,7 +916,6 @@ export function Studio() {
                               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                               onError={(e) => {
-                                // Hide broken image and show fallback
                                 e.currentTarget.style.display = 'none'
                               }}
                               loading="lazy"
@@ -912,11 +926,9 @@ export function Studio() {
                             </div>
                           )}
                         </button>
-                        {/* Watermark logo */}
                         <div className="absolute top-2.5 right-2.5 rounded-lg bg-black/20 p-1.5 backdrop-blur-sm">
                           <PicturaIcon size={14} />
                         </div>
-                        {/* Expand button on hover */}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/10">
                           <div className="scale-0 rounded-full bg-white/20 p-3 backdrop-blur-sm transition-transform duration-200 group-hover:scale-100">
                             <ZoomIn className="h-5 w-5 text-white" />
@@ -934,7 +946,6 @@ export function Studio() {
                           <span className="text-[10px] text-muted-foreground/50 font-mono">1024px</span>
                         </div>
 
-                        {/* Feedback + actions */}
                         <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3">
                           <div className="flex items-center gap-1">
                             <span className="mr-1 text-[10px] text-muted-foreground/60">Rate</span>
@@ -978,6 +989,7 @@ export function Studio() {
               })}
             </div>
             )}
+
           </div>
         )}
       </div>
@@ -1274,25 +1286,41 @@ export function Studio() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {images.map((img) => (
+                  {images.map((img) => {
+                    const isVideo = (img.mediaKind ?? (img.type === 'text-to-video' ? 'video' : 'image')) === 'video'
+                    return (
                     <div key={img.url} className="flex flex-col gap-1">
                       <button
-                        onClick={() => { setLightbox(img); setGalleryOpen(false) }}
+                        onClick={() => {
+                          if (isVideo) {
+                            setGeneratedVideoUrl(img.url)
+                            setVideoDownloadModalOpen(true)
+                          } else {
+                            setLightbox(img)
+                          }
+                          setGalleryOpen(false)
+                        }}
                         className="group relative aspect-square overflow-hidden rounded-xl border border-border/30 bg-card"
                       >
-                        <Image
-                          src={img.url}
-                          alt={img.prompt}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="160px"
-                        />
+                        {isVideo ? (
+                          <video src={img.url} className="h-full w-full object-cover" muted />
+                        ) : (
+                          <Image
+                            src={img.url}
+                            alt={img.prompt}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            sizes="160px"
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                         <div className="absolute inset-x-0 bottom-0 p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                           <p className="line-clamp-2 text-[10px] leading-snug text-white/90">{img.prompt}</p>
                         </div>
-                        {/* Feedback indicator */}
-                        {feedbackMap[img.url] === 'up' && (
+                        {isVideo && (
+                          <div className="absolute left-1.5 top-1.5 rounded-md bg-black/40 px-1.5 py-0.5 text-[9px] font-semibold text-white">VIDEO</div>
+                        )}
+                        {!isVideo && feedbackMap[img.url] === 'up' && (
                           <div className="absolute top-1.5 right-1.5 rounded-md bg-primary/20 p-0.5 backdrop-blur-sm">
                             <ThumbsUp className="h-2.5 w-2.5 text-primary" />
                           </div>
@@ -1304,14 +1332,15 @@ export function Studio() {
                         </p>
                       )}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
 
             <div className="border-t border-border/40 px-4 py-3">
               <p className="text-center text-[10px] text-muted-foreground/50">
-                {images.length} image{images.length !== 1 ? 's' : ''} saved to your collection
+                {images.length} creation{images.length !== 1 ? 's' : ''} saved to your collection
               </p>
             </div>
           </motion.aside>
@@ -1413,7 +1442,7 @@ export function Studio() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-semibold text-foreground">Generated Image</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                        {lightbox.type === 'text-to-image' ? 'Text to Image' : 'Image to Image'}
+                        {lightbox.type === 'text-to-image' ? 'Text to Image' : lightbox.type === 'image-to-image' ? 'Image to Image' : 'Text to Video'}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{lightbox.prompt}</p>
