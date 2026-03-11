@@ -301,16 +301,16 @@ export default function DeveloperDashboard() {
   ] as const
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] overflow-x-hidden">
+    <div className="min-h-screen bg-white overflow-x-hidden">
       {/* Mobile Header */}
-      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b">
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100">
         <button 
           onClick={() => setSidebarOpen(true)} 
-          className="w-9 h-9 rounded-lg bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors active:scale-95"
+          className="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors active:scale-95"
         >
-          <Menu className="h-4 w-4" />
+          <Menu className="h-4 w-4 text-gray-700" />
         </button>
-        <PicturaLogo size="sm" />
+        <PicturaIcon className="w-7 h-7" />
         <button onClick={() => setActiveTab('settings')} className="active:scale-95 transition-transform">
           <PatternAvatar name={developer.name || 'Developer'} email={developer.email} size="sm" />
         </button>
@@ -323,7 +323,7 @@ export default function DeveloperDashboard() {
         }`}
       >
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
+          className="fixed inset-0 bg-black/40" 
           onClick={() => setSidebarOpen(false)} 
         />
         <div 
@@ -332,66 +332,56 @@ export default function DeveloperDashboard() {
           }`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-[#C87941]/5 to-transparent">
-            <PicturaLogo size="sm" />
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-2">
+              <PicturaIcon className="w-6 h-6" />
+              <span className="text-base font-semibold">Pictura</span>
+            </div>
             <button 
               onClick={() => setSidebarOpen(false)} 
-              className="w-8 h-8 rounded-full bg-muted/80 hover:bg-muted flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
-            <p className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Menu</p>
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             {navItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => { setActiveTab(item.id); setSidebarOpen(false) }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   activeTab === item.id
-                    ? 'bg-[#C87941] text-white font-medium'
-                    : 'text-muted-foreground hover:bg-muted/80 active:scale-[0.98]'
+                    ? 'bg-gray-100 text-gray-900 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
-                {activeTab === item.id && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
-                )}
               </button>
             ))}
           </nav>
 
           {/* Quick Links */}
-          <div className="px-3 py-2 border-t">
-            <p className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Resources</p>
+          <div className="px-3 py-4 border-t">
             <Link
               href="/api-docs"
               target="_blank"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-muted/80 transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
             >
               <Book className="h-4 w-4" />
               Documentation
               <ExternalLink className="h-3 w-3 ml-auto opacity-50" />
             </Link>
-            <Link
-              href="/developers/support"
-              onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:bg-muted/80 transition-colors"
-            >
-              <Shield className="h-4 w-4" />
-              Support
-            </Link>
           </div>
 
           {/* Sign Out */}
-          <div className="p-4 border-t bg-muted/30">
+          <div className="p-4 border-t">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm text-red-600 bg-red-50 hover:bg-red-100 transition-colors font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Sign Out
@@ -402,10 +392,12 @@ export default function DeveloperDashboard() {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-gray-50 border-r">
-          <div className="p-4 border-b border-gray-200">
-            <PicturaIcon className="w-8 h-8" />
-            <span className="text-sm font-medium text-gray-600 mt-2 block">Developer Dashboard</span>
+        <aside className="hidden lg:flex flex-col w-56 min-h-screen bg-white border-r border-gray-100">
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center gap-2">
+              <PicturaIcon className="w-7 h-7" />
+              <span className="text-base font-semibold text-gray-900">Pictura</span>
+            </div>
           </div>
           
           <nav className="flex-1 p-3 space-y-0.5">
@@ -413,10 +405,10 @@ export default function DeveloperDashboard() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                   activeTab === item.id
-                    ? 'bg-white text-gray-900 font-medium shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-gray-100 text-gray-900 font-medium'
+                    : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -425,11 +417,11 @@ export default function DeveloperDashboard() {
             ))}
           </nav>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-gray-100">
             <Link
               href="/api-docs"
               target="_blank"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
             >
               <Book className="h-4 w-4" />
               Documentation
@@ -437,16 +429,16 @@ export default function DeveloperDashboard() {
             </Link>
           </div>
 
-          <div className="p-4 border-t">
+          <div className="p-4 border-t border-gray-100">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors">
+                <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
                   <PatternAvatar name={developer.name || 'Developer'} email={developer.email} size="md" />
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium truncate">{developer.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{developer.email}</p>
+                    <p className="text-sm font-medium truncate text-gray-900">{developer.name}</p>
+                    <p className="text-xs text-gray-500 truncate">{developer.email}</p>
                   </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -454,31 +446,19 @@ export default function DeveloperDashboard() {
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveTab('settings')}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Account Settings
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab('billing')}>
                   <DollarSign className="h-4 w-4 mr-2" />
-                  Pricing
-                  <ExternalLink className="h-3 w-3 ml-auto" />
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/api-docs" target="_blank">
-                    <Book className="h-4 w-4 mr-2" />
-                    Documentation
-                    <ExternalLink className="h-3 w-3 ml-auto" />
-                  </Link>
+                  Billing
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <div className="px-2 py-1.5 flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Credits</span>
-                  <span className="text-sm font-medium">{formatCurrency(developer.creditsBalance)}</span>
+                  <span className="text-sm text-gray-500">Credits</span>
+                  <span className="text-sm font-medium text-gray-900">{formatCurrency(developer.creditsBalance)}</span>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <DropdownMenuItem onClick={handleLogout} className="text-gray-600">
                   <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
+                  Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -491,14 +471,14 @@ export default function DeveloperDashboard() {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div>
-                <h1 className="text-lg sm:text-xl font-semibold">Welcome back, {developer.name?.split(' ')[0]}</h1>
-                <p className="text-sm text-muted-foreground">Here's what's happening with your API</p>
+                <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
+                <p className="text-sm text-gray-500 mt-1">Welcome back, {developer.name?.split(' ')[0]}</p>
               </div>
 
               {/* Stats Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {/* ATM Card Design - Brand Color */}
-                <Card className="col-span-full sm:col-span-2 md:col-span-1 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #10A37F 0%, #0D8C6D 50%, #0A6B56 100%)', border: 'none' }}>
+                {/* ATM Card Design - Brand Color - Pictura Orange */}
+                <Card className="col-span-full sm:col-span-2 md:col-span-1 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #C87941 0%, #A0522D 50%, #8B4513 100%)', border: 'none' }}>
                   {/* Contactless icon */}
                   <div className="absolute top-4 right-4">
                     <svg className="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
