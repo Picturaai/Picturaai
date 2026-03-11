@@ -90,6 +90,76 @@ async function generateWithReplicate(prompt: string): Promise<string> {
   throw new Error('No video generated')
 }
 
+// Generate video with Alibaba Cloud Model Studio (Qwen)
+async function generateWithAlibabaVideo(prompt: string): Promise<string> {
+  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY
+  if (!apiKey) throw new Error('Alibaba API not configured')
+
+  // Use Alibaba's video generation (I2V generation)
+  const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/generation', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'X-DashScope-Async': 'enable',
+    },
+    body: JSON.stringify({
+      model: 'video-generation',
+      input: {
+        prompt: prompt.trim(),
+      },
+      parameters: {
+        duration: 5,
+        fps: 24,
+        resolution: '720p',
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Alibaba video failed: ${response.status} - ${error}`)
+  }
+
+  const data = await response.json()
+  
+  // Handle async response
+  if (data.request_id) {
+    return await pollAlibabaVideo(apiKey, data.request_id)
+  }
+
+  // Handle sync response
+  if (data.output?.video_url) {
+    return data.output.video_url
+  }
+  
+  throw new Error('No video from Alibaba')
+}
+
+async function pollAlibabaVideo(apiKey: string, requestId: string): Promise<string> {
+  const maxAttempts = 60
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(resolve => setTimeout(resolve, 3000))
+    
+    const response = await fetch(
+      `https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/generation/${requestId}`,
+      { headers: { 'Authorization': `Bearer ${apiKey}` } }
+    )
+    
+    const data = await response.json()
+    
+    if (data.output?.video_url) {
+      return data.output.video_url
+    }
+    
+    if (data.code === 'Failed' || data.output?.status === 'failed') {
+      throw new Error('Alibaba video generation failed')
+    }
+  }
+  
+  throw new Error('Alibaba video generation timeout')
+}
+
 // Generate video with Runway ML (alternative)
 async function generateWithRunway(prompt: string): Promise<string> {
   const apiKey = process.env.RUNWAY_API_KEY
@@ -240,18 +310,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Please provide a prompt (min 3 characters)' }, { status: 400 })
     }
 
-    // Try multiple providers
+    // Try multiple providers - Alibaba/Qwen first, then Replicate, then Luma
     let videoUrl: string | null = null
     const errors: string[] = []
 
-    // Try Replicate first
+    // Try Alibaba (Qwen) first
     try {
-      videoUrl = await generateWithReplicate(prompt)
+      videoUrl = await generateWithAlibabaVideo(prompt)
     } catch (err) {
-      errors.push(`Replicate: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`Alibaba (Qwen): ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
-    // Try Luma as fallback
+    // Try Replicate as fallback
+    if (!videoUrl) {
+      try {
+        videoUrl = await generateWithReplicate(prompt)
+      } catch (err) {
+        errors.push(`Replicate: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
+    }
+
+    // Try Luma as last fallback
     if (!videoUrl) {
       try {
         videoUrl = await generateWithLuma(prompt)
@@ -269,7 +348,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Record the generation
-    await recordVideoGeneration(dev.id, prompt, videoUrl, 'replicate')
+    const model = videoUrl.includes('dashscope') ? 'alibaba' : videoUrl.includes('replicate') ? 'replicate' : 'luma'
+    await recordVideoGeneration(dev.id, prompt, videoUrl, model)
 
     return NextResponse.json({
       success: true,

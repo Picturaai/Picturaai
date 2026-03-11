@@ -477,8 +477,8 @@ export default function DeveloperDashboard() {
 
               {/* Stats Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {/* ATM Card Design - Brand Color */}
-                <Card className="col-span-full sm:col-span-2 md:col-span-1 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #10A37F 0%, #0D8C6D 50%, #0A6B56 100%)', border: 'none' }}>
+                {/* ATM Card Design - Brand Color - Pictura Orange */}
+                <Card className="col-span-full sm:col-span-2 md:col-span-1 overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #C87941 0%, #A0522D 50%, #8B4513 100%)', border: 'none' }}>
                   {/* Contactless icon */}
                   <div className="absolute top-4 right-4">
                     <svg className="w-5 h-5 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
