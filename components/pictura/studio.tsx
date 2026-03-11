@@ -305,6 +305,18 @@ export function Studio() {
   const [tourStep, setTourStep] = useState(-1) // -1 = not showing
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
+
+  // auto-switch model with mode
+  useEffect(() => {
+    if (mode === 'video' && selectedModel !== 'picturagen') {
+      setSelectedModel('picturagen')
+      return
+    }
+
+    if (mode !== 'video' && selectedModel === 'picturagen') {
+      setSelectedModel('pi-1.5-turbo')
+    }
+  }, [mode, selectedModel])
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [improving, setImproving] = useState(false)
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
@@ -791,10 +803,10 @@ export function Studio() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-foreground">
-                          {mode === 'video' ? 'Generating your video...' : mode === 'image' ? 'Transforming image...' : 'Generating image...'}
+                          {mode === 'video' ? 'Generating your video with PicturaGen...' : mode === 'image' ? 'Transforming image...' : 'Generating image...'}
                         </p>
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {prompt || (mode === 'video' ? 'Your video is being generated' : mode === 'image' ? 'Transforming your image' : 'Processing your request')}
+                          {prompt || (mode === 'video' ? 'This may take a little longer while we render cinematic frames.' : mode === 'image' ? 'Transforming your image' : 'Processing your request')}
                         </p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
@@ -1057,7 +1069,7 @@ export function Studio() {
                 Image to Image
               </button>
               <button
-                onClick={() => { setMode('video'); handleFileChange(null) }}
+                onClick={() => { setSelectedModel('picturagen'); setMode('video'); handleFileChange(null) }}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'video'
                     ? 'bg-background text-foreground shadow-sm'
