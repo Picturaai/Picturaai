@@ -826,10 +826,10 @@ export function Studio() {
             {/* Video Result */}
             {generatedVideo && (
               <div className="mb-6">
-                <div className="rounded-2xl border border-green-200 bg-green-50 p-5">
+                <div className="rounded-2xl border border-orange-200 bg-orange-50 p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-green-800">Your Video is Ready!</h3>
-                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">Beta</span>
+                    <h3 className="font-semibold text-orange-800">Your Video is Ready!</h3>
+                    <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded-full">Beta</span>
                   </div>
                   <video 
                     src={generatedVideo} 
@@ -841,14 +841,14 @@ export function Studio() {
                     <a 
                       href={generatedVideo} 
                       download="pictura-video.mp4"
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
+                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm hover:bg-orange-700"
                     >
                       <Download className="w-4 h-4" />
                       Download
                     </a>
                     <button 
                       onClick={() => setGeneratedVideo(null)}
-                      className="px-4 py-2 text-green-700 text-sm hover:bg-green-100 rounded-lg"
+                      className="px-4 py-2 text-orange-700 text-sm hover:bg-orange-100 rounded-lg"
                     >
                       Generate Another
                     </button>
@@ -1125,10 +1125,10 @@ export function Studio() {
             <div className="flex items-center gap-3">
               {mode === 'video' ? (
                 <>
-                  <span className="text-[11px] font-medium text-green-600">
+                  <span className="text-[11px] font-medium text-orange-600">
                     {videoLimit.remaining}/2 videos left today
                   </span>
-                  <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
                     Beta
                   </span>
                 </>

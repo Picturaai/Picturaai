@@ -6,15 +6,25 @@ const sql = neon(process.env.DATABASE_URL!)
 // Rate limit: 2 videos per day for beta
 const DAILY_VIDEO_LIMIT = 2
 
-// Check user's daily video usage
-async function checkVideoLimit(userId: string): Promise<{ allowed: boolean; used: number; remaining: number }> {
+// Get session ID from cookie or create one
+function getSessionId(req: NextRequest): string {
+  // Try to get existing session cookie
+  const existingSession = req.cookies.get('pictura_session')?.value
+  if (existingSession) return existingSession
+  
+  // Generate new session ID
+  return `session_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+}
+
+// Check daily video usage (for public users with session)
+async function checkVideoLimitBySession(sessionId: string): Promise<{ allowed: boolean; used: number; remaining: number }> {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   
   const usage = await sql`
     SELECT COUNT(*) as count 
     FROM video_generations 
-    WHERE developer_id = ${userId} 
+    WHERE session_id = ${sessionId} 
     AND created_at >= ${today.toISOString()}
   `
   
@@ -29,10 +39,10 @@ async function checkVideoLimit(userId: string): Promise<{ allowed: boolean; used
 }
 
 // Record video generation
-async function recordVideoGeneration(userId: string, prompt: string, videoUrl: string, model: string) {
+async function recordVideoGeneration(sessionId: string | null, developerId: string | null, prompt: string, videoUrl: string, model: string) {
   await sql`
-    INSERT INTO video_generations (developer_id, prompt, video_url, model)
-    VALUES (${userId}, ${prompt}, ${videoUrl}, ${model})
+    INSERT INTO video_generations (session_id, developer_id, prompt, video_url, model)
+    VALUES (${sessionId}, ${developerId}, ${prompt}, ${videoUrl}, ${model})
   `
 }
 
@@ -287,20 +297,31 @@ async function verifyApiKey(apiKey: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const dev = await getDevFromSession(req)
-    if (!dev) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Get session - works for both logged in users and public users
+    const sessionId = getSessionId(req)
+    const dev = await getDevFromSession(req) // For developers with API keys
+    
+    // Check rate limit (session-based for public, developer-based for devs)
+    let limit
+    let developerId = dev?.id || null
+    
+    if (dev) {
+      // Developer user - use session_id for tracking
+      limit = await checkVideoLimitBySession(sessionId)
+    } else {
+      // Public user - check by session
+      limit = await checkVideoLimitBySession(sessionId)
     }
-
-    // Check rate limit
-    const limit = await checkVideoLimit(dev.id)
+    
     if (!limit.allowed) {
-      return NextResponse.json({ 
+      const response = NextResponse.json({ 
         error: 'Daily limit reached',
         used: limit.used,
         limit: DAILY_VIDEO_LIMIT,
         message: `You have reached your daily limit of ${DAILY_VIDEO_LIMIT} videos. Try again tomorrow!`
       }, { status: 429 })
+      response.cookies.set('pictura_session', sessionId, { path: '/', maxAge: 60 * 60 * 24 * 365 })
+      return response
     }
 
     const body = await req.json()
@@ -349,15 +370,20 @@ export async function POST(req: NextRequest) {
 
     // Record the generation
     const model = videoUrl.includes('dashscope') ? 'alibaba' : videoUrl.includes('replicate') ? 'replicate' : 'luma'
-    await recordVideoGeneration(dev.id, prompt, videoUrl, model)
+    await recordVideoGeneration(sessionId, developerId, prompt, videoUrl, model)
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       videoUrl,
       prompt,
       remaining: limit.remaining - 1,
       limit: DAILY_VIDEO_LIMIT
     })
+    
+    // Set session cookie
+    response.cookies.set('pictura_session', sessionId, { path: '/', maxAge: 60 * 60 * 24 * 365 })
+    
+    return response
 
   } catch (error) {
     console.error('Video generation error:', error)
