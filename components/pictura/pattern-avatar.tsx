@@ -22,17 +22,17 @@ function hashString(str: string): number {
 
 // Beautiful color palettes
 const COLOR_PALETTES = [
-  ['#C87941', '#E5A869', '#F4D4B0'], // Pictura brown
-  ['#2563eb', '#3b82f6', '#60a5fa'], // Blue
-  ['#7c3aed', '#8b5cf6', '#a78bfa'], // Purple
-  ['#0891b2', '#06b6d4', '#22d3ee'], // Cyan
-  ['#059669', '#10b981', '#34d399'], // Emerald
-  ['#d97706', '#f59e0b', '#fbbf24'], // Amber
-  ['#dc2626', '#ef4444', '#f87171'], // Red
-  ['#4f46e5', '#6366f1', '#818cf8'], // Indigo
-  ['#0d9488', '#14b8a6', '#2dd4bf'], // Teal
-  ['#9333ea', '#a855f7', '#c084fc'], // Violet
+  ['#C87941', '#E5A869', '#F4D4B0'], // Pictura brand brown
+  ['#B86A36', '#D5894F', '#EDBC84'], // Caramel
+  ['#A75A2E', '#C97944', '#E2A374'], // Copper
+  ['#9C6238', '#C98A57', '#E8BE93'], // Warm chestnut
+  ['#A86A3D', '#D79A62', '#ECC7A0'], // Sandstone
+  ['#8F4E2A', '#B86D3F', '#D79A6C'], // Deep terracotta
+  ['#B27443', '#D49863', '#E9BE94'], // Honey brown
+  ['#7E4A2D', '#A96B45', '#CEA07B'], // Walnut
 ]
+
+
 
 const PATTERNS = ['circles', 'squares', 'triangles', 'waves', 'dots', 'lines', 'hexagons', 'diamonds']
 
