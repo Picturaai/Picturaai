@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -338,10 +338,28 @@ export function Studio() {
   const [editorImage, setEditorImage] = useState<string | null>(null)
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
   const [videoLoadingHintIndex, setVideoLoadingHintIndex] = useState(0)
-  const [clientFingerprint, setClientFingerprint] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
+
+  const clientFingerprint = useMemo(() => {
+    if (typeof window === 'undefined') return ''
+
+    const raw = [
+      window.navigator.userAgent,
+      window.navigator.language,
+      window.navigator.platform,
+      String(window.navigator.hardwareConcurrency || 0),
+      String(window.navigator.maxTouchPoints || 0),
+    ].join('|')
+
+    let hash = 0
+    for (let i = 0; i < raw.length; i++) {
+      hash = ((hash << 5) - hash) + raw.charCodeAt(i)
+      hash |= 0
+    }
+    return `fp-${Math.abs(hash)}`
+  }, [])
 
   const buildAuthHeaders = useCallback((headers?: HeadersInit) => {
     const nextHeaders = new Headers(headers || {})
@@ -361,33 +379,30 @@ export function Studio() {
   }, [loading, mode])
 
 
-  useEffect(() => {
-    const raw = [
-      navigator.userAgent,
-      navigator.language,
-      navigator.platform,
-      String(navigator.hardwareConcurrency || 0),
-      String(navigator.maxTouchPoints || 0),
-      `${screen.width}x${screen.height}`,
-    ].join('|')
 
-    let hash = 0
-    for (let i = 0; i < raw.length; i++) {
-      hash = ((hash << 5) - hash) + raw.charCodeAt(i)
-      hash |= 0
-    }
-    setClientFingerprint(`fp-${Math.abs(hash)}`)
-  }, [])
 
   // Rotate prompt suggestions every 4s when input is empty
   useEffect(() => {
     if (prompt) return
     const examples = mode === 'text' ? PROMPT_EXAMPLES : mode === 'image' ? IMG2IMG_EXAMPLES : VIDEO_EXAMPLES
     const interval = setInterval(() => {
-      setPlaceholderIdx((prev) => (prev + 1) % examples.length)
+      setPlaceholderIdx((prev) => {
+        if (examples.length <= 1) return 0
+        let next = prev
+        while (next === prev) {
+          next = Math.floor(Math.random() * examples.length)
+        }
+        return next
+      })
     }, 4000)
     return () => clearInterval(interval)
   }, [prompt, mode])
+
+  useEffect(() => {
+    const examples = mode === 'text' ? PROMPT_EXAMPLES : mode === 'image' ? IMG2IMG_EXAMPLES : VIDEO_EXAMPLES
+    if (examples.length === 0) return
+    setPlaceholderIdx(Math.floor(Math.random() * examples.length))
+  }, [mode])
 
   // Improve prompt using AI
   const handleImprovePrompt = async () => {
@@ -842,7 +857,7 @@ export function Studio() {
               <h2 className="mt-5 text-xl font-semibold text-foreground">{mode === 'video' ? 'What video will you create?' : 'What will you create?'}</h2>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
                 {mode === 'video'
-                  ? 'Describe your scene and PicturaGen will create a cinematic video for you.'
+                  ? 'Describe your scene and PicturaGen will create an amazing cinematic video for you.'
                   : 'Type a description below and Pictura will generate an image for you.'}
                 You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
               </p>
@@ -1099,7 +1114,7 @@ export function Studio() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={mode === 'text' ? 'Describe the image you want to create...' : mode === 'image' ? 'Describe how to transform this image...' : 'Describe the video you want to create...'}
+              placeholder={mode === 'text' ? 'Describe the image you want to create...' : mode === 'image' ? 'Describe how to transform this image...' : 'Create an amazing video: describe your scene, motion, and style...'}
               rows={1}
               disabled={loading}
               className="flex-1 resize-none bg-transparent py-2 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 disabled:opacity-50"
