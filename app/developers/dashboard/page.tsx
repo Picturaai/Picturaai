@@ -300,6 +300,10 @@ export default function DeveloperDashboard() {
     { id: 'settings', label: 'Settings', icon: Settings },
   ] as const
 
+  const panelCardClass = 'border border-[#EADBCB] bg-[#FFFCF8]'
+  const metricCardClass = 'border border-[#EEDFCC] bg-gradient-to-b from-[#FFFDF9] to-[#FAF1E7]'
+  const primaryButtonClass = 'bg-[#C87941] hover:bg-[#B86D35] text-white'
+
   return (
     <div className="min-h-screen bg-[#FCF8F3] overflow-x-hidden [&_[data-slot=card]]:shadow-none">
       {/* Mobile Header */}
@@ -486,7 +490,7 @@ export default function DeveloperDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl overflow-x-hidden">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-6xl overflow-x-hidden bg-[radial-gradient(circle_at_top,_#fff8ef,_transparent_55%)]">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
@@ -524,7 +528,7 @@ export default function DeveloperDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="border border-gray-200">
+                <Card className={metricCardClass}>
                   <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
                     <CardDescription className="flex items-center gap-1.5 text-xs text-gray-500">
                       <Activity className="h-3.5 w-3.5" />
@@ -545,7 +549,7 @@ export default function DeveloperDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="border border-gray-200">
+                <Card className={metricCardClass}>
                   <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
                     <CardDescription className="flex items-center gap-1.5 text-xs text-gray-500">
                       <BarChart3 className="h-3.5 w-3.5" />
@@ -558,7 +562,7 @@ export default function DeveloperDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="border border-gray-200">
+                <Card className={metricCardClass}>
                   <CardHeader className="pb-2 pt-3 px-3 sm:px-4">
                     <CardDescription className="flex items-center gap-1.5 text-xs text-gray-500">
                       <Key className="h-3.5 w-3.5" />
@@ -576,7 +580,7 @@ export default function DeveloperDashboard() {
 
               {/* Quick Actions */}
               <div className="grid gap-3 sm:grid-cols-2">
-                <Card className="cursor-pointer hover:bg-gray-50 transition-colors group border border-gray-200" onClick={() => setActiveTab('api-keys')}>
+                <Card className="cursor-pointer hover:bg-[#F8EFE6] transition-colors group border border-[#EEDFCC] bg-[#FFFCF8]" onClick={() => setActiveTab('api-keys')}>
                   <CardContent className="flex items-center gap-3 p-4">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors shrink-0">
                       <Key className="h-5 w-5 text-gray-600" />
@@ -588,7 +592,7 @@ export default function DeveloperDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="cursor-pointer hover:bg-gray-50 transition-colors group border border-gray-200" onClick={() => window.open('/api-docs', '_blank')}>
+                <Card className="cursor-pointer hover:bg-[#F8EFE6] transition-colors group border border-[#EEDFCC] bg-[#FFFCF8]" onClick={() => window.open('/api-docs', '_blank')}>
                   <CardContent className="flex items-center gap-3 p-4">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors shrink-0">
                       <Book className="h-5 w-5 text-gray-600" />
@@ -603,7 +607,7 @@ export default function DeveloperDashboard() {
 
               {/* Recent Transactions */}
               {developer.transactions && developer.transactions.length > 0 && (
-                <Card className="border border-gray-200">
+                <Card className={metricCardClass}>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm sm:text-base text-gray-900">Recent Activity</CardTitle>
                   </CardHeader>
@@ -649,13 +653,13 @@ export default function DeveloperDashboard() {
                     Manage your API keys for Pictura API access.
                   </p>
                 </div>
-                <Button onClick={() => { setShowCreateKey(true); setNewKeyName(''); setNewlyCreatedKey(null) }} className="bg-[#C87941] hover:bg-[#B86D35] text-sm h-9">
+                <Button onClick={() => { setShowCreateKey(true); setNewKeyName(''); setNewlyCreatedKey(null) }} className={`${primaryButtonClass} text-sm h-9`}>
                   <Plus className="h-4 w-4 mr-1.5" />
                   New Key
                 </Button>
               </div>
 
-              <Card>
+              <Card className={panelCardClass}>
                 <CardContent className="p-0">
                   {developer.apiKeys.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-muted rounded-lg m-4">
@@ -730,12 +734,12 @@ export default function DeveloperDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-amber-50 border-amber-200">
+              <Card className="border border-[#EDCCA9] bg-[#FFF5EA]">
                 <CardContent className="flex items-start gap-3 p-4">
-                  <Shield className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                  <Shield className="h-5 w-5 text-[#A65D2E] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-amber-900">Keep your API keys secure</p>
-                    <p className="text-sm text-amber-700">Never share your API keys in public repositories or client-side code.</p>
+                    <p className="text-sm font-medium text-[#7C4D26]">Keep your API keys secure</p>
+                    <p className="text-sm text-[#9A673C]">Never share your API keys in public repositories or client-side code.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -751,7 +755,7 @@ export default function DeveloperDashboard() {
               </div>
 
               <div className="grid gap-3 sm:gap-4 grid-cols-3">
-                <Card>
+                <Card className={metricCardClass}>
                   <CardHeader className="pb-1.5 pt-3 px-3 sm:px-4">
                     <CardDescription className="text-xs">This Month</CardDescription>
                   </CardHeader>
@@ -761,7 +765,7 @@ export default function DeveloperDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className={metricCardClass}>
                   <CardHeader className="pb-1.5 pt-3 px-3 sm:px-4">
                     <CardDescription className="text-xs">Last Month</CardDescription>
                   </CardHeader>
@@ -771,7 +775,7 @@ export default function DeveloperDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className={metricCardClass}>
                   <CardHeader className="pb-1.5 pt-3 px-3 sm:px-4">
                     <CardDescription className="text-xs">All Time</CardDescription>
                   </CardHeader>
@@ -782,9 +786,9 @@ export default function DeveloperDashboard() {
                 </Card>
               </div>
 
-              <Card>
+              <Card className={panelCardClass}>
                 <CardHeader>
-                  <CardTitle className="text-lg">Usage by API Key</CardTitle>
+                  <CardTitle className="text-lg text-[#6B4A2C]">Usage by API Key</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {developer.apiKeys.length === 0 ? (
@@ -792,9 +796,9 @@ export default function DeveloperDashboard() {
                   ) : (
                     <div className="space-y-4">
                       {developer.apiKeys.map((key) => (
-                        <div key={key.id} className="flex items-center justify-between py-2">
+                        <div key={key.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-[#F0E4D6] bg-white/80">
                           <div className="flex items-center gap-3">
-                            <Key className="h-4 w-4 text-muted-foreground" />
+                            <Key className="h-4 w-4 text-[#A56B3B]" />
                             <span className="text-sm font-medium">{key.name}</span>
                           </div>
                           <div className="text-sm text-muted-foreground">
@@ -817,27 +821,27 @@ export default function DeveloperDashboard() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Manage your credits and payment methods</p>
               </div>
 
-              <Card>
+              <Card className={panelCardClass}>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm sm:text-base">Current Plan</CardTitle>
+                  <CardTitle className="text-sm sm:text-base text-[#6B4A2C]">Current Plan</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border rounded-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border border-[#EBD9C5] rounded-lg bg-[#FFF8EF]">
                     <div>
                       <h3 className="text-sm font-semibold">{developer.tier === 'free' ? 'Free Plan' : 'Premium Plan'}</h3>
                       <p className="text-xs text-muted-foreground">Pay as you go pricing</p>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => setShowPricingModal(true)}>View Plans</Button>
-                      <Button size="sm" className="bg-[#C87941] hover:bg-[#B86D35] text-xs h-8" onClick={() => setShowPricingModal(true)}>Upgrade</Button>
+                      <Button variant="outline" size="sm" className="text-xs h-8 border-[#DDB892] text-[#8E5A2D]" onClick={() => setShowPricingModal(true)}>View Plans</Button>
+                      <Button size="sm" className={`${primaryButtonClass} text-xs h-8`} onClick={() => setShowPricingModal(true)}>Upgrade</Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className={panelCardClass}>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm sm:text-base">Credit Balance</CardTitle>
+                  <CardTitle className="text-sm sm:text-base text-[#6B4A2C]">Credit Balance</CardTitle>
                   <CardDescription className="text-xs">Your credits are used for API calls.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -889,14 +893,14 @@ export default function DeveloperDashboard() {
                       </div>
                     </div>
                   </div>
-                  <Button onClick={() => setShowPricingModal(true)} className="mt-4 bg-[#C87941] hover:bg-[#B86D35] text-sm h-9">Buy Credits</Button>
+                  <Button onClick={() => setShowPricingModal(true)} className={`mt-4 text-sm h-9 ${primaryButtonClass}`}>Buy Credits</Button>
                 </CardContent>
               </Card>
 
               {developer.transactions && developer.transactions.length > 0 && (
-                <Card>
+                <Card className={panelCardClass}>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm sm:text-base">Transaction History</CardTitle>
+                    <CardTitle className="text-sm sm:text-base text-[#6B4A2C]">Transaction History</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="divide-y">
@@ -930,7 +934,7 @@ export default function DeveloperDashboard() {
               </div>
 
               {/* Profile Card with Brand Color Background */}
-              <Card className="overflow-hidden">
+              <Card className={`${panelCardClass} overflow-hidden`}>
                 <div className="h-20 sm:h-24 bg-gradient-to-br from-[#C87941] via-[#A65D2E] to-[#8B4D26] relative">
                   <div className="absolute inset-0 opacity-15">
                     <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -953,10 +957,10 @@ export default function DeveloperDashboard() {
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">{developer.email}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className="text-[10px] bg-[#C87941]/10 text-[#C87941] border border-[#C87941]/20">
+                      <Badge className="text-[10px] bg-[#FFF1E2] text-[#9B6332] border border-[#E2C19D]">
                         {developer.tier?.toUpperCase() || 'FREE'} TIER
                       </Badge>
-                      <Button variant="outline" size="sm" className="text-xs h-8" onClick={() => setShowPricingModal(true)}>
+                      <Button variant="outline" size="sm" className="text-xs h-8 border-[#DDB892] text-[#8E5A2D]" onClick={() => setShowPricingModal(true)}>
                         Upgrade
                       </Button>
                     </div>
@@ -965,7 +969,7 @@ export default function DeveloperDashboard() {
               </Card>
 
               {/* Account Details */}
-              <Card>
+              <Card className={panelCardClass}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                     <User className="h-4 w-4 text-[#C87941]" />
@@ -976,26 +980,26 @@ export default function DeveloperDashboard() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <Label className="text-xs text-muted-foreground">Full Name</Label>
-                      <Input value={developer.name} disabled className="mt-1 text-sm" />
+                      <Input value={developer.name} disabled className="mt-1 text-sm border-[#E8D8C9] bg-[#FFFCF8]" />
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Email Address</Label>
-                      <Input value={developer.email} disabled className="mt-1 text-sm" />
+                      <Input value={developer.email} disabled className="mt-1 text-sm border-[#E8D8C9] bg-[#FFFCF8]" />
                     </div>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div>
                       <Label className="text-xs text-muted-foreground">Account Created</Label>
-                      <Input value={formatDate(developer.createdAt)} disabled className="mt-1 text-sm" />
+                      <Input value={formatDate(developer.createdAt)} disabled className="mt-1 text-sm border-[#E8D8C9] bg-[#FFFCF8]" />
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Currency</Label>
-                      <Input value={developer.currency} disabled className="mt-1 text-sm" />
+                      <Input value={developer.currency} disabled className="mt-1 text-sm border-[#E8D8C9] bg-[#FFFCF8]" />
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Credits Balance</Label>
-                      <Input value={formatCurrency(developer.creditsBalance)} disabled className="mt-1 text-sm font-medium text-[#C87941]" />
+                      <Input value={formatCurrency(developer.creditsBalance)} disabled className="mt-1 text-sm font-medium text-[#A65D2E] border-[#E8D8C9] bg-[#FFFCF8]" />
                     </div>
                   </div>
                 </CardContent>
@@ -1003,28 +1007,28 @@ export default function DeveloperDashboard() {
 
               {/* Quick Stats */}
               <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
-                <Card className="bg-[#C87941]/5 border-[#C87941]/20">
+                <Card className="bg-[#FFF4E7] border-[#E7C7A7]">
                   <CardContent className="p-3 sm:p-4 text-center">
                     <Key className="h-5 w-5 mx-auto text-[#C87941] mb-1" />
                     <p className="text-lg sm:text-xl font-bold">{developer.apiKeys.filter(k => k.isActive).length}</p>
                     <p className="text-[10px] text-muted-foreground">Active Keys</p>
                   </CardContent>
                 </Card>
-                <Card className="bg-[#C87941]/5 border-[#C87941]/20">
+                <Card className="bg-[#FFF4E7] border-[#E7C7A7]">
                   <CardContent className="p-3 sm:p-4 text-center">
                     <Activity className="h-5 w-5 mx-auto text-[#C87941] mb-1" />
                     <p className="text-lg sm:text-xl font-bold">{developer.usage.thisMonth.toLocaleString()}</p>
                     <p className="text-[10px] text-muted-foreground">This Month</p>
                   </CardContent>
                 </Card>
-                <Card className="bg-[#C87941]/5 border-[#C87941]/20">
+                <Card className="bg-[#FFF4E7] border-[#E7C7A7]">
                   <CardContent className="p-3 sm:p-4 text-center">
                     <BarChart3 className="h-5 w-5 mx-auto text-[#C87941] mb-1" />
                     <p className="text-lg sm:text-xl font-bold">{developer.usage.totalRequests.toLocaleString()}</p>
                     <p className="text-[10px] text-muted-foreground">Total Requests</p>
                   </CardContent>
                 </Card>
-                <Card className="bg-[#C87941]/5 border-[#C87941]/20">
+                <Card className="bg-[#FFF4E7] border-[#E7C7A7]">
                   <CardContent className="p-3 sm:p-4 text-center">
                     <CreditCard className="h-5 w-5 mx-auto text-[#C87941] mb-1" />
                     <p className="text-lg sm:text-xl font-bold">{developer.transactions?.length || 0}</p>
@@ -1034,17 +1038,17 @@ export default function DeveloperDashboard() {
               </div>
 
               {/* Danger Zone */}
-              <Card className="border-destructive/30">
+              <Card className="border-[#E8CFC2] bg-[#FFF9F6]">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm sm:text-base text-destructive flex items-center gap-2">
+                  <CardTitle className="text-sm sm:text-base text-[#B55E3E] flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     Danger Zone
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border border-destructive/20 rounded-lg bg-destructive/5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 border border-[#E8CFC2] rounded-lg bg-[#FFF4ED]">
                     <div>
-                      <h4 className="font-medium text-sm text-destructive">Delete Account</h4>
+                      <h4 className="font-medium text-sm text-[#B55E3E]">Delete Account</h4>
                       <p className="text-xs text-muted-foreground">Permanently delete your account and all associated data</p>
                     </div>
                     <Button variant="destructive" size="sm" className="text-xs shrink-0">Delete Account</Button>
@@ -1085,7 +1089,7 @@ export default function DeveloperDashboard() {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={() => { setShowCreateKey(false); setNewlyCreatedKey(null) }} className="bg-[#C87941] hover:bg-[#B86D35]">
+                <Button onClick={() => { setShowCreateKey(false); setNewlyCreatedKey(null) }} className={primaryButtonClass}>
                   Done
                 </Button>
               </DialogFooter>
@@ -1106,7 +1110,7 @@ export default function DeveloperDashboard() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowCreateKey(false)}>Cancel</Button>
-                <Button onClick={handleCreateKey} disabled={creatingKey} className="bg-[#C87941] hover:bg-[#B86D35]">
+                <Button onClick={handleCreateKey} disabled={creatingKey} className={primaryButtonClass}>
                   {creatingKey ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Create Key
                 </Button>
@@ -1150,7 +1154,7 @@ export default function DeveloperDashboard() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="sm:justify-center">
-                <Button onClick={() => setOnboardingStep(1)} className="bg-[#C87941] hover:bg-[#B86D35]">
+                <Button onClick={() => setOnboardingStep(1)} className={primaryButtonClass}>
                   Get Started
                 </Button>
               </DialogFooter>
@@ -1172,7 +1176,7 @@ export default function DeveloperDashboard() {
               </DialogHeader>
               <DialogFooter className="sm:justify-center gap-2">
                 <Button variant="outline" onClick={() => setOnboardingStep(0)}>Back</Button>
-                <Button onClick={() => setOnboardingStep(2)} className="bg-[#C87941] hover:bg-[#B86D35]">
+                <Button onClick={() => setOnboardingStep(2)} className={primaryButtonClass}>
                   Next
                 </Button>
               </DialogFooter>
@@ -1194,7 +1198,7 @@ export default function DeveloperDashboard() {
               </DialogHeader>
               <DialogFooter className="sm:justify-center gap-2">
                 <Button variant="outline" onClick={() => setOnboardingStep(1)}>Back</Button>
-                <Button onClick={completeOnboarding} className="bg-[#C87941] hover:bg-[#B86D35]">
+                <Button onClick={completeOnboarding} className={primaryButtonClass}>
                   Start Building
                 </Button>
               </DialogFooter>
@@ -1297,7 +1301,7 @@ export default function DeveloperDashboard() {
                 }
               }}
               disabled={!selectedPlan || processingPayment}
-              className="w-full bg-[#C87941] hover:bg-[#B86D35] h-10"
+              className={`w-full h-10 ${primaryButtonClass}`}
             >
               {processingPayment ? (
                 <>
