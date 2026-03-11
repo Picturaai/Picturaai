@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -101,7 +100,6 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 }
 
 export default function DeveloperDashboard() {
-  const searchParams = useSearchParams()
   const [developer, setDeveloper] = useState<Developer | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'api-keys' | 'usage' | 'billing' | 'settings' | 'playground'>('overview')
@@ -180,7 +178,7 @@ export default function DeveloperDashboard() {
   }, [developer?.name])
 
   useEffect(() => {
-    const paymentState = searchParams.get('payment')
+    const paymentState = new URLSearchParams(window.location.search).get('payment')
     const pendingUrl = localStorage.getItem('pictura_pending_payment_url')
     if (pendingUrl) setPendingPaymentUrl(pendingUrl)
 
@@ -191,7 +189,7 @@ export default function DeveloperDashboard() {
     } else if (paymentState === 'cancel' || paymentState === 'cancelled') {
       toast.info('Payment pending. You can continue from your saved payment link.')
     }
-  }, [searchParams])
+  }, [])
 
   const handleUpdateName = async () => {
     if (!editableName.trim() || !developer || editableName.trim() === developer.name) return

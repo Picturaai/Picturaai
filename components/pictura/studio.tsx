@@ -78,6 +78,10 @@ function SendIcon({ className = '' }: { className?: string }) {
   )
 }
 
+function VideoSendIcon({ className = '' }: { className?: string }) {
+  return <Clapperboard className={className} />
+}
+
 /* ---- Tour Overlay: highlights real elements with positioned tooltip ---- */
 function TourOverlay({
   step, steps, onNext, onSkip,
@@ -588,7 +592,7 @@ export function Studio() {
               className="flex items-center gap-1 rounded-lg border border-border/40 bg-card px-2 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:bg-secondary/60 sm:gap-1.5 sm:px-2.5"
             >
               <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-              <span className="truncate max-w-[60px] sm:max-w-none">{selectedModel}</span>
+              <span className="truncate max-w-[60px] sm:max-w-none">{mode === 'video' ? 'picturagen-beta' : selectedModel}</span>
               <ChevronDown className={`h-3 w-3 flex-shrink-0 text-muted-foreground transition-transform ${modelOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -632,6 +636,14 @@ export function Studio() {
                       {selectedModel === model.id && <Check className="h-3.5 w-3.5 flex-shrink-0 text-primary" />}
                     </button>
                   ))}
+
+                  <div className="border-t border-border/30 px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-medium text-foreground">PicturaGen</p>
+                      <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">Beta</span>
+                    </div>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">Our AI video model for Text to Video generation.</p>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -782,8 +794,12 @@ export function Studio() {
                         <PicturaIcon size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
-<p className="text-sm font-semibold text-foreground">{mode === 'image' ? 'Transforming image...' : 'Generating image...'}</p>
-  <p className="mt-0.5 truncate text-xs text-muted-foreground">{prompt || (mode === 'image' ? 'Transforming your image' : 'Processing your request')}</p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {mode === 'video' ? 'Generating your video...' : mode === 'image' ? 'Transforming image...' : 'Generating image...'}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {prompt || (mode === 'video' ? 'Your video is being generated' : mode === 'image' ? 'Transforming your image' : 'Processing your request')}
+                        </p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
                             className="h-full rounded-full bg-primary"
@@ -961,7 +977,7 @@ export function Studio() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={mode === 'text' ? 'Describe the image you want to create...' : 'Describe how to transform this image...'}
+              placeholder={mode === 'text' ? 'Describe the image you want to create...' : mode === 'image' ? 'Describe how to transform this image...' : 'Describe the video you want to create...'}
               rows={1}
               disabled={loading}
               className="flex-1 resize-none bg-transparent py-2 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 disabled:opacity-50"
@@ -969,14 +985,14 @@ export function Studio() {
 
             <button
               onClick={handleGenerate}
-              disabled={loading || !prompt.trim() || rateLimit.remaining <= 0}
+              disabled={loading || !prompt.trim() || (mode === 'video' ? videoRateLimit.remaining <= 0 : rateLimit.remaining <= 0)}
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
-              aria-label="Generate image"
+              aria-label={mode === 'video' ? 'Generate video' : 'Generate image'}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <SendIcon className="h-4 w-4" />
+                mode === 'video' ? <VideoSendIcon className="h-4 w-4" /> : <SendIcon className="h-4 w-4" />
               )}
             </button>
           </div>
