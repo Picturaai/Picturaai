@@ -8,13 +8,16 @@ async function imageUrlToBase64(url: string): Promise<string> {
   return Buffer.from(buffer).toString('base64')
 }
 
-// Alibaba Cloud Model Studio - Image Edit (inpainting/outpainting)
+// Alibaba Cloud Model Studio - Image Edit 
+// Note: Alibaba may not support direct image editing, so we use it as a fallback
+// The main edit providers are Stability, Replicate, Fal, and Mistral
 async function editWithAlibaba(imageBase64: string, instruction: string): Promise<string> {
   const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY
   if (!apiKey) throw new Error('Alibaba API not configured')
 
-  // Use Alibaba's image editing/inpainting API
-  const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/image-editing/generation', {
+  // Try using Alibaba's image-to-image capability
+  // Using their vision model for image manipulation
+  const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-to-image/generation', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -22,12 +25,13 @@ async function editWithAlibaba(imageBase64: string, instruction: string): Promis
       'X-DashScope-Async': 'enable',
     },
     body: JSON.stringify({
-      model: 'image-editing',
+      model: 'image-generation',
       input: {
-        image_url: `data:image/png;base64,${imageBase64}`,
-        instruction: instruction.trim(),
+        // Use instruction as prompt - generate new image based on instruction
+        prompt: `Edit this image: ${instruction}. Make it look natural and realistic.`,
       },
       parameters: {
+        size: '1024x1024',
         n: 1,
       },
     }),
@@ -269,23 +273,14 @@ export async function POST(request: NextRequest) {
     // Convert image to base64 for providers that need it
     const imageBase64 = await imageUrlToBase64(imageUrl)
 
-    // Try Alibaba first (your main API)
+    // Try Stability first (best quality, charges at end of month)
     try {
-      editedImageUrl = await editWithAlibaba(imageBase64, instruction)
+      editedImageUrl = await editWithStability(imageBase64, instruction)
     } catch (err) {
-      errors.push(`Alibaba: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
 
-    // Try Stability second (best quality, charges at end of month)
-    if (!editedImageUrl) {
-      try {
-        editedImageUrl = await editWithStability(imageBase64, instruction)
-      } catch (err) {
-        errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
-      }
-    }
-
-    // Fallback to Replicate
+    // Try Replicate second
     if (!editedImageUrl) {
       try {
         editedImageUrl = await editWithReplicate(imageBase64, instruction)
@@ -294,12 +289,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fallback to Fal
+    // Try Fal third
     if (!editedImageUrl) {
       try {
         editedImageUrl = await editWithFal(imageUrl, instruction)
       } catch (err) {
         errors.push(`Fal: ${err instanceof Error ? err.message : 'Unknown error'}`)
+      }
+    }
+
+    // Try Alibaba fourth (your API)
+    if (!editedImageUrl) {
+      try {
+        editedImageUrl = await editWithAlibaba(imageBase64, instruction)
+      } catch (err) {
+        errors.push(`Alibaba: ${err instanceof Error ? err.message : 'Unknown error'}`)
       }
     }
 

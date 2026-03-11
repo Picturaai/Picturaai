@@ -268,19 +268,19 @@ async function generateWithPicturaEngine(prompt: string, width: number, height: 
   }
   
   const providers = [
-    generateWithAlibaba,      // Alibaba Cloud Model Studio (first - your main API!)
-    generateWithMistral,      // Mistral AI
-    generateWithStability,    // Stability AI SD3
-    generateWithOpenAI,       // OpenAI DALL-E 3
-    generateWithBFL,          // Black Forest Labs Flux Pro
-    generateWithReplicate,    // Replicate
-    generateWithLeonardo,     // Leonardo AI
-    generateWithFal,          // Fal AI
-    generateWithTogether,     // Together AI
-    generateWithFireworks,    // Fireworks AI
-    generateWithDeepInfra,    // DeepInfra
+    generateWithStability,    // Stability AI SD3 (most reliable)
+    generateWithAlibaba,     // Alibaba Cloud Model Studio (your API)
+    generateWithMistral,     // Mistral AI
+    generateWithOpenAI,      // OpenAI DALL-E 3
+    generateWithBFL,         // Black Forest Labs Flux Pro
+    generateWithReplicate,   // Replicate
+    generateWithLeonardo,    // Leonardo AI
+    generateWithFal,         // Fal AI
+    generateWithTogether,    // Together AI
+    generateWithFireworks,   // Fireworks AI
+    generateWithDeepInfra,   // DeepInfra
     (p: string) => generateWithHuggingFace(p), // HuggingFace
-    generateWithZyLabs,       // ZyLabs
+    generateWithZyLabs,      // ZyLabs
   ]
   
   for (const provider of providers) {
