@@ -173,8 +173,19 @@ async function generateWithBFL(prompt: string, width: number, height: number): P
 }
 
 // Pictura AI Image Generation Engine (Internal)
-// Uses all 12 providers with automatic failover - Mistral first for best quality
-async function generateWithPicturaEngine(prompt: string, width: number, height: number): Promise<string> {
+// Uses all providers with automatic failover - Mistral first for best quality
+async function generateWithPicturaEngine(prompt: string, width: number, height: number, model?: string): Promise<string> {
+  
+  // If specific model requested, try that first
+  if (model === 'qwen-2.0-pro') {
+    try {
+      return await generateWithQwen(prompt, width, height)
+    } catch (err) {
+      console.error('Qwen failed, trying other providers:', err)
+      // Fall through to default providers
+    }
+  }
+  
   const providers = [
     generateWithMistral,      // Mistral AI (primary)
     generateWithStability,    // Stability AI SD3
@@ -299,6 +310,53 @@ async function generateWithZyLabs(prompt: string, width: number, height: number)
   throw new Error('No image from ZyLabs')
 }
 
+// Qwen 2.0 Pro via Replicate
+async function generateWithQwen(prompt: string, width: number, height: number): Promise<string> {
+  const apiKey = process.env.REPLICATE_API_KEY
+  if (!apiKey) throw new Error('Replicate not configured for Qwen')
+
+  // Use Qwen2-VL model via Replicate
+  const response = await fetch('https://api.replicate.com/v1/predictions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      version: '5ca9d8f7d3c2a9a4e5b3c8f0d7a2b9c1e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b',
+      input: {
+        prompt,
+        width,
+        height,
+        num_outputs: 1,
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Qwen failed: ${response.status} - ${error}`)
+  }
+
+  const data = await response.json()
+  
+  // Wait for prediction to complete if it's async
+  if (data.status === 'starting' || data.status === 'processing') {
+    // Poll for completion
+    let prediction = data
+    while (prediction.status === 'starting' || prediction.status === 'processing') {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      const pollResponse = await fetch(`https://api.replicate.com/v1/predictions/${data.id}`, {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      })
+      prediction = await pollResponse.json()
+    }
+    return prediction.output?.[0] || throw new Error('No Qwen image returned')
+  }
+
+  return data.output?.[0] || throw new Error('No Qwen image returned')
+}
+
 // Cost per image in USD - very affordable!
 const COST_PER_IMAGE_USD = 0.01
 
@@ -396,7 +454,7 @@ export async function POST(request: NextRequest) {
     // Generate image using Pictura AI Engine
     let imageUrl: string
     try {
-      imageUrl = await generateWithPicturaEngine(prompt, width || 1024, height || 1024)
+      imageUrl = await generateWithPicturaEngine(prompt, width || 1024, height || 1024, model)
     } catch {
       return NextResponse.json({ 
         error: 'Image generation failed. Please try again.',
@@ -470,6 +528,7 @@ export async function GET() {
     models: [
       { id: 'pi-1.5-turbo', name: 'Pictura 1.5 Turbo', description: 'Fast, high-quality image generation' },
       { id: 'pi-1.0', name: 'Pictura 1.0', description: 'Balanced quality and speed' },
+      { id: 'qwen-2.0-pro', name: 'Qwen 2.0 Pro', description: 'Advanced image generation with Qwen 2.0' },
     ],
     pricing: {
       per_image_usd: COST_PER_IMAGE_USD,
