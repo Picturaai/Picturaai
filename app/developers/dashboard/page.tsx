@@ -128,6 +128,8 @@ export default function DeveloperDashboard() {
   const [editableName, setEditableName] = useState('')
   const [savingName, setSavingName] = useState(false)
   const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null)
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -234,6 +236,38 @@ export default function DeveloperDashboard() {
       localStorage.removeItem('pictura_session')
       localStorage.removeItem('pictura_developer')
       window.location.href = '/developers/login'
+    }
+  }
+
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true)
+    try {
+      const localToken = localStorage.getItem('pictura_session')
+      const res = await fetch('/api/developers/profile', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          ...(localToken ? { Authorization: `Bearer ${localToken}` } : {}),
+        },
+      })
+
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to delete account')
+        return
+      }
+
+      toast.success('Account deleted successfully')
+      localStorage.removeItem('pictura_session')
+      localStorage.removeItem('pictura_developer')
+      localStorage.removeItem('pictura_pending_payment_url')
+      window.location.href = '/developers/login'
+    } catch {
+      toast.error('Failed to delete account')
+    } finally {
+      setDeletingAccount(false)
+      setShowDeleteAccountDialog(false)
     }
   }
 
@@ -367,7 +401,7 @@ export default function DeveloperDashboard() {
       <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-[#FFFCF8]/95 backdrop-blur-md border-b border-[#EADBCB]">
         <button 
           onClick={() => setSidebarOpen(true)} 
-          className="w-10 h-10 rounded-2xl border border-[#E8D7C6] bg-gradient-to-br from-[#FFF9F2] to-[#F7EBDD] hover:from-[#FDF1E3] hover:to-[#F3E3D3] flex items-center justify-center transition-all active:scale-95 text-[#7A573A]"
+          className="w-10 h-10 rounded-2xl border border-[#E5D2BE] bg-gradient-to-br from-[#FFF9F2] to-[#F5E8D9] hover:from-[#FDF1E3] hover:to-[#EFDCC7] shadow-sm hover:shadow flex items-center justify-center transition-all active:scale-95 text-[#7A573A]"
         >
           <Menu className="h-4 w-4" />
         </button>
@@ -1182,7 +1216,7 @@ export default function DeveloperDashboard() {
                       <h4 className="font-medium text-sm text-[#B55E3E]">Delete Account</h4>
                       <p className="text-xs text-muted-foreground">Permanently delete your account and all associated data</p>
                     </div>
-                    <Button variant="destructive" size="sm" className="text-xs shrink-0">Delete Account</Button>
+                    <Button variant="destructive" size="sm" className="text-xs shrink-0" onClick={() => setShowDeleteAccountDialog(true)}>Delete Account</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -1265,6 +1299,25 @@ export default function DeveloperDashboard() {
             <Button variant="destructive" onClick={handleDeleteKey} disabled={deletingKey}>
               {deletingKey ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Delete Key
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
+      <Dialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Account</DialogTitle>
+            <DialogDescription>
+              This will permanently disable your API keys, clear active sessions, and anonymize your developer profile. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteAccountDialog(false)} disabled={deletingAccount}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteAccount} disabled={deletingAccount}>
+              {deletingAccount ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Delete Account
             </Button>
           </DialogFooter>
         </DialogContent>

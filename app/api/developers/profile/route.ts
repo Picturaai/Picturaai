@@ -29,13 +29,20 @@ function getTokenFromRequest(req: NextRequest): string | null {
   return null
 }
 
+async function getAuthenticatedDeveloperId(req: NextRequest): Promise<string | null> {
+  const token = getTokenFromRequest(req)
+  if (!token) return null
+
+  const session = await verifySession(token)
+  if (!session) return null
+
+  return session.developerId
+}
+
 export async function PATCH(req: NextRequest) {
   try {
-    const token = getTokenFromRequest(req)
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const session = await verifySession(token)
-    if (!session) return NextResponse.json({ error: 'Session expired' }, { status: 401 })
+    const developerId = await getAuthenticatedDeveloperId(req)
+    if (!developerId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { name } = await req.json()
     if (!name || typeof name !== 'string' || !name.trim()) {
@@ -47,12 +54,42 @@ export async function PATCH(req: NextRequest) {
     await sql`
       UPDATE developers
       SET name = ${safeName}, full_name = ${safeName}
-      WHERE id = ${session.developerId}
+      WHERE id = ${developerId}
     `
 
     return NextResponse.json({ success: true, name: safeName })
   } catch (error) {
     console.error('Update profile error:', error)
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const developerId = await getAuthenticatedDeveloperId(req)
+    if (!developerId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const deletedEmail = `deleted+${developerId.slice(0, 8)}-${Date.now()}@pictura.local`
+
+    await sql`DELETE FROM developer_sessions WHERE developer_id = ${developerId}`
+    await sql`UPDATE api_keys SET is_active = false WHERE developer_id = ${developerId}`
+    await sql`
+      UPDATE developers
+      SET
+        name = 'Deleted User',
+        full_name = 'Deleted User',
+        email = ${deletedEmail},
+        credits = 0,
+        credits_balance = 0,
+        tier = 'free'
+      WHERE id = ${developerId}
+    `
+
+    const response = NextResponse.json({ success: true })
+    response.cookies.delete('pictura_session')
+    return response
+  } catch (error) {
+    console.error('Delete profile error:', error)
+    return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
   }
 }
