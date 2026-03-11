@@ -5,6 +5,56 @@ import { getOrCreateSessionId } from '@/lib/session'
 
 console.log('[TextToImage] Module loaded')
 
+async function pollAlibabaTask(apiKey: string, taskId: string): Promise<string> {
+  for (let i = 0; i < 30; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    const response = await fetch(`https://dashscope-intl.aliyuncs.com/api/v1/tasks/${taskId}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    })
+    if (!response.ok) continue
+    const data = await response.json()
+    const output = data.output || {}
+    const url = output.results?.[0]?.url || output.images?.[0]?.url || output.image_url || output.url
+    if (url) return url
+    if (output.task_status === 'FAILED' || output.task_status === 'CANCELED') {
+      throw new Error('Alibaba task failed')
+    }
+  }
+  throw new Error('Alibaba task timeout')
+}
+
+async function generateWithQwen(prompt: string): Promise<string> {
+  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY
+  if (!apiKey) throw new Error('Alibaba API key not configured')
+
+  const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'X-DashScope-Async': 'enable',
+    },
+    body: JSON.stringify({
+      model: 'wanx2.1-t2i-turbo',
+      input: { prompt: prompt.trim() },
+      parameters: { size: '1024*1024' },
+    }),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    throw new Error(`Qwen image generation failed: ${response.status} ${errorText}`)
+  }
+
+  const data = await response.json()
+  const taskId = data.output?.task_id
+  if (taskId) return pollAlibabaTask(apiKey, taskId)
+  const directUrl = data.output?.results?.[0]?.url || data.output?.url
+  if (directUrl) return directUrl
+
+  throw new Error('No image URL from Qwen')
+}
+
 // Provider-specific generation functions
 async function generateWithZyLabs(prompt: string): Promise<string> {
   const apiKey = process.env.ZYLABS_API_KEY
@@ -424,23 +474,26 @@ export async function POST(request: Request) {
     // Pictura 1.0 uses free/fast providers first
     // All 10 providers are tried in order - just add the API key to enable
     let imageUrl: string
-    const providers = model === 'pi-1.5-turbo' 
+    const providers = model === 'pi-1.5-turbo'
       ? [
-          generateWithMistral,     // Mistral AI (primary for 1.5)
-          generateWithStability,   // Stability AI SD3
-          generateWithOpenAI,      // OpenAI DALL-E 3
-          generateWithBFL,         // Black Forest Labs Flux Pro
-          generateWithReplicate,   // Replicate
-          generateWithLeonardo,    // Leonardo AI
-          generateWithFal,         // Fal AI
-          generateWithTogether,    // Together AI
-          generateWithFireworks,   // Fireworks AI
-          generateWithDeepInfra,   // DeepInfra
-          generateWithHuggingFace, // HuggingFace
-          generateWithZyLabs,      // ZyLabs
+          generateWithQwen,
+          generateWithMistral,
+          generateWithStability,
+          generateWithOpenAI,
+          generateWithBFL,
+          generateWithReplicate,
+          generateWithLeonardo,
+          generateWithFal,
+          generateWithTogether,
+          generateWithFireworks,
+          generateWithDeepInfra,
+          generateWithHuggingFace,
+          generateWithZyLabs,
         ]
       : [
+
           generateWithZyLabs,      // ZyLabs (fast, free tier)
+          generateWithQwen,        // Alibaba Qwen fallback
           generateWithTogether,    // Together AI (free tier)
           generateWithDeepInfra,   // DeepInfra
           generateWithHuggingFace, // HuggingFace

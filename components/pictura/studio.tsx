@@ -8,7 +8,7 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw, Pencil,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -17,7 +17,7 @@ import { AIImageEditor } from './ai-image-editor'
 import { playSuccessSound, playLimitSound } from '@/lib/sounds'
 import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
 
-type Mode = 'text' | 'image'
+type Mode = 'text' | 'image' | 'video'
 type Feedback = 'up' | 'down' | null
 
 const TOUR_STEPS = [
@@ -76,6 +76,10 @@ function SendIcon({ className = '' }: { className?: string }) {
       <path d="M6 12h12M13 7l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
+}
+
+function VideoSendIcon({ className = '' }: { className?: string }) {
+  return <Clapperboard className={className} />
 }
 
 /* ---- Tour Overlay: highlights real elements with positioned tooltip ---- */
@@ -276,12 +280,20 @@ const IMG2IMG_EXAMPLES = [
   'Add snow and winter atmosphere',
 ]
 
+const VIDEO_EXAMPLES = [
+  'A cinematic drone shot of Lagos skyline at sunset, 6 seconds',
+  'A claymation fox running through a snowy forest, 5 seconds',
+  'Product showcase turntable animation of a sneaker, studio lighting',
+  'Aerial view of neon cyberpunk city with rain, 8 seconds',
+]
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
   const [images, setImages] = useState<GeneratedImage[]>([])
   const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 5, remaining: 5, used: 0, resetAt: '' })
+  const [videoRateLimit, setVideoRateLimit] = useState<RateLimitInfo>({ limit: 3, remaining: 3, used: 0, resetAt: '' })
   const [lightbox, setLightbox] = useState<GeneratedImage | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadPreview, setUploadPreview] = useState<string | null>(null)
@@ -298,6 +310,7 @@ export function Studio() {
   const [downloadImage, setDownloadImage] = useState<GeneratedImage | null>(null)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorImage, setEditorImage] = useState<string | null>(null)
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
@@ -305,7 +318,7 @@ export function Studio() {
   // Rotate prompt suggestions every 4s when input is empty
   useEffect(() => {
     if (prompt) return
-    const examples = mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES
+    const examples = mode === 'text' ? PROMPT_EXAMPLES : mode === 'image' ? IMG2IMG_EXAMPLES : VIDEO_EXAMPLES
     const interval = setInterval(() => {
       setPlaceholderIdx((prev) => (prev + 1) % examples.length)
     }, 4000)
@@ -350,6 +363,16 @@ export function Studio() {
     }
   }, [])
 
+  const fetchVideoRateLimit = useCallback(async () => {
+    try {
+      const res = await fetch('/api/rate-limit/video', { credentials: 'include' })
+      if (res.ok) {
+        const data = await res.json()
+        setVideoRateLimit(data)
+      }
+    } catch { /* silent */ }
+  }, [])
+
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
     try {
@@ -373,6 +396,7 @@ export function Studio() {
   useEffect(() => {
     setMounted(true)
     fetchRateLimit()
+    fetchVideoRateLimit()
     loadGallery()
     // Show tour on first visit only
     try {
@@ -380,7 +404,7 @@ export function Studio() {
         setTimeout(() => setTourStep(0), 600)
       }
     } catch { /* silent */ }
-  }, [fetchRateLimit, loadGallery])
+  }, [fetchRateLimit, fetchVideoRateLimit, loadGallery])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -410,7 +434,7 @@ export function Studio() {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
-    if (rateLimit.remaining <= 0) {
+    if ((mode === 'text' || mode === 'image') && rateLimit.remaining <= 0) {
       playLimitSound()
       setShowExhausted(true)
       return
@@ -430,14 +454,26 @@ export function Studio() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
         })
-      } else {
+      } else if (mode === 'image') {
         const formData = new FormData()
         formData.append('prompt', prompt.trim())
         if (uploadedFile) formData.append('image', uploadedFile)
+        formData.append('model', selectedModel)
         res = await fetch('/api/generate/image-to-image', { 
           method: 'POST', 
           credentials: 'include',
           body: formData 
+        })
+      } else {
+        if (videoRateLimit.remaining <= 0) {
+          toast.error('Daily video limit reached (3/day).')
+          return
+        }
+        res = await fetch('/api/generate/video', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
         })
       }
 
@@ -452,25 +488,33 @@ export function Studio() {
         return
       }
 
-      setImages((prev) => [data, ...prev])
-      if (data.rateLimitInfo) {
-        console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
-        setRateLimit(data.rateLimitInfo)
+      if (mode === 'video') {
+        setGeneratedVideoUrl(data.url)
+        if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
+        toast.success('Video generated!')
+      } else {
+        setImages((prev) => [data, ...prev])
+        if (data.rateLimitInfo) {
+          console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
+          setRateLimit(data.rateLimitInfo)
+        }
+        playSuccessSound()
+        toast.success('Image generated!')
       }
       setPrompt('')
-      playSuccessSound()
-      toast.success('Image generated!')
 
-      // Persist to gallery
-      fetch('/api/gallery', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).catch(() => { /* silent */ })
-      setTimeout(() => galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+      if (mode !== 'video') {
+        // Persist to gallery
+        fetch('/api/gallery', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        }).catch(() => { /* silent */ })
+        setTimeout(() => galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+      }
 
       // Check if this was the last generation
-      const updatedRemaining = data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1
+      const updatedRemaining = mode === 'video' ? (data.rateLimitInfo?.remaining ?? videoRateLimit.remaining - 1) : (data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1)
       if (updatedRemaining <= 0) {
         setTimeout(() => {
           playLimitSound()
@@ -548,7 +592,7 @@ export function Studio() {
               className="flex items-center gap-1 rounded-lg border border-border/40 bg-card px-2 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:bg-secondary/60 sm:gap-1.5 sm:px-2.5"
             >
               <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-              <span className="truncate max-w-[60px] sm:max-w-none">{selectedModel}</span>
+              <span className="truncate max-w-[60px] sm:max-w-none">{mode === 'video' ? 'picturagen-beta' : selectedModel}</span>
               <ChevronDown className={`h-3 w-3 flex-shrink-0 text-muted-foreground transition-transform ${modelOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -592,6 +636,22 @@ export function Studio() {
                       {selectedModel === model.id && <Check className="h-3.5 w-3.5 flex-shrink-0 text-primary" />}
                     </button>
                   ))}
+
+                  <div className="border-t border-border/30 px-3 py-2.5">
+                    <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-2.5 py-2">
+                      <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <PicturaIcon size={14} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-medium text-foreground">PicturaGen</span>
+                          <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">Beta</span>
+                        </div>
+                        <p className="mt-0.5 text-[10px] text-muted-foreground">Our AI video model for cinematic Text to Video generation.</p>
+                      </div>
+                      {mode === 'video' && <Check className="h-3.5 w-3.5 flex-shrink-0 text-primary" />}
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -742,8 +802,12 @@ export function Studio() {
                         <PicturaIcon size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
-<p className="text-sm font-semibold text-foreground">{mode === 'image' ? 'Transforming image...' : 'Generating image...'}</p>
-  <p className="mt-0.5 truncate text-xs text-muted-foreground">{prompt || (mode === 'image' ? 'Transforming your image' : 'Processing your request')}</p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {mode === 'video' ? 'Generating your video...' : mode === 'image' ? 'Transforming image...' : 'Generating image...'}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {prompt || (mode === 'video' ? 'Your video is being generated' : mode === 'image' ? 'Transforming your image' : 'Processing your request')}
+                        </p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
                             className="h-full rounded-full bg-primary"
@@ -921,7 +985,7 @@ export function Studio() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={mode === 'text' ? 'Describe the image you want to create...' : 'Describe how to transform this image...'}
+              placeholder={mode === 'text' ? 'Describe the image you want to create...' : mode === 'image' ? 'Describe how to transform this image...' : 'Describe the video you want to create...'}
               rows={1}
               disabled={loading}
               className="flex-1 resize-none bg-transparent py-2 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 disabled:opacity-50"
@@ -929,14 +993,14 @@ export function Studio() {
 
             <button
               onClick={handleGenerate}
-              disabled={loading || !prompt.trim() || rateLimit.remaining <= 0}
+              disabled={loading || !prompt.trim() || (mode === 'video' ? videoRateLimit.remaining <= 0 : rateLimit.remaining <= 0)}
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
-              aria-label="Generate image"
+              aria-label={mode === 'video' ? 'Generate video' : 'Generate image'}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <SendIcon className="h-4 w-4" />
+                mode === 'video' ? <VideoSendIcon className="h-4 w-4" /> : <SendIcon className="h-4 w-4" />
               )}
             </button>
           </div>
@@ -952,7 +1016,7 @@ export function Studio() {
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.25 }}
                 onClick={() => {
-                  const examples = mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES
+                  const examples = mode === 'text' ? PROMPT_EXAMPLES : mode === 'image' ? IMG2IMG_EXAMPLES : VIDEO_EXAMPLES
                   setPrompt(examples[placeholderIdx % examples.length])
                   textareaRef.current?.focus()
                 }}
@@ -960,7 +1024,7 @@ export function Studio() {
               >
                 <RefreshCw className="h-3 w-3 flex-shrink-0 text-muted-foreground/50" />
                 <span className="truncate text-[11px] text-muted-foreground/70">
-                  {(mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES)[placeholderIdx % (mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES).length]}
+                  {(mode === 'text' ? PROMPT_EXAMPLES : mode === 'image' ? IMG2IMG_EXAMPLES : VIDEO_EXAMPLES)[placeholderIdx % (mode === 'text' ? PROMPT_EXAMPLES : mode === 'image' ? IMG2IMG_EXAMPLES : VIDEO_EXAMPLES).length]}
                 </span>
               </motion.button>
             </AnimatePresence>
@@ -1004,26 +1068,46 @@ export function Studio() {
               >
                 Image to Image
               </button>
+              <button
+                onClick={() => { setMode('video'); handleFileChange(null) }}
+                className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
+                  mode === 'video'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Text to Video
+              </button>
             </div>
 
             <div className="flex items-center gap-3">
-              {rateLimit.remaining <= 2 && rateLimit.remaining > 0 && (
+              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 2 && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) > 0 && (
                 <span className="text-[11px] font-medium text-accent-foreground">
-                  {rateLimit.remaining} left today
+                  {mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining} left today
                 </span>
               )}
-              {rateLimit.remaining <= 0 && (
+              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 0 && (
                 <span className="text-[11px] font-medium text-destructive">
                   Limit reached
                 </span>
               )}
               <span className="text-[10px] text-muted-foreground/40 font-mono">
-                {selectedModel} &middot; 1024
+                {mode === 'video' ? `${selectedModel} · video` : `${selectedModel} · 1024`}
               </span>
             </div>
           </div>
         </div>
       </div>
+
+      {generatedVideoUrl && mode === 'video' && (
+        <div className="mx-3 mt-2 rounded-2xl border border-border/40 bg-card p-3 sm:mx-4 md:mx-6">
+          <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <Clapperboard className="h-3.5 w-3.5" />
+            Latest generated video
+          </div>
+          <video src={generatedVideoUrl} controls className="w-full rounded-xl" />
+        </div>
+      )}
 
       {/* Walkthrough Tour - highlights real elements */}
       <AnimatePresence>
