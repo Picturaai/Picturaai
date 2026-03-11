@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
 import { DownloadModal } from './download-modal'
+import { VideoDownloadModal } from './video-download-modal'
 import { AIImageEditor } from './ai-image-editor'
 import { playSuccessSound, playLimitSound } from '@/lib/sounds'
 import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
@@ -56,6 +57,11 @@ const TOUR_STEPS = [
     title: 'Try Prompt Ideas',
     description: 'Stuck? Tap any suggestion to use it as your prompt. Great for inspiration!',
     target: 'suggestions',
+  },
+  {
+    title: 'Video Result Area',
+    description: 'When you use Text to Video, your generated video appears here in the same result feed.',
+    target: 'video-result',
   },
   {
     title: 'Your Gallery',
@@ -327,9 +333,11 @@ export function Studio() {
   const [improving, setImproving] = useState(false)
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
   const [downloadImage, setDownloadImage] = useState<GeneratedImage | null>(null)
+  const [videoDownloadModalOpen, setVideoDownloadModalOpen] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorImage, setEditorImage] = useState<string | null>(null)
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
+  const [generatedVideoPrompt, setGeneratedVideoPrompt] = useState('')
   const [videoLoadingHintIndex, setVideoLoadingHintIndex] = useState(0)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -519,6 +527,7 @@ export function Studio() {
 
       if (mode === 'video') {
         setGeneratedVideoUrl(data.url)
+        setGeneratedVideoPrompt(prompt.trim())
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
         toast.success('Video generated!')
       } else {
@@ -587,6 +596,7 @@ export function Studio() {
   }
 
   const currentLimitInfo = mode === 'video' ? videoRateLimit : rateLimit
+  const hasResults = mode === 'video' ? Boolean(generatedVideoUrl) : images.length > 0
   const creditsUsed = currentLimitInfo.used
   const creditsTotal = currentLimitInfo.limit
   const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
@@ -723,7 +733,7 @@ export function Studio() {
 
       {/* Main content area */}
       <div ref={galleryRef} data-tour="gallery" className="flex-1 overflow-y-auto">
-        {loading && images.length === 0 ? (
+        {loading && !hasResults ? (
           /* First-time loading state - orbital rings */
           <div className="flex h-full flex-col items-center justify-center px-6">
             <motion.div
@@ -763,7 +773,7 @@ export function Studio() {
               </div>
             </motion.div>
           </div>
-        ) : images.length === 0 && !loading ? (
+        ) : !hasResults && !loading ? (
           /* Empty state */
           <div className="flex h-full flex-col items-center justify-center px-6 text-center">
             <motion.div
@@ -796,7 +806,7 @@ export function Studio() {
           </div>
         ) : (
           /* Gallery */
-          <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+          <div className="mx-auto max-w-6xl px-4 py-6 md:px-6" data-tour="video-result">
             {/* Loading card at top when generating */}
             <AnimatePresence>
               {loading && (
@@ -837,6 +847,37 @@ export function Studio() {
               )}
             </AnimatePresence>
 
+            {mode === 'video' && generatedVideoUrl ? (
+              <motion.div
+                data-tour="video-result"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="overflow-hidden rounded-2xl border border-border/30 bg-card"
+              >
+                <div className="aspect-video bg-muted/30">
+                  <video src={generatedVideoUrl} controls className="h-full w-full" />
+                </div>
+                <div className="px-4 pb-4 pt-3">
+                  <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground">{generatedVideoPrompt || 'Latest generated video'}</p>
+                  <div className="mt-2.5 flex items-center gap-1.5">
+                    <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      Text to Video
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground/50">picturagen</span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-end border-t border-border/30 pt-3">
+                    <button
+                      onClick={() => setVideoDownloadModalOpen(true)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/40 transition-all hover:bg-secondary hover:text-foreground"
+                      aria-label="Download video"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {images.map((img, i) => {
                 const fb = feedbackMap[img.url] ?? null
@@ -936,6 +977,7 @@ export function Studio() {
                 )
               })}
             </div>
+            )}
           </div>
         )}
       </div>
@@ -1112,17 +1154,6 @@ export function Studio() {
           </div>
         </div>
       </div>
-
-      {generatedVideoUrl && mode === 'video' && (
-        <div className="mx-3 mt-2 rounded-2xl border border-border/40 bg-card p-3 sm:mx-4 md:mx-6">
-          <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <Clapperboard className="h-3.5 w-3.5" />
-            Latest generated video
-          </div>
-          <video src={generatedVideoUrl} controls className="w-full rounded-xl" />
-        </div>
-      )}
-
       {/* Walkthrough Tour - highlights real elements */}
       <AnimatePresence>
         {tourStep >= 0 && tourStep < TOUR_STEPS.length && (
@@ -1404,6 +1435,15 @@ export function Studio() {
           onOpenChange={setDownloadModalOpen}
           imageUrl={downloadImage.url}
           imageName={`pictura-${Date.now()}`}
+        />
+      )}
+
+      {/* Video download modal */}
+      {generatedVideoUrl && (
+        <VideoDownloadModal
+          open={videoDownloadModalOpen}
+          onOpenChange={setVideoDownloadModalOpen}
+          videoUrl={generatedVideoUrl}
         />
       )}
 
