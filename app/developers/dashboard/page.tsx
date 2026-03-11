@@ -643,23 +643,25 @@ export default function DeveloperDashboard() {
           {/* API Keys Tab */}
           {activeTab === 'api-keys' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h1 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
-                    API Keys
-                    <Badge variant="secondary" className="text-[10px]">Beta</Badge>
-                  </h1>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Manage your API keys for Pictura API access.
-                  </p>
+              <div className="rounded-2xl border border-[#E8D8C8] bg-gradient-to-r from-[#FFF8EF] via-[#FFFDF9] to-[#FFF7EC] p-4 sm:p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2 text-[#3F2B1D]">
+                      API Keys
+                      <Badge className="text-[10px] bg-[#FFE9D2] text-[#8F5829] border border-[#E3BE95]">Beta</Badge>
+                    </h1>
+                    <p className="text-xs sm:text-sm text-[#7C624B] mt-1">
+                      Manage your API keys for Pictura API access.
+                    </p>
+                  </div>
+                  <Button onClick={() => { setShowCreateKey(true); setNewKeyName(''); setNewlyCreatedKey(null) }} className={`${primaryButtonClass} text-sm h-10 px-5 rounded-xl`}>
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    New Key
+                  </Button>
                 </div>
-                <Button onClick={() => { setShowCreateKey(true); setNewKeyName(''); setNewlyCreatedKey(null) }} className={`${primaryButtonClass} text-sm h-9`}>
-                  <Plus className="h-4 w-4 mr-1.5" />
-                  New Key
-                </Button>
               </div>
 
-              <Card className={panelCardClass}>
+              <Card className={`${panelCardClass} overflow-hidden`}>
                 <CardContent className="p-0">
                   {developer.apiKeys.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 px-4 border-2 border-dashed border-muted rounded-lg m-4">
@@ -675,23 +677,23 @@ export default function DeveloperDashboard() {
                   ) : (
                     <div className="divide-y">
                       {developer.apiKeys.map((key) => (
-                        <div key={key.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 hover:bg-muted/50 transition-colors gap-2 sm:gap-4">
+                        <div key={key.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 hover:bg-[#FBF2E9] transition-colors gap-2 sm:gap-4 border-b border-[#F0E3D5] last:border-b-0">
                           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 ${key.isActive ? 'bg-[#C87941]/10' : 'bg-muted'}`}>
-                              <Key className={`h-4 w-4 sm:h-5 sm:w-5 ${key.isActive ? 'text-[#C87941]' : 'text-muted-foreground'}`} />
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 ${key.isActive ? 'bg-[#F8E9D9]' : 'bg-[#F3EFE9]'}`}>
+                              <Key className={`h-4 w-4 sm:h-5 sm:w-5 ${key.isActive ? 'text-[#A76635]' : 'text-[#9B8B79]'}`} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="font-medium text-sm sm:text-base truncate">{key.name}</p>
                                 {!key.isActive && <Badge variant="secondary" className="text-[10px] sm:text-xs">Inactive</Badge>}
                               </div>
-                              <code className="text-xs sm:text-sm text-muted-foreground font-mono block truncate">
+                              <code className="text-xs sm:text-sm text-[#7C6A58] font-mono block truncate">
                                 {showSecretFor === key.id && key.secret_key ? key.secret_key : key.keyPreview}
                               </code>
                             </div>
                           </div>
                           <div className="flex items-center justify-between sm:justify-end gap-2 pl-11 sm:pl-0">
-                            <p className="text-[10px] sm:text-xs text-muted-foreground">
+                            <p className="text-[10px] sm:text-xs text-[#8A7461]">
                               {key.requestsCount.toLocaleString()} requests
                             </p>
                             <div className="flex items-center gap-1">
@@ -700,7 +702,7 @@ export default function DeveloperDashboard() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setShowSecretFor(showSecretFor === key.id ? null : key.id)}
-                                className="text-muted-foreground h-8 w-8 p-0"
+                                className="text-[#8A7461] hover:text-[#A76635] hover:bg-[#F7EBDD] h-8 w-8 p-0 rounded-lg"
                                 title={showSecretFor === key.id ? 'Hide key' : 'Reveal key'}
                               >
                                 {showSecretFor === key.id ? (
@@ -713,7 +715,7 @@ export default function DeveloperDashboard() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => copyToClipboard(key.secret_key || key.keyPreview)}
-                                className="text-muted-foreground h-8 w-8 p-0"
+                                className="text-[#8A7461] hover:text-[#A76635] hover:bg-[#F7EBDD] h-8 w-8 p-0 rounded-lg"
                               >
                                 <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                               </Button>
@@ -734,12 +736,21 @@ export default function DeveloperDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="border border-[#EDCCA9] bg-[#FFF5EA]">
-                <CardContent className="flex items-start gap-3 p-4">
-                  <Shield className="h-5 w-5 text-[#A65D2E] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-[#7C4D26]">Keep your API keys secure</p>
-                    <p className="text-sm text-[#9A673C]">Never share your API keys in public repositories or client-side code.</p>
+              <Card className="border border-[#E5C7A7] bg-gradient-to-br from-[#FFF7EC] to-[#FFF2E3] rounded-2xl overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex items-start gap-3 sm:gap-4 p-4 sm:p-5 border-b border-[#F1DDC8] bg-[#FFF9F1]">
+                    <div className="w-10 h-10 rounded-xl bg-[#F8E4CE] flex items-center justify-center shrink-0">
+                      <Shield className="h-5 w-5 text-[#A65D2E]" />
+                    </div>
+                    <div>
+                      <p className="text-base font-semibold text-[#704826]">Keep your API keys secure</p>
+                      <p className="text-sm text-[#8E6442]">Treat your API key like a password. Rotate keys regularly and keep them private.</p>
+                    </div>
+                  </div>
+                  <div className="px-4 sm:px-5 py-3 sm:py-4 grid gap-2 text-sm text-[#825D3D]">
+                    <p>• Never expose keys in frontend code or public repositories.</p>
+                    <p>• Use separate keys for production and staging environments.</p>
+                    <p>• Delete compromised keys immediately and issue a new one.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -761,7 +772,7 @@ export default function DeveloperDashboard() {
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
                     <div className="text-lg sm:text-2xl font-bold">{developer.usage.thisMonth.toLocaleString()}</div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">requests</p>
+                    <p className="text-[10px] sm:text-xs text-[#8A7461]">requests</p>
                   </CardContent>
                 </Card>
 
@@ -771,7 +782,7 @@ export default function DeveloperDashboard() {
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
                     <div className="text-lg sm:text-2xl font-bold">{developer.usage.lastMonth.toLocaleString()}</div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">requests</p>
+                    <p className="text-[10px] sm:text-xs text-[#8A7461]">requests</p>
                   </CardContent>
                 </Card>
 
@@ -781,7 +792,7 @@ export default function DeveloperDashboard() {
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
                     <div className="text-lg sm:text-2xl font-bold">{developer.usage.totalRequests.toLocaleString()}</div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">requests</p>
+                    <p className="text-[10px] sm:text-xs text-[#8A7461]">requests</p>
                   </CardContent>
                 </Card>
               </div>
@@ -908,13 +919,13 @@ export default function DeveloperDashboard() {
                         <div key={tx.id} className="flex items-center justify-between py-2.5 sm:py-3">
                           <div className="min-w-0 flex-1">
                             <p className="text-xs sm:text-sm font-medium truncate">{tx.description}</p>
-                            <p className="text-[10px] sm:text-xs text-muted-foreground">{formatDate(tx.createdAt)}</p>
+                            <p className="text-[10px] sm:text-xs text-[#8A7461]">{formatDate(tx.createdAt)}</p>
                           </div>
                           <div className="text-right shrink-0 ml-3">
                             <div className={`text-xs sm:text-sm font-medium ${tx.amount > 0 ? 'text-[#C87941]' : 'text-muted-foreground'}`}>
                               {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
                             </div>
-                            <p className="text-[10px] sm:text-xs text-muted-foreground">Bal: {formatCurrency(tx.balanceAfter)}</p>
+                            <p className="text-[10px] sm:text-xs text-[#8A7461]">Bal: {formatCurrency(tx.balanceAfter)}</p>
                           </div>
                         </div>
                       ))}
