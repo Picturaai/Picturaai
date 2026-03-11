@@ -103,7 +103,7 @@ export default function DeveloperDashboard() {
   const router = useRouter()
   const [developer, setDeveloper] = useState<Developer | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'api-keys' | 'usage' | 'billing' | 'settings'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'api-keys' | 'usage' | 'billing' | 'settings' | 'playground'>('overview')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
   // API Key creation
@@ -279,6 +279,9 @@ export default function DeveloperDashboard() {
     })
   }
 
+  const profileInitial = (developer?.name || developer?.email || 'D').charAt(0).toUpperCase()
+  const avgDailyUsage = developer ? Math.max(1, Math.round(developer.usage.thisMonth / Math.max(new Date().getDate(), 1))) : 0
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
@@ -292,13 +295,19 @@ export default function DeveloperDashboard() {
 
   if (!developer) return null
 
-  const navItems = [
+  const navItems: Array<{
+    id: 'overview' | 'api-keys' | 'usage' | 'billing' | 'settings' | 'playground'
+    label: string
+    icon: typeof BarChart3
+    comingSoon?: boolean
+  }> = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'api-keys', label: 'API Keys', icon: Key },
     { id: 'usage', label: 'Usage', icon: Activity },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: Settings },
-  ] as const
+    { id: 'playground', label: 'Playground', icon: Sparkles, comingSoon: true },
+  ]
 
   const panelCardClass = 'border border-[#E8D8C8] bg-[#FFFCF8] rounded-2xl'
   const metricCardClass = 'border border-[#EEDFCC] bg-gradient-to-b from-[#FFFDF9] to-[#F9F1E8] rounded-2xl'
@@ -352,18 +361,27 @@ export default function DeveloperDashboard() {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => { setActiveTab(item.id); setSidebarOpen(false) }}
+                onClick={() => {
+                  if (item.comingSoon) {
+                    toast.info('Playground is coming soon')
+                    return
+                  }
+                  setActiveTab(item.id)
+                  setSidebarOpen(false)
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                   activeTab === item.id
                     ? 'bg-gradient-to-r from-[#C87941] to-[#B96A34] text-white font-medium border border-[#B96A34]'
                     : 'text-[#7A5B42] hover:bg-[#F5E9DC] active:scale-[0.98]'
-                }`}
+                } ${item.comingSoon ? 'opacity-75' : ''}`}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
-                {activeTab === item.id && (
+                {item.comingSoon ? (
+                  <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-[#F8E4CE] text-[#9A6334] border border-[#E5C7A7]">Soon</span>
+                ) : activeTab === item.id ? (
                   <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
-                )}
+                ) : null}
               </button>
             ))}
           </nav>
@@ -416,15 +434,22 @@ export default function DeveloperDashboard() {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  if (item.comingSoon) {
+                    toast.info('Playground is coming soon')
+                    return
+                  }
+                  setActiveTab(item.id)
+                }}
                 className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm transition-all ${
                   activeTab === item.id
                     ? 'bg-gradient-to-r from-[#C87941] to-[#B66933] text-white font-medium border border-[#B96A34]'
                     : 'text-[#6F5239] hover:bg-[#F0E2D3]'
-                }`}
+                } ${item.comingSoon ? 'opacity-80' : ''}`}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
+                {item.comingSoon && <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full bg-[#F8E4CE] text-[#9A6334] border border-[#E5C7A7]">Soon</span>}
               </button>
             ))}
           </nav>
@@ -765,13 +790,13 @@ export default function DeveloperDashboard() {
                 <p className="text-xs sm:text-sm text-muted-foreground">Monitor your API usage and requests</p>
               </div>
 
-              <div className="grid gap-3 sm:gap-4 grid-cols-3">
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <Card className={metricCardClass}>
                   <CardHeader className="pb-1.5 pt-3 px-3 sm:px-4">
                     <CardDescription className="text-xs">This Month</CardDescription>
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
-                    <div className="text-lg sm:text-2xl font-bold">{developer.usage.thisMonth.toLocaleString()}</div>
+                    <div className="text-xl sm:text-2xl font-bold">{developer.usage.thisMonth.toLocaleString()}</div>
                     <p className="text-[10px] sm:text-xs text-[#8A7461]">requests</p>
                   </CardContent>
                 </Card>
@@ -781,7 +806,7 @@ export default function DeveloperDashboard() {
                     <CardDescription className="text-xs">Last Month</CardDescription>
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
-                    <div className="text-lg sm:text-2xl font-bold">{developer.usage.lastMonth.toLocaleString()}</div>
+                    <div className="text-xl sm:text-2xl font-bold">{developer.usage.lastMonth.toLocaleString()}</div>
                     <p className="text-[10px] sm:text-xs text-[#8A7461]">requests</p>
                   </CardContent>
                 </Card>
@@ -791,8 +816,18 @@ export default function DeveloperDashboard() {
                     <CardDescription className="text-xs">All Time</CardDescription>
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
-                    <div className="text-lg sm:text-2xl font-bold">{developer.usage.totalRequests.toLocaleString()}</div>
+                    <div className="text-xl sm:text-2xl font-bold">{developer.usage.totalRequests.toLocaleString()}</div>
                     <p className="text-[10px] sm:text-xs text-[#8A7461]">requests</p>
+                  </CardContent>
+                </Card>
+
+                <Card className={metricCardClass}>
+                  <CardHeader className="pb-1.5 pt-3 px-3 sm:px-4">
+                    <CardDescription className="text-xs">Avg / Day</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-3 px-3 sm:px-4">
+                    <div className="text-xl sm:text-2xl font-bold">{avgDailyUsage.toLocaleString()}</div>
+                    <p className="text-[10px] sm:text-xs text-[#8A7461]">requests/day</p>
                   </CardContent>
                 </Card>
               </div>
@@ -936,6 +971,20 @@ export default function DeveloperDashboard() {
             </div>
           )}
 
+          {/* Playground Tab */}
+          {activeTab === 'playground' && (
+            <div className="space-y-6">
+              <Card className="border border-[#E8D8C8] bg-gradient-to-br from-[#FFF8EF] to-[#FFFDF9] rounded-2xl">
+                <CardContent className="p-8 text-center">
+                  <Sparkles className="h-10 w-10 mx-auto text-[#C87941] mb-3" />
+                  <h2 className="text-xl font-semibold text-[#4A321F]">Playground is coming soon</h2>
+                  <p className="text-sm text-[#7A614B] mt-2 max-w-md mx-auto">We’re building an interactive playground to test prompts, inspect responses, and experiment faster.</p>
+                  <Badge className="mt-4 bg-[#F8E4CE] text-[#8F5829] border border-[#E3BE95]">Coming Soon</Badge>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Settings Tab */}
           {activeTab === 'settings' && (
             <div className="space-y-4 sm:space-y-6">
@@ -960,8 +1009,13 @@ export default function DeveloperDashboard() {
                 </div>
                 <CardContent className="relative pt-0">
                   <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10 sm:-mt-12">
-                    <div className="ring-4 ring-background rounded-full">
-                      <PatternAvatar name={developer.name || 'Developer'} email={developer.email} size="xl" />
+                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full ring-4 ring-background overflow-hidden">
+                      <div className="absolute inset-0 bg-[conic-gradient(from_220deg,#7c3aed,#4f46e5,#06b6d4,#7c3aed)] animate-[spin_9s_linear_infinite]" />
+                      <div className="absolute inset-[3px] rounded-full bg-[radial-gradient(circle_at_30%_30%,#8b5cf6,#4338ca_58%,#1f1b4d)]" />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,.35),transparent_45%)]" />
+                      <div className="absolute inset-0 flex items-center justify-center text-white text-4xl font-semibold tracking-tight">
+                        {profileInitial}
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0 pb-1">
                       <h3 className="font-semibold text-base sm:text-lg truncate">{developer.name}</h3>
