@@ -49,6 +49,7 @@ import {
   DollarSign,
   Gift,
   Sparkles,
+  Rocket,
   Zap,
   Crown,
   Eye,
@@ -306,7 +307,7 @@ export default function DeveloperDashboard() {
     { id: 'usage', label: 'Usage', icon: Activity },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'playground', label: 'Playground', icon: Sparkles, comingSoon: true },
+    { id: 'playground', label: 'Playground', icon: Rocket, comingSoon: true },
   ]
 
   const panelCardClass = 'border border-[#E8D8C8] bg-[#FFFCF8] rounded-2xl'
@@ -1010,8 +1011,8 @@ export default function DeveloperDashboard() {
                 <CardContent className="relative pt-0">
                   <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10 sm:-mt-12">
                     <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full ring-4 ring-background overflow-hidden">
-                      <div className="absolute inset-0 bg-[conic-gradient(from_220deg,#7c3aed,#4f46e5,#06b6d4,#7c3aed)] animate-[spin_9s_linear_infinite]" />
-                      <div className="absolute inset-[3px] rounded-full bg-[radial-gradient(circle_at_30%_30%,#8b5cf6,#4338ca_58%,#1f1b4d)]" />
+                      <div className="absolute inset-0 bg-[conic-gradient(from_220deg,#C87941,#B56732,#8B4D26,#C87941)] animate-[spin_9s_linear_infinite]" />
+                      <div className="absolute inset-[3px] rounded-full bg-[radial-gradient(circle_at_30%_30%,#D4935F,#B66A34_58%,#7A3E1D)]" />
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,.35),transparent_45%)]" />
                       <div className="absolute inset-0 flex items-center justify-center text-white text-4xl font-semibold tracking-tight">
                         {profileInitial}
