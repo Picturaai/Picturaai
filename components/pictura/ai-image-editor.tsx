@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, Wand2, Loader2, Undo2, Redo2, Download,
@@ -227,13 +226,15 @@ export function AIImageEditor({ imageUrl, onClose, onSave }: AIImageEditorProps)
         {/* Main Canvas */}
         <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto bg-muted/30">
           <div className="relative transition-transform duration-200" style={{ transform: `scale(${zoom})` }}>
-            <Image
+            <img
               src={currentImage}
               alt="Editing"
-              width={800}
-              height={800}
               className="max-w-full max-h-[50vh] sm:max-h-[60vh] object-contain rounded-xl shadow-xl"
-              priority
+              loading="eager"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+                toast.error('Could not render this image in editor.')
+              }}
             />
             {isProcessing && (
               <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl">
@@ -266,7 +267,7 @@ export function AIImageEditor({ imageUrl, onClose, onSave }: AIImageEditorProps)
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
-                          <Image src={item.url} alt="" width={32} height={32} className="w-full h-full object-cover" />
+                          <img src={item.url} alt="History item" className="h-full w-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{item.instruction}</p>

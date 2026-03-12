@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, Loader2, CheckCircle, X, FileImage, FileCode, Sparkles } from 'lucide-react'
 import { FORMAT_OPTIONS, convertImageFormat, downloadFile, formatFileSize } from '@/lib/image-formats'
@@ -97,12 +96,12 @@ export function DownloadModal({
               <div className="flex items-start gap-4">
                 {/* Small Preview */}
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-muted flex-shrink-0 shadow-md">
-                  <Image
+                  <img
                     src={imageUrl}
                     alt="Preview"
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
