@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
+import { appendMediaToGallery } from '@/lib/gallery'
 
 async function pollQwenTask(apiKey: string, taskId: string): Promise<string | null> {
   for (let i = 0; i < 30; i++) {
@@ -111,7 +112,11 @@ export async function POST(request: Request) {
     console.log('[v0] img2img sourceImageUrl:', sourceImageUrl)
     console.log('[v0] img2img prompt:', prompt.trim())
 
-    if (model === 'pi-1.5-turbo' || !apiKey) {
+    // pi-1.5-turbo: Alibaba first, then ZyLabs fallback
+    // pi-1.0: ZyLabs first, then Alibaba fallback
+    const shouldTryAlibabaFirst = model === 'pi-1.5-turbo' || !apiKey
+
+    if (shouldTryAlibabaFirst) {
       const qwenImage = await generateWithQwenEdit(prompt, sourceImageUrl)
       if (qwenImage) {
         const imageResponse = await fetch(qwenImage)
@@ -120,6 +125,15 @@ export async function POST(request: Request) {
           const timestamp = Date.now()
           const filename = `pictura/image-to-image/${timestamp}-qwen-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
           const blob = await uploadObject(filename, imageBuffer, 'image/png')
+          const createdAt = new Date().toISOString()
+          await appendMediaToGallery(sessionId, {
+            url: blob.url,
+            prompt: prompt.trim(),
+            type: 'image-to-image',
+            mediaKind: 'image',
+            sourceImageUrl,
+            createdAt,
+          })
           await incrementUsage(sessionId)
           const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
           return NextResponse.json({
@@ -128,7 +142,7 @@ export async function POST(request: Request) {
             model,
             type: 'image-to-image',
             sourceImageUrl,
-            createdAt: new Date().toISOString(),
+            createdAt,
             rateLimitInfo: updatedRateLimitInfo,
           })
         }
@@ -188,6 +202,13 @@ export async function POST(request: Request) {
       }
     }
 
+    if (!generatedImageUrl && !shouldTryAlibabaFirst) {
+      const qwenFallback = await generateWithQwenEdit(prompt, sourceImageUrl)
+      if (qwenFallback) {
+        generatedImageUrl = qwenFallback
+      }
+    }
+
     if (!generatedImageUrl) {
       const configHint = !apiKey && !hasAlibabaKey
         ? 'No provider key found. Add ZYLABS_API_KEY or ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
@@ -209,6 +230,16 @@ export async function POST(request: Request) {
     const filename = `pictura/image-to-image/${timestamp}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
     const blob = await uploadObject(filename, imageBuffer, 'image/png')
+    const createdAt = new Date().toISOString()
+
+    await appendMediaToGallery(sessionId, {
+      url: blob.url,
+      prompt: prompt.trim(),
+      type: 'image-to-image',
+      mediaKind: 'image',
+      sourceImageUrl,
+      createdAt,
+    })
 
     await incrementUsage(sessionId)
     const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
@@ -219,7 +250,7 @@ export async function POST(request: Request) {
       model,
       type: 'image-to-image',
       sourceImageUrl,
-      createdAt: new Date().toISOString(),
+      createdAt,
       rateLimitInfo: updatedRateLimitInfo,
     })
   } catch (error) {
