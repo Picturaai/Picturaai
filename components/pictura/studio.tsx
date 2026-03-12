@@ -651,21 +651,20 @@ export function Studio() {
 
   useEffect(() => {
     setMounted(true)
-    fetchRateLimit()
-    fetchVideoRateLimit()
-    loadGallery()
-
+    
+    // First, restore pending generation from localStorage (synchronous)
     if (typeof window !== 'undefined') {
       const rawPending = window.localStorage.getItem(PENDING_GENERATION_KEY)
       if (rawPending) {
         try {
           const parsed = JSON.parse(rawPending) as PendingGeneration
           if (parsed?.mode && parsed?.prompt && parsed?.startedAt) {
+            // Set pending generation first - this will trigger the polling effect
             setPendingGeneration(parsed)
             setLoading(true)
             setLoadingPrompt(parsed.prompt)
             setActiveGenerationMode(parsed.mode)
-            // Also set the mode and prompt to restore the state
+            // Also set the mode and prompt to restore the UI state
             setMode(parsed.mode)
             if (parsed.mode === 'video') {
               setVideoPrompt(parsed.prompt)
@@ -680,6 +679,11 @@ export function Studio() {
         }
       }
     }
+    
+    // Then fetch rate limits and load gallery (async)
+    fetchRateLimit()
+    fetchVideoRateLimit()
+    loadGallery()
 
     const loadTourPreference = async () => {
       try {
@@ -712,27 +716,28 @@ export function Studio() {
         if (!cancelled) {
           const sortedSaved = [...(saved as GeneratedMedia[])].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           setImages(sortedSaved)
-        }
-
-        const resolved = findResolvedGeneration(saved as GeneratedMedia[], pendingGeneration)
-        if (resolved && !cancelled) {
-          if ((resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')) === 'video') {
-            setGeneratedVideoUrl(resolved.url)
+          
+          // Check if the generation is complete by looking at the saved images
+          const resolved = findResolvedGeneration(sortedSaved, pendingGeneration)
+          if (resolved && !cancelled) {
+            if ((resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')) === 'video') {
+              setGeneratedVideoUrl(resolved.url)
+            }
+            setLoading(false)
+            setActiveGenerationMode(null)
+            setLoadingPrompt('')
+            // Clear the prompt after successful generation restore
+            if (pendingGeneration.mode === 'video') {
+              setVideoPrompt('')
+            } else if (pendingGeneration.mode === 'image') {
+              setImagePrompt('')
+            } else {
+              setPrompt('')
+            }
+            clearPendingGeneration()
+            toast.success('Generation restored successfully.')
+            return
           }
-          setLoading(false)
-          setActiveGenerationMode(null)
-          setLoadingPrompt('')
-          // Clear the prompt after successful generation restore
-          if (pendingGeneration.mode === 'video') {
-            setVideoPrompt('')
-          } else if (pendingGeneration.mode === 'image') {
-            setImagePrompt('')
-          } else {
-            setPrompt('')
-          }
-          clearPendingGeneration()
-          toast.success('Generation restored successfully.')
-          return
         }
 
         const startedAt = new Date(pendingGeneration.startedAt).getTime()
@@ -750,7 +755,9 @@ export function Studio() {
       }
     }
 
+    // Check immediately on mount
     checkStatus()
+    // Then poll every 4.5 seconds
     const interval = setInterval(checkStatus, 4500)
 
     return () => {
