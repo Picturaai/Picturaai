@@ -42,8 +42,8 @@ export async function POST(request: Request) {
       if (existing) media = existing
     } catch { /* start fresh */ }
 
-    // Keep URL-unique entries and always save newest first.
-    media = [normalizedMedia, ...media.filter((item) => item.url !== normalizedMedia.url)]
+    // Preserve every generation entry (including repeated URLs) and keep newest first.
+    media = [normalizedMedia, ...media]
 
     // Save updated gallery
     await uploadObject(galleryPath, JSON.stringify(media), 'application/json')

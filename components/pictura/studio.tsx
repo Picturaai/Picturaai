@@ -576,10 +576,9 @@ export function Studio() {
       if (res.ok) {
         const { images: saved } = await res.json()
         if (saved && saved.length > 0) {
-          // Merge: keep any in-session media + all saved, deduplicate by URL
+          // Merge: keep any in-session media + all saved entries (including repeated URLs)
           setImages((prev) => {
-            const urlSet = new Set(prev.map((img) => img.url))
-            const merged = [...prev, ...saved.filter((img: GeneratedMedia) => !urlSet.has(img.url))]
+            const merged = [...prev, ...saved]
             // Sort newest first by createdAt
             merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             const latestVideo = merged.find((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
@@ -708,7 +707,7 @@ export function Studio() {
       if (modeAtSubmit === 'video') {
         setGeneratedVideoUrl(data.url)
         const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
-        setImages((prev) => [videoItem, ...prev.filter((item) => item.url !== videoItem.url)])
+        setImages((prev) => [videoItem, ...prev])
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
         playSuccessSound()
         toast.success('Video generated!')
@@ -721,7 +720,7 @@ export function Studio() {
         }).catch(() => {})
       } else {
         const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
-        setImages((prev) => [imageItem, ...prev.filter((item) => item.url !== imageItem.url)])
+        setImages((prev) => [imageItem, ...prev])
         if (data.rateLimitInfo) {
           console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
           setRateLimit(data.rateLimitInfo)
@@ -1118,7 +1117,7 @@ export function Studio() {
               <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 {videoItems.map((video, i) => (
                   <motion.div
-                    key={video.url}
+                    key={`${video.url}-${video.createdAt}-${i}`}
                     data-tour={i === 0 ? 'video-result' : undefined}
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1140,27 +1139,35 @@ export function Studio() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleFeedback(video.url, 'up')}
-                            className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                            className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
                               feedbackMap[video.url] === 'up'
                                 ? 'bg-primary/10 text-primary'
                                 : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
                             }`}
                             aria-label="Like this video"
+                            title="Like"
                           >
                             <ThumbsUp className="h-3 w-3" />
-                            Like
                           </button>
                           <button
                             onClick={() => handleFeedback(video.url, 'down')}
-                            className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                            className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
                               feedbackMap[video.url] === 'down'
                                 ? 'bg-destructive/10 text-destructive'
                                 : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
                             }`}
                             aria-label="Dislike this video"
+                            title="Needs work"
                           >
                             <ThumbsDown className="h-3 w-3" />
-                            Needs work
+                          </button>
+                          <button
+                            onClick={() => handleCopyPrompt(video.prompt)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
+                            aria-label="Copy video prompt"
+                            title="Copy prompt"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
                           </button>
                         </div>
                         <button
@@ -1181,7 +1188,7 @@ export function Studio() {
                 const fb = feedbackMap[img.url] ?? null
                 return (
                   <motion.div
-                    key={img.url}
+                    key={`${img.url}-${img.createdAt}-${i}`}
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, delay: i * 0.04 }}
@@ -1229,30 +1236,37 @@ export function Studio() {
 
                         <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3">
                           <div className="flex items-center gap-1">
-                            <span className="mr-1 text-[10px] text-muted-foreground/60">Rate</span>
                             <button
                               onClick={() => handleFeedback(img.url, 'up')}
-                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
                                 fb === 'up'
                                   ? 'bg-primary/10 text-primary'
                                   : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
                               }`}
                               aria-label="Like this image"
+                              title="Like"
                             >
                               <ThumbsUp className="h-3 w-3" />
-                              Looks good
                             </button>
                             <button
                               onClick={() => handleFeedback(img.url, 'down')}
-                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
                                 fb === 'down'
                                   ? 'bg-destructive/10 text-destructive'
                                   : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
                               }`}
                               aria-label="Dislike this image"
+                              title="Needs work"
                             >
                               <ThumbsDown className="h-3 w-3" />
-                              Needs work
+                            </button>
+                            <button
+                              onClick={() => handleCopyPrompt(img.prompt)}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
+                              aria-label="Copy image prompt"
+                              title="Copy prompt"
+                            >
+                              <Copy className="h-3.5 w-3.5" />
                             </button>
                           </div>
                           <div className="flex items-center gap-1">
