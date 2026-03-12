@@ -274,8 +274,13 @@ export async function POST(request: NextRequest) {
     let editedImageUrl: string | null = null
     const errors: string[] = []
 
-    // Convert image to base64 for providers that need it
-    const imageBase64 = await imageUrlToBase64(imageUrl)
+    let imageBase64: string | null = null
+    const getImageBase64 = async () => {
+      if (!imageBase64) {
+        imageBase64 = await imageUrlToBase64(imageUrl)
+      }
+      return imageBase64
+    }
 
     // Prefer Alibaba for all image editing workloads.
     try {
@@ -286,7 +291,7 @@ export async function POST(request: NextRequest) {
 
     // Fallback providers
     try {
-      if (!editedImageUrl) editedImageUrl = await editWithStability(imageBase64, instruction)
+      if (!editedImageUrl) editedImageUrl = await editWithStability(await getImageBase64(), instruction)
     } catch (err) {
       errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
@@ -294,7 +299,7 @@ export async function POST(request: NextRequest) {
     // Try Replicate second
     if (!editedImageUrl) {
       try {
-        editedImageUrl = await editWithReplicate(imageBase64, instruction)
+        editedImageUrl = await editWithReplicate(await getImageBase64(), instruction)
       } catch (err) {
         errors.push(`Replicate: ${err instanceof Error ? err.message : 'Unknown error'}`)
       }
@@ -312,7 +317,7 @@ export async function POST(request: NextRequest) {
     // Last fallback to Mistral
     if (!editedImageUrl) {
       try {
-        editedImageUrl = await editWithMistral(imageBase64, instruction)
+        editedImageUrl = await editWithMistral(await getImageBase64(), instruction)
       } catch (err) {
         errors.push(`Mistral: ${err instanceof Error ? err.message : 'Unknown error'}`)
       }

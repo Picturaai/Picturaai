@@ -1043,7 +1043,11 @@ export function Studio() {
       } else if (modeAtSubmit === 'image') {
         const form = new FormData()
         form.append('prompt', promptAtSubmit)
-        form.append('imageUrl', uploadPreview || '')
+        if (uploadedFile) {
+          form.append('image', uploadedFile)
+        } else if (uploadPreview) {
+          form.append('imageUrl', uploadPreview)
+        }
         form.append('model', selectedModel)
 
         res = await fetch('/api/generate/image-to-image', {
@@ -1053,12 +1057,25 @@ export function Studio() {
           body: form,
         })
       } else {
-        res = await fetch('/api/generate/video', {
-          method: 'POST',
-          credentials: 'include',
-          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel, imageUrl: uploadPreview || undefined }),
-        })
+        if (uploadedFile) {
+          const form = new FormData()
+          form.append('prompt', promptAtSubmit)
+          form.append('model', selectedModel)
+          form.append('image', uploadedFile)
+          res = await fetch('/api/generate/video', {
+            method: 'POST',
+            credentials: 'include',
+            headers: buildAuthHeaders(),
+            body: form,
+          })
+        } else {
+          res = await fetch('/api/generate/video', {
+            method: 'POST',
+            credentials: 'include',
+            headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel, imageUrl: uploadPreview || undefined }),
+          })
+        }
       }
 
       const data = await res.json()
@@ -1682,7 +1699,10 @@ export function Studio() {
                     <p className="text-[11px] text-muted-foreground">{mode === 'video' ? 'Reference image for image-to-video' : 'Reference for transformation'}</p>
                   </div>
                   <button
-                    onClick={() => { handleFileChange(null); setMode('text') }}
+                    onClick={() => {
+                      handleFileChange(null)
+                      if (mode !== 'video') setMode('text')
+                    }}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     aria-label="Remove image"
                   >

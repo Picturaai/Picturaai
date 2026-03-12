@@ -4,6 +4,7 @@ import { getVideoRateLimitInfo, incrementVideoUsage } from '@/lib/rate-limit'
 import { appendMediaToGallery } from '@/lib/gallery'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { getRequestContext } from '@/lib/request-context'
+import { uploadObject } from '@/lib/storage'
 
 type AlibabaTaskResponse = {
   output?: {
@@ -106,7 +107,31 @@ async function generateWithAlibabaVideo(prompt: string, imageUrl?: string | null
 
 export async function POST(request: Request) {
   try {
-    const { prompt, imageUrl, model } = await request.json()
+    const contentType = request.headers.get('content-type') || ''
+    let prompt = ''
+    let imageUrl: string | null = null
+    let model: string | null = null
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await request.formData()
+      prompt = String(formData.get('prompt') || '')
+      model = formData.get('model') ? String(formData.get('model')) : null
+      imageUrl = formData.get('imageUrl') ? String(formData.get('imageUrl')) : null
+
+      const image = formData.get('image') as File | null
+      if (image && image.size > 0) {
+        const uploadTimestamp = Date.now()
+        const uploadFilename = `pictura/video-uploads/${uploadTimestamp}-${image.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
+        const uploadBlob = await uploadObject(uploadFilename, image, image.type || 'application/octet-stream')
+        imageUrl = uploadBlob.url
+      }
+    } else {
+      const body = await request.json()
+      prompt = typeof body.prompt === 'string' ? body.prompt : ''
+      imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl : null
+      model = typeof body.model === 'string' ? body.model : null
+    }
+
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 })
     }
@@ -119,7 +144,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Daily video limit reached (${videoLimit.limit}/day).`, rateLimitInfo: videoLimit }, { status: 429 })
     }
 
-    const videoUrl = await generateWithAlibabaVideo(prompt, typeof imageUrl === 'string' ? imageUrl : null, typeof model === 'string' ? model : null)
+    const videoUrl = await generateWithAlibabaVideo(prompt, imageUrl, model)
     const createdAt = new Date().toISOString()
 
     await appendMediaToGallery(sessionId, {

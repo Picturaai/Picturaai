@@ -6,6 +6,22 @@ const DAILY_VIDEO_LIMIT = 2
 const STAFF_LIMIT = 20
 const ADMIN_UNLIMITED = 999999
 
+type SessionContext = {
+  role?: AdminRole
+  ip?: string | null
+  userAgent?: string | null
+  country?: string | null
+  city?: string | null
+  region?: string | null
+  deviceType?: 'mobile' | 'tablet' | 'desktop' | 'bot' | 'unknown' | null
+}
+
+function limitsByRole(role?: AdminRole) {
+  if (role === 'admin') return { image: ADMIN_UNLIMITED, video: ADMIN_UNLIMITED }
+  if (role === 'staff') return { image: STAFF_LIMIT, video: STAFF_LIMIT }
+  return { image: DAILY_LIMIT, video: DAILY_VIDEO_LIMIT }
+}
+
 export function getDailyLimits() {
   return { image: DAILY_LIMIT, video: DAILY_VIDEO_LIMIT }
 }
