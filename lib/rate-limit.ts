@@ -6,25 +6,12 @@ const DAILY_VIDEO_LIMIT = 2
 const STAFF_LIMIT = 20
 const ADMIN_UNLIMITED = 999999
 
-export type SessionContext = {
-  role?: AdminRole | null
-  ip?: string | null
-  userAgent?: string | null
-  country?: string | null
-  city?: string | null
-  region?: string | null
-  deviceType?: string | null
-}
-
-function limitsByRole(role?: AdminRole | null) {
-  if (role === 'admin') return { image: ADMIN_UNLIMITED, video: ADMIN_UNLIMITED }
-  if (role === 'staff') return { image: STAFF_LIMIT, video: STAFF_LIMIT }
+export function getDailyLimits() {
   return { image: DAILY_LIMIT, video: DAILY_VIDEO_LIMIT }
 }
 
-export function getDailyLimits(role?: AdminRole | null) {
-  return limitsByRole(role)
-}
+// Persistent rate limit storage using database
+// Uses a separate table to avoid schema conflicts
 
 function getDb() {
   const sql = neon(process.env.DATABASE_URL!)
@@ -324,6 +311,7 @@ export async function setTourPreference(identifier: string, completed: boolean):
   }
 }
 
+
 type AdminSessionRecord = {
   session_id: string
   credits_used: number
@@ -332,63 +320,25 @@ type AdminSessionRecord = {
   video_reset_at: string | Date | null
   tour_completed: boolean
   created_at: string | Date
-  last_ip: string | null
-  last_user_agent: string | null
-  last_country: string | null
-  last_city: string | null
-  last_region: string | null
-  last_device: string | null
-  last_seen_at: string | Date | null
 }
 
-export async function listSessionsForAdmin(search?: string, excludeSessionId?: string): Promise<AdminSessionRecord[]> {
+export async function listSessionsForAdmin(search?: string): Promise<AdminSessionRecord[]> {
   await ensureTable()
   const sql = getDb()
   const query = (search || '').trim()
 
   if (query) {
-    if (excludeSessionId) {
-      return await sql`
-        SELECT DISTINCT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
-               last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
-        FROM user_sessions
-        WHERE session_id <> ${excludeSessionId}
-          AND (
-            session_id ILIKE ${query + '%'}
-            OR COALESCE(last_ip, '') ILIKE ${query + '%'}
-            OR COALESCE(last_country, '') ILIKE ${query + '%'}
-          )
-        ORDER BY created_at DESC
-        LIMIT 100
-      ` as AdminSessionRecord[]
-    }
-
     return await sql`
-      SELECT DISTINCT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
-             last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
+      SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at
       FROM user_sessions
       WHERE session_id ILIKE ${query + '%'}
-         OR COALESCE(last_ip, '') ILIKE ${query + '%'}
-         OR COALESCE(last_country, '') ILIKE ${query + '%'}
-      ORDER BY created_at DESC
-      LIMIT 100
-    ` as AdminSessionRecord[]
-  }
-
-  if (excludeSessionId) {
-    return await sql`
-      SELECT DISTINCT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
-             last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
-      FROM user_sessions
-      WHERE session_id <> ${excludeSessionId}
       ORDER BY created_at DESC
       LIMIT 100
     ` as AdminSessionRecord[]
   }
 
   return await sql`
-    SELECT DISTINCT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
-           last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
+    SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at
     FROM user_sessions
     ORDER BY created_at DESC
     LIMIT 100
@@ -462,8 +412,7 @@ export async function updateSessionCreditsForAdmin(input: {
   }
 
   const rows = await sql`
-    SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
-           last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
+    SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at
     FROM user_sessions
     WHERE session_id = ${sessionId}
     LIMIT 1

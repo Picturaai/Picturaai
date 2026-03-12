@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server'
 import { getOrCreateSessionId } from '@/lib/session'
 import { getVideoRateLimitInfo, incrementVideoUsage } from '@/lib/rate-limit'
 import { appendMediaToGallery } from '@/lib/gallery'
-import { getAdminSessionFromRequest } from '@/lib/admin-auth'
-import { getRequestContext } from '@/lib/request-context'
 
 type AlibabaTaskResponse = {
   output?: {
@@ -124,8 +122,8 @@ export async function POST(request: Request) {
       createdAt,
     })
 
-    await incrementVideoUsage(sessionId, { role: adminSession?.role, ...requestContext })
-    const updatedLimit = await getVideoRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
+    await incrementVideoUsage(sessionId)
+    const updatedLimit = await getVideoRateLimitInfo(sessionId)
 
     return NextResponse.json({
       url: videoUrl,

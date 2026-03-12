@@ -3,8 +3,6 @@ import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
 import { appendMediaToGallery } from '@/lib/gallery'
-import { getAdminSessionFromRequest } from '@/lib/admin-auth'
-import { getRequestContext } from '@/lib/request-context'
 
 console.log('[TextToImage] Module loaded')
 

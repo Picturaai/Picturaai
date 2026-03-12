@@ -6,8 +6,6 @@ export type AdminRole = 'admin' | 'staff'
 const ADMIN_COOKIE_NAME = 'pictura_admin_session'
 const MAX_AGE_SECONDS = 60 * 60 * 12
 
-type ParsedAdminSession = { role: AdminRole; email: string } | null
-
 function getSecret() {
   return process.env.ADMIN_AUTH_SECRET || process.env.ADMIN_DASHBOARD_TOKEN || ''
 }
@@ -27,41 +25,6 @@ function getCredentials() {
 
 function sign(payload: string): string {
   return createHmac('sha256', getSecret()).update(payload).digest('hex')
-}
-
-function parseCookieHeader(cookieHeader: string | null): Record<string, string> {
-  if (!cookieHeader) return {}
-  return cookieHeader.split(';').reduce<Record<string, string>>((acc, part) => {
-    const [key, ...rest] = part.trim().split('=')
-    if (!key) return acc
-    acc[key] = decodeURIComponent(rest.join('='))
-    return acc
-  }, {})
-}
-
-function parseAdminToken(raw: string | undefined): ParsedAdminSession {
-  const secret = getSecret()
-  if (!secret || !raw) return null
-
-  const parts = raw.split('|')
-  if (parts.length !== 5) return null
-
-  const [role, email, issuedAt, expiresAt, sig] = parts
-  if (role !== 'admin' && role !== 'staff') return null
-
-  const payload = `${role}|${email}|${issuedAt}|${expiresAt}`
-  const expectedSig = sign(payload)
-
-  try {
-    const a = Buffer.from(sig)
-    const b = Buffer.from(expectedSig)
-    if (a.length !== b.length || !timingSafeEqual(a, b)) return null
-  } catch {
-    return null
-  }
-
-  if (Number(expiresAt) < Date.now()) return null
-  return { role, email }
 }
 
 export function authenticateAdminUser(email: string, password: string): { role: AdminRole; email: string } | null {
@@ -101,15 +64,30 @@ export async function clearAdminSession() {
 }
 
 export async function getAdminSession(): Promise<{ role: AdminRole; email: string } | null> {
+  const secret = getSecret()
+  if (!secret) return null
+
   const cookieStore = await cookies()
   const raw = cookieStore.get(ADMIN_COOKIE_NAME)?.value
-  return parseAdminToken(raw)
-}
+  if (!raw) return null
 
-export function getAdminSessionFromRequest(request: Request): ParsedAdminSession {
-  const cookieHeader = request.headers.get('cookie')
-  const cookiesMap = parseCookieHeader(cookieHeader)
-  return parseAdminToken(cookiesMap[ADMIN_COOKIE_NAME])
+  const parts = raw.split('|')
+  if (parts.length !== 5) return null
+  const [role, email, issuedAt, expiresAt, sig] = parts
+  if (role !== 'admin' && role !== 'staff') return null
+
+  const payload = `${role}|${email}|${issuedAt}|${expiresAt}`
+  const expectedSig = sign(payload)
+  try {
+    const a = Buffer.from(sig)
+    const b = Buffer.from(expectedSig)
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null
+  } catch {
+    return null
+  }
+
+  if (Number(expiresAt) < Date.now()) return null
+  return { role, email }
 }
 
 export async function requireAdminSession(minRole: AdminRole = 'staff') {

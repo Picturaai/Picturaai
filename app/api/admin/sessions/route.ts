@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { getDailyLimits, listSessionsForAdmin, updateSessionCreditsForAdmin } from '@/lib/rate-limit'
-import { getSessionIdFromRequest } from '@/lib/session'
 
 export async function GET(request: Request) {
   const session = await requireAdminSession('staff')
@@ -12,9 +11,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
-    const currentSessionId = getSessionIdFromRequest({ headers: request.headers })
-    const sessions = await listSessionsForAdmin(search, currentSessionId)
-    return NextResponse.json({ sessions, limits: getDailyLimits(session.role) })
+    const sessions = await listSessionsForAdmin(search)
+    return NextResponse.json({ sessions, limits: getDailyLimits() })
   } catch (error) {
     console.error('[AdminSessions] GET error:', error)
     return NextResponse.json({ error: 'Failed to load sessions' }, { status: 500 })
@@ -48,7 +46,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, session: updated, limits: getDailyLimits(session.role) })
+    return NextResponse.json({ success: true, session: updated, limits: getDailyLimits() })
   } catch (error) {
     console.error('[AdminSessions] PATCH error:', error)
     return NextResponse.json({ error: 'Failed to update session' }, { status: 500 })

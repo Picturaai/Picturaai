@@ -3,8 +3,6 @@ import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
 import { appendMediaToGallery } from '@/lib/gallery'
-import { getAdminSessionFromRequest } from '@/lib/admin-auth'
-import { getRequestContext } from '@/lib/request-context'
 
 async function pollQwenTask(apiKey: string, taskId: string): Promise<string | null> {
   for (let i = 0; i < 30; i++) {
@@ -138,8 +136,8 @@ export async function POST(request: Request) {
             sourceImageUrl,
             createdAt,
           })
-          await incrementUsage(sessionId, { role: adminSession?.role, ...requestContext })
-          const updatedRateLimitInfo = await getRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
+          await incrementUsage(sessionId)
+          const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
           return NextResponse.json({
             url: blob.url,
             prompt: prompt.trim(),

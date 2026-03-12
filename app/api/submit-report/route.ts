@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer'
 import { NextRequest, NextResponse } from 'next/server'
 import { insertSupportReport } from '@/lib/admin-data'
-import { getRequestContext } from '@/lib/request-context'
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.zoho.com',
@@ -212,6 +211,16 @@ export async function POST(request: NextRequest) {
       city: context.city || undefined,
       region: context.region || undefined,
       deviceType: context.deviceType,
+    })
+
+    await insertSupportReport({
+      ticketId,
+      name: body.name,
+      email: body.email,
+      type: body.type,
+      subject: body.subject,
+      description: body.description,
+      source: 'website',
     })
 
     // Send user confirmation email
