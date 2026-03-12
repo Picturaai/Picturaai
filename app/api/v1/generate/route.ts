@@ -510,6 +510,11 @@ const LOCAL_PRICES: Record<string, number> = {
   BRL: 0.05,
 }
 
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Verify API key
@@ -568,6 +573,11 @@ export async function POST(request: NextRequest) {
 
     // Parse size
     const [width, height] = size.split('x').map(Number)
+
+    // Keep pi-1.5-turbo fast and intentionally pace pi-1.0 for product differentiation
+    if (model === 'pi-1.0') {
+      await sleep(2200)
+    }
 
     // Generate image using Pictura AI Engine
     let imageUrl: string

@@ -91,26 +91,6 @@ const MODELS = [
 ]
 
 
-const MODEL_META: Record<string, { speed: string; quality: string; providers: string; note: string }> = {
-  'pi-1.0': {
-    speed: 'Standard',
-    quality: 'Good',
-    providers: 'Leonardo · ZyLabs · Mistral',
-    note: 'Balanced for reliable everyday generations.',
-  },
-  'pi-1.5-turbo': {
-    speed: 'Fast',
-    quality: 'High',
-    providers: 'Alibaba · ZyLabs · Stability · Mistral',
-    note: 'Optimized for faster and higher-quality outputs.',
-  },
-  picturagen: {
-    speed: 'Cinematic',
-    quality: 'Video',
-    providers: 'Alibaba Video',
-    note: 'Text-to-video generation engine.',
-  },
-}
 
 /* Custom Send Icon - clean arrow in circle */
 function SendIcon({ className = '' }: { className?: string }) {
@@ -400,6 +380,21 @@ function getPromptExamplesForMode(mode: Mode, imageExamples: string[], videoExam
   return videoExamples
 }
 
+
+function dedupeMedia(items: GeneratedMedia[]): GeneratedMedia[] {
+  const seen = new Set<string>()
+  const unique: GeneratedMedia[] = []
+
+  for (const item of items) {
+    const key = `${item.type}|${item.url}|${item.prompt.trim()}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    unique.push(item)
+  }
+
+  return unique
+}
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
@@ -566,11 +561,6 @@ export function Studio() {
     return () => clearInterval(interval)
   }, [mode, imageExamples])
 
-  const selectedModelMeta = useMemo(
-    () => MODEL_META[selectedModel] || MODEL_META['pi-1.0'],
-    [selectedModel],
-  )
-
   const activePromptExamples = useMemo(
     () => getPromptExamplesForMode(mode, imageExamples, videoExamples),
     [mode, imageExamples, videoExamples],
@@ -688,13 +678,14 @@ export function Studio() {
         const localImages: GeneratedMedia[] = JSON.parse(localStored)
         if (localImages.length > 0) {
           // Merge with server images
-          allImages = [...allImages, ...localImages]
+          allImages = dedupeMedia([...allImages, ...localImages])
         }
       }
     } catch { /* silent */ }
     
     if (allImages.length > 0) {
       // Sort newest first by createdAt
+      allImages = dedupeMedia(allImages)
       allImages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       setImages(allImages)
       const latestVideo = allImages.find((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
@@ -769,13 +760,13 @@ export function Studio() {
               if (localStored) {
                 const localImages: GeneratedMedia[] = JSON.parse(localStored)
                 if (localImages.length > 0) {
-                  allImages = [...allImages, ...localImages]
+                  allImages = dedupeMedia([...allImages, ...localImages])
                 }
               }
             } catch { /* silent */ }
             
             if (allImages.length > 0) {
-              const sorted = allImages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              const sorted = dedupeMedia(allImages).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               setImages(sorted)
               
               // Check if there's a matching result
@@ -858,7 +849,7 @@ export function Studio() {
         if (!Array.isArray(saved)) return
 
         if (!cancelled) {
-          const sortedSaved = [...(saved as GeneratedMedia[])].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          const sortedSaved = dedupeMedia([...(saved as GeneratedMedia[])]).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           setImages(sortedSaved)
           
           // Check if the generation is complete by looking at the saved images
@@ -1015,14 +1006,14 @@ export function Studio() {
       if (modeAtSubmit === 'video') {
         setGeneratedVideoUrl(data.url)
         const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
-        setImages((prev) => [videoItem, ...prev])
+        setImages((prev) => dedupeMedia([videoItem, ...prev]))
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
         playSuccessSound()
         toast.success('Video generated!')
 
       } else {
         const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
-        setImages((prev) => [imageItem, ...prev])
+        setImages((prev) => dedupeMedia([imageItem, ...prev]))
         
         if (data.rateLimitInfo) {
           console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
@@ -1733,19 +1724,6 @@ export function Studio() {
             </button>
           </div>
 
-
-          {/* Model difference panel */}
-          {mode !== 'video' && (
-            <div className="mt-2 rounded-xl border border-border/50 bg-card/70 px-3 py-2">
-              <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 font-semibold text-primary">{selectedModel === 'pi-1.5-turbo' ? 'Turbo profile' : 'Standard profile'}</span>
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-muted-foreground">Speed: {selectedModelMeta.speed}</span>
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-muted-foreground">Quality: {selectedModelMeta.quality}</span>
-              </div>
-              <p className="mt-1 text-[10px] text-muted-foreground">{selectedModelMeta.note}</p>
-              <p className="mt-1 text-[10px] text-muted-foreground/80">Pipeline: {selectedModelMeta.providers}</p>
-            </div>
-          )}
 
           {/* Mode switcher + status */}
           <div className="mt-2 flex items-center justify-between px-1">
