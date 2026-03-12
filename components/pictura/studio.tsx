@@ -892,8 +892,11 @@ export function Studio() {
       } else if (updatedRemaining === 1) {
         setTimeout(() => toast.info('You have 1 generation left today. Make it count!'), 800)
       }
-    } catch {
-      toast.error('Something went wrong. Please try again.')
+    } catch (err) {
+      // Display the error message from the API if available
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      toast.error(errorMessage)
+      // Keep the prompt in the input so user can retry
     } finally {
       setLoading(false)
       setActiveGenerationMode(null)
