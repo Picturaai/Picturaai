@@ -929,6 +929,7 @@ export function Studio() {
         playSuccessSound()
         toast.success('Video generated!')
 
+        // Save to gallery for persistence
         await fetch('/api/gallery', {
           method: 'POST',
           credentials: 'include',
@@ -938,6 +939,15 @@ export function Studio() {
       } else {
         const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
         setImages((prev) => [imageItem, ...prev])
+        
+        // Save to gallery for persistence and refresh restoration
+        await fetch('/api/gallery', {
+          method: 'POST',
+          credentials: 'include',
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify(imageItem),
+        }).catch(() => {})
+        
         if (data.rateLimitInfo) {
           console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
           setRateLimit(data.rateLimitInfo)
@@ -958,6 +968,9 @@ export function Studio() {
       } else if (updatedRemaining === 1) {
         setTimeout(() => toast.info('You have 1 generation left today. Make it count!'), 800)
       }
+      
+      // Clear pending generation AFTER gallery save is complete
+      clearPendingGeneration()
     } catch (err) {
       // Display the error message from the API if available
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
@@ -967,7 +980,6 @@ export function Studio() {
       setLoading(false)
       setActiveGenerationMode(null)
       setLoadingPrompt('')
-      clearPendingGeneration()
     }
   }
 
