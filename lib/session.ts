@@ -2,9 +2,9 @@ import { cookies } from 'next/headers'
 import { createHash, randomBytes } from 'crypto'
 
 const SESSION_ID_LENGTH = 32
-const SESSION_EPOCH = 'v2'
-const SESSION_COOKIE_NAME = `pictura_session_id_${SESSION_EPOCH}`
-const STABLE_COOKIE_NAME = `pictura_stable_id_${SESSION_EPOCH}`
+const SESSION_EPOCH = (process.env.SESSION_EPOCH || 'v1').trim()
+const SESSION_COOKIE_NAME = SESSION_EPOCH === 'v1' ? 'pictura_session_id' : `pictura_session_id_${SESSION_EPOCH}`
+const STABLE_COOKIE_NAME = SESSION_EPOCH === 'v1' ? 'pictura_stable_id' : `pictura_stable_id_${SESSION_EPOCH}`
 const LEGACY_SESSION_COOKIE_NAME = 'pictura_session_id'
 const LEGACY_STABLE_COOKIE_NAME = 'pictura_stable_id'
 const SESSION_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 // 30 days
@@ -12,10 +12,12 @@ const SESSION_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 // 30 days
 type RequestLike = Request | { headers: Headers }
 
 export function generateSessionId(): string {
-  return `${SESSION_EPOCH}_${randomBytes(SESSION_ID_LENGTH).toString('hex')}`
+  const raw = randomBytes(SESSION_ID_LENGTH).toString('hex')
+  return SESSION_EPOCH === 'v1' ? raw : `${SESSION_EPOCH}_${raw}`
 }
 
 function applySessionEpoch(value: string): string {
+  if (SESSION_EPOCH === 'v1') return value
   return value.startsWith(`${SESSION_EPOCH}_`) ? value : `${SESSION_EPOCH}_${value}`
 }
 
