@@ -8,7 +8,7 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard, ThumbsUp, ThumbsDown,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard, ThumbsUp, ThumbsDown, Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -758,6 +758,16 @@ export function Studio() {
   const handleDownload = (img: GeneratedMedia) => {
     setDownloadImage(img)
     setDownloadModalOpen(true)
+  }
+
+  const handleCopyPrompt = async (promptText?: string) => {
+    if (!promptText?.trim()) return
+    try {
+      await navigator.clipboard.writeText(promptText)
+      toast.success('Prompt copied to clipboard.')
+    } catch {
+      toast.error('Could not copy prompt. Please copy manually.')
+    }
   }
 
   const handleFeedback = (url: string, type: Feedback) => {
@@ -1712,21 +1722,23 @@ export function Studio() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleFeedback(lightbox.url, 'up')}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium shadow-lg transition-all ${
+                      aria-label="Like this generation"
+                      title="Like"
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-medium shadow-lg transition-all ${
                         feedbackMap[lightbox.url] === 'up' ? 'bg-primary text-primary-foreground' : 'bg-white/90 text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      <ThumbsUp className="h-3 w-3" />
-                      Looks good
+                      <ThumbsUp className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => handleFeedback(lightbox.url, 'down')}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium shadow-lg transition-all ${
+                      aria-label="Needs work"
+                      title="Needs work"
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-medium shadow-lg transition-all ${
                         feedbackMap[lightbox.url] === 'down' ? 'bg-destructive text-destructive-foreground' : 'bg-white/90 text-muted-foreground hover:text-foreground'
                       }`}
                     >
-                      <ThumbsDown className="h-3 w-3" />
-                      Needs work
+                      <ThumbsDown className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
@@ -1743,7 +1755,17 @@ export function Studio() {
                         {lightbox.type === 'text-to-image' ? 'Text to Image' : lightbox.type === 'image-to-image' ? 'Image to Image' : 'Text to Video'}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{lightbox.prompt}</p>
+                    <div className="mt-2 flex items-start justify-between gap-2">
+                      <p className="text-sm text-muted-foreground leading-relaxed">{lightbox.prompt}</p>
+                      <button
+                        onClick={() => handleCopyPrompt(lightbox.prompt)}
+                        className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-border/50 bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        aria-label="Copy prompt"
+                        title="Copy prompt"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                     <p className="text-[10px] text-muted-foreground/60 mt-3">
                       {new Date(lightbox.createdAt).toLocaleString()}
                     </p>
