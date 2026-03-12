@@ -19,6 +19,7 @@ import { playSuccessSound, playLimitSound } from '@/lib/sounds'
 import type { GeneratedMedia, RateLimitInfo } from '@/lib/types'
 
 type Mode = 'text' | 'image' | 'video'
+type VideoDuration = 10 | 15
 type Feedback = 'up' | 'down' | null
 type PendingFeedback = { url: string; type: Exclude<Feedback, null> } | null
 type PendingGeneration = {
@@ -89,6 +90,8 @@ const MODELS = [
   { id: 'picturagen', name: 'PicturaGen', status: 'beta' as const, description: 'Our AI video model for cinematic Text to Video generation.' },
   { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture' },
 ]
+
+
 
 /* Custom Send Icon - clean arrow in circle */
 function SendIcon({ className = '' }: { className?: string }) {
@@ -378,6 +381,21 @@ function getPromptExamplesForMode(mode: Mode, imageExamples: string[], videoExam
   return videoExamples
 }
 
+
+function dedupeMedia(items: GeneratedMedia[]): GeneratedMedia[] {
+  const seen = new Set<string>()
+  const unique: GeneratedMedia[] = []
+
+  for (const item of items) {
+    const key = `${item.type}|${item.url}|${item.prompt.trim()}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    unique.push(item)
+  }
+
+  return unique
+}
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
@@ -402,6 +420,7 @@ export function Studio() {
   const [tourStep, setTourStep] = useState(-1) // -1 = not showing
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(8)
 
   // auto-switch model with mode
   useEffect(() => {
@@ -446,6 +465,7 @@ export function Studio() {
   const [editorImage, setEditorImage] = useState<string | null>(null)
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
   const [videoLoadingHintIndex, setVideoLoadingHintIndex] = useState(0)
+  const [videoDuration, setVideoDuration] = useState<VideoDuration>(10)
   const [videoExamples, setVideoExamples] = useState<string[]>(VIDEO_EXAMPLES)
   const [visibleVideoExamples, setVisibleVideoExamples] = useState<string[]>(VIDEO_EXAMPLES.slice(0, 3))
   const [imageExamples, setImageExamples] = useState<string[]>(PROMPT_EXAMPLES)
@@ -490,6 +510,27 @@ export function Studio() {
     }, 1600)
     return () => clearInterval(interval)
   }, [loading, mode])
+
+
+  useEffect(() => {
+    if (!loading || !pendingGeneration) {
+      setLoadingProgress(8)
+      return
+    }
+
+    const ttlMs = pendingGeneration.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+
+    const syncProgress = () => {
+      const elapsed = Date.now() - new Date(pendingGeneration.startedAt).getTime()
+      const normalized = Math.max(0, Math.min(1, elapsed / ttlMs))
+      const progress = Math.min(96, Math.max(8, Math.round(normalized * 100)))
+      setLoadingProgress(progress)
+    }
+
+    syncProgress()
+    const interval = setInterval(syncProgress, 1000)
+    return () => clearInterval(interval)
+  }, [loading, pendingGeneration])
 
   useEffect(() => {
     const locale = typeof navigator !== 'undefined' ? navigator.language : undefined
@@ -617,6 +658,36 @@ export function Studio() {
     }
   }, [])
 
+  const getStoredPendingGeneration = useCallback((): PendingGeneration | null => {
+    if (typeof window === 'undefined') return null
+    try {
+      const raw = window.localStorage.getItem(PENDING_GENERATION_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as PendingGeneration
+      if (!parsed?.mode || !parsed?.prompt || !parsed?.startedAt) return null
+      return parsed
+    } catch {
+      return null
+    }
+  }, [])
+
+  const restorePendingGenerationUI = useCallback((pending: PendingGeneration) => {
+    setLoading(true)
+    setActiveGenerationMode(pending.mode)
+    setLoadingPrompt(pending.prompt)
+    setMode(pending.mode)
+
+    if (pending.mode === 'video') {
+      setVideoPrompt(pending.prompt)
+    } else if (pending.mode === 'image') {
+      setImagePrompt(pending.prompt)
+    } else {
+      setPrompt(pending.prompt)
+    }
+
+    setPendingGeneration(pending)
+  }, [])
+
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
     let allImages: GeneratedMedia[] = []
@@ -639,13 +710,14 @@ export function Studio() {
         const localImages: GeneratedMedia[] = JSON.parse(localStored)
         if (localImages.length > 0) {
           // Merge with server images
-          allImages = [...allImages, ...localImages]
+          allImages = dedupeMedia([...allImages, ...localImages])
         }
       }
     } catch { /* silent */ }
     
     if (allImages.length > 0) {
       // Sort newest first by createdAt
+      allImages = dedupeMedia(allImages)
       allImages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       setImages(allImages)
       const latestVideo = allImages.find((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
@@ -720,13 +792,13 @@ export function Studio() {
               if (localStored) {
                 const localImages: GeneratedMedia[] = JSON.parse(localStored)
                 if (localImages.length > 0) {
-                  allImages = [...allImages, ...localImages]
+                  allImages = dedupeMedia([...allImages, ...localImages])
                 }
               }
             } catch { /* silent */ }
             
             if (allImages.length > 0) {
-              const sorted = allImages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              const sorted = dedupeMedia(allImages).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               setImages(sorted)
               
               // Check if there's a matching result
@@ -754,6 +826,11 @@ export function Studio() {
                 }
                 window.localStorage.removeItem(PENDING_GENERATION_KEY)
                 setPendingGeneration(null)
+                if (targetKind === 'video') {
+                  void fetchVideoRateLimit()
+                } else {
+                  void fetchRateLimit()
+                }
                 // Note: We can't use toast here directly, but the UI will show the result
               }
             }
@@ -765,7 +842,7 @@ export function Studio() {
     } catch {
       window.localStorage.removeItem(PENDING_GENERATION_KEY)
     }
-  }, [])
+  }, [fetchRateLimit, fetchVideoRateLimit])
 
   useEffect(() => {
     setMounted(true)
@@ -804,7 +881,7 @@ export function Studio() {
         if (!Array.isArray(saved)) return
 
         if (!cancelled) {
-          const sortedSaved = [...(saved as GeneratedMedia[])].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          const sortedSaved = dedupeMedia([...(saved as GeneratedMedia[])]).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           setImages(sortedSaved)
           
           // Check if the generation is complete by looking at the saved images
@@ -825,6 +902,11 @@ export function Studio() {
               setPrompt('')
             }
             clearPendingGeneration()
+            if ((resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')) === 'video') {
+              void fetchVideoRateLimit()
+            } else {
+              void fetchRateLimit()
+            }
             toast.success('Generation restored successfully.')
             return
           }
@@ -854,7 +936,7 @@ export function Studio() {
       cancelled = true
       clearInterval(interval)
     }
-  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration])
+  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration, fetchRateLimit, fetchVideoRateLimit])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -889,7 +971,25 @@ export function Studio() {
 
     if (!promptAtSubmit) return
 
+    const activePending = pendingGeneration || getStoredPendingGeneration()
+    if (activePending) {
+      const startedAt = new Date(activePending.startedAt).getTime()
+      const ttlMs = activePending.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+      if (Date.now() - startedAt < ttlMs) {
+        restorePendingGenerationUI(activePending)
+        toast.info('A generation is already in progress. We will continue that request instead of creating a new one.')
+        return
+      }
+      clearPendingGeneration()
+    }
+
     if ((modeAtSubmit === 'text' || modeAtSubmit === 'image') && rateLimit.remaining <= 0) {
+      playLimitSound()
+      setShowExhausted(true)
+      return
+    }
+
+    if (modeAtSubmit === 'video' && videoRateLimit.remaining <= 0) {
       playLimitSound()
       setShowExhausted(true)
       return
@@ -929,16 +1029,11 @@ export function Studio() {
           body: form,
         })
       } else {
-        if (videoRateLimit.remaining <= 0) {
-          playLimitSound()
-          setShowExhausted(true)
-          return
-        }
         res = await fetch('/api/generate/video', {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
+          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel, duration: videoDuration }),
         })
       }
 
@@ -956,41 +1051,14 @@ export function Studio() {
       if (modeAtSubmit === 'video') {
         setGeneratedVideoUrl(data.url)
         const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
-        setImages((prev) => [videoItem, ...prev])
+        setImages((prev) => dedupeMedia([videoItem, ...prev]))
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
         playSuccessSound()
         toast.success('Video generated!')
 
-        // Save to gallery for persistence
-        await fetch('/api/gallery', {
-          method: 'POST',
-          credentials: 'include',
-          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify(videoItem),
-        }).catch(() => {})
       } else {
         const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
-        setImages((prev) => [imageItem, ...prev])
-        
-        // Save to gallery for persistence and refresh restoration
-        const galleryRes = await fetch('/api/gallery', {
-          method: 'POST',
-          credentials: 'include',
-          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify(imageItem),
-        })
-        
-        // If gallery save fails, save to localStorage as fallback
-        if (!galleryRes.ok) {
-          console.log('[Client] Gallery save failed, using localStorage fallback')
-          try {
-            const existing = JSON.parse(window.localStorage.getItem('pictura_images') || '[]')
-            const updated = [imageItem, ...existing]
-            window.localStorage.setItem('pictura_images', JSON.stringify(updated))
-          } catch (e) {
-            console.error('localStorage fallback failed:', e)
-          }
-        }
+        setImages((prev) => dedupeMedia([imageItem, ...prev]))
         
         if (data.rateLimitInfo) {
           console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
@@ -1013,7 +1081,7 @@ export function Studio() {
         setTimeout(() => toast.info('You have 1 generation left today. Make it count!'), 800)
       }
       
-      // Clear pending generation AFTER gallery save is complete
+      // Clear pending generation after successful generation
       clearPendingGeneration()
     } catch (err) {
       // Display the error message from the API if available
@@ -1114,11 +1182,13 @@ export function Studio() {
   }
 
   const currentLimitInfo = mode === 'video' ? videoRateLimit : rateLimit
+  const isCurrentLimitUnlimited = Boolean(currentLimitInfo.isUnlimited)
+  const currentLimitRemainingLabel = isCurrentLimitUnlimited ? 'Unlimited' : `${currentLimitInfo.remaining}`
   const imageItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'image')
   const videoItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
   const hasResults = mode === 'video' ? videoItems.length > 0 : imageItems.length > 0
-  const creditsUsed = currentLimitInfo.used
-  const creditsTotal = currentLimitInfo.limit
+  const creditsUsed = isCurrentLimitUnlimited ? 0 : currentLimitInfo.used
+  const creditsTotal = isCurrentLimitUnlimited ? 1 : currentLimitInfo.limit
   const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
 
   if (!mounted) return null
@@ -1222,7 +1292,7 @@ export function Studio() {
                 />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-foreground">{currentLimitInfo.remaining}</span>
+            <span className="text-xs font-semibold text-foreground">{currentLimitRemainingLabel}</span>
             <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>
           </div>
 
@@ -1284,13 +1354,12 @@ export function Studio() {
   <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
               {/* Thin progress bar */}
               <div className="mt-5 h-1 w-48 overflow-hidden rounded-full bg-secondary">
-                <motion.div
-                  className="h-full rounded-full bg-primary"
-                  initial={{ width: '0%' }}
-                  animate={{ width: '90%' }}
-                  transition={{ duration: 15, ease: 'easeOut' }}
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
+                  style={{ width: `${loadingProgress}%` }}
                 />
               </div>
+              <p className="mt-1 text-[10px] text-muted-foreground/80">{loadingProgress}% complete</p>
             </motion.div>
           </div>
         ) : !hasResults && !loading ? (
@@ -1311,7 +1380,13 @@ export function Studio() {
                   ? 'Describe your scene and PicturaGen will create an amazing cinematic video for you.'
                   : 'Type a description below and Pictura will generate an image for you.'}
                 <span className="block mt-1.5">
-                  You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
+                  {isCurrentLimitUnlimited ? (
+                    <>You have <strong className="text-foreground">Unlimited generations</strong> today.</>
+                  ) : (
+                    <>
+                      You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
+                    </>
+                  )}
                 </span>
               </p>
 
@@ -1329,7 +1404,7 @@ export function Studio() {
                     ))}
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground/80">
-                    Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
+                    Choose video length: <strong className="text-foreground">{videoDuration} seconds</strong>.
                   </p>
                 </div>
               ) : (
@@ -1702,6 +1777,7 @@ export function Studio() {
             </button>
           </div>
 
+
           {/* Mode switcher + status */}
           <div className="mt-2 flex items-center justify-between px-1">
             <div className="flex items-center gap-1 rounded-lg bg-secondary/50 p-0.5" data-tour="mode-tabs">
@@ -1738,20 +1814,33 @@ export function Studio() {
             </div>
 
             {mode === 'video' && (
-              <div className="mr-3 hidden items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-[11px] text-primary sm:flex">
+              <div className="mr-3 flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-2 py-1 text-[11px] text-primary">
                 <Clapperboard className="h-3.5 w-3.5" />
                 <span className="font-medium">PicturaGen • Text to Video</span>
+                <div className="ml-1 flex items-center rounded-full border border-primary/30 bg-background/70 p-0.5">
+                  {[10, 15].map((seconds) => (
+                    <button
+                      key={seconds}
+                      onClick={() => setVideoDuration(seconds as VideoDuration)}
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors ${
+                        videoDuration === seconds ? 'bg-primary text-primary-foreground' : 'text-primary/80 hover:text-primary'
+                      }`}
+                    >
+                      {seconds}s
+                    </button>
+                  ))}
+                </div>
                 <span className="rounded-full border border-primary/30 px-1.5 py-0.5 text-[10px]">Beta</span>
               </div>
             )}
 
             <div className="flex items-center gap-3">
-              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 2 && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) > 0 && (
+              {!currentLimitInfo.isUnlimited && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 2 && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) > 0 && (
                 <span className="text-[11px] font-medium text-accent-foreground">
                   {mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining} left today
                 </span>
               )}
-              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 0 && (
+              {!currentLimitInfo.isUnlimited && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 0 && (
                 <span className="text-[11px] font-medium text-destructive">
                   Limit reached
                 </span>

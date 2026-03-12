@@ -2,14 +2,23 @@ import { cookies } from 'next/headers'
 import { createHash, randomBytes } from 'crypto'
 
 const SESSION_ID_LENGTH = 32
-const SESSION_COOKIE_NAME = 'pictura_session_id'
-const STABLE_COOKIE_NAME = 'pictura_stable_id'
+const SESSION_EPOCH = (process.env.SESSION_EPOCH || 'v1').trim()
+const SESSION_COOKIE_NAME = SESSION_EPOCH === 'v1' ? 'pictura_session_id' : `pictura_session_id_${SESSION_EPOCH}`
+const STABLE_COOKIE_NAME = SESSION_EPOCH === 'v1' ? 'pictura_stable_id' : `pictura_stable_id_${SESSION_EPOCH}`
+const LEGACY_SESSION_COOKIE_NAME = 'pictura_session_id'
+const LEGACY_STABLE_COOKIE_NAME = 'pictura_stable_id'
 const SESSION_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 // 30 days
 
 type RequestLike = Request | { headers: Headers }
 
 export function generateSessionId(): string {
-  return randomBytes(SESSION_ID_LENGTH).toString('hex')
+  const raw = randomBytes(SESSION_ID_LENGTH).toString('hex')
+  return SESSION_EPOCH === 'v1' ? raw : `${SESSION_EPOCH}_${raw}`
+}
+
+function applySessionEpoch(value: string): string {
+  if (SESSION_EPOCH === 'v1') return value
+  return value.startsWith(`${SESSION_EPOCH}_`) ? value : `${SESSION_EPOCH}_${value}`
 }
 
 function getStableFingerprint(request?: RequestLike): string | null {
@@ -32,6 +41,22 @@ function getStableFingerprint(request?: RequestLike): string | null {
   return createHash('sha256').update(raw).digest('hex')
 }
 
+
+function parseCookieHeader(cookieHeader: string | null): Record<string, string> {
+  if (!cookieHeader) return {}
+  return cookieHeader.split(';').reduce<Record<string, string>>((acc, part) => {
+    const [key, ...rest] = part.trim().split('=')
+    if (!key) return acc
+    acc[key] = decodeURIComponent(rest.join('='))
+    return acc
+  }, {})
+}
+
+export function getSessionIdFromRequest(request: RequestLike): string | undefined {
+  const cookiesMap = parseCookieHeader(request.headers.get('cookie'))
+  return cookiesMap[SESSION_COOKIE_NAME] || cookiesMap[LEGACY_SESSION_COOKIE_NAME] || undefined
+}
+
 export async function getOrCreateSessionId(request?: RequestLike): Promise<string> {
   const cookieStore = await cookies()
   let sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value
@@ -40,7 +65,8 @@ export async function getOrCreateSessionId(request?: RequestLike): Promise<strin
     const stableCookie = cookieStore.get(STABLE_COOKIE_NAME)?.value
     const fingerprint = getStableFingerprint(request)
 
-    sessionId = stableCookie || fingerprint || generateSessionId()
+    const baseSessionId = stableCookie || fingerprint || generateSessionId()
+    sessionId = applySessionEpoch(baseSessionId)
 
     cookieStore.set(SESSION_COOKIE_NAME, sessionId, {
       httpOnly: true,
@@ -74,4 +100,7 @@ export async function getSessionId(): Promise<string | undefined> {
 export async function clearSessionId(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.delete(SESSION_COOKIE_NAME)
+  cookieStore.delete(STABLE_COOKIE_NAME)
+  cookieStore.delete(LEGACY_SESSION_COOKIE_NAME)
+  cookieStore.delete(LEGACY_STABLE_COOKIE_NAME)
 }

@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server'
 import { getRateLimitInfo } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
+import { getAdminSessionFromRequest } from '@/lib/admin-auth'
+import { getRequestContext } from '@/lib/request-context'
 
 export async function GET(request: Request) {
-  console.log('[RateLimit API] GET /api/rate-limit')
   const sessionId = await getOrCreateSessionId(request)
-  console.log('[RateLimit API] Session ID:', sessionId)
-  const rateLimitInfo = await getRateLimitInfo(sessionId)
-  console.log('[RateLimit API] Returning:', rateLimitInfo)
+  const adminSession = getAdminSessionFromRequest(request)
+  const context = getRequestContext(request)
+
+  const rateLimitInfo = await getRateLimitInfo(sessionId, {
+    role: adminSession?.role,
+    ...context,
+  })
+
   return NextResponse.json(rateLimitInfo)
 }

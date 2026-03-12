@@ -17,4 +17,5 @@ export interface RateLimitInfo {
   remaining: number
   used: number
   resetAt: string
+  isUnlimited?: boolean
 }
