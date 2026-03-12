@@ -109,12 +109,14 @@ export async function POST(request: Request) {
   try {
     const contentType = request.headers.get('content-type') || ''
     let prompt = ''
+    let requestId: string | null = null
     let imageUrl: string | null = null
     let model: string | null = null
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData()
       prompt = String(formData.get('prompt') || '')
+      requestId = formData.get('requestId') ? String(formData.get('requestId')) : null
       model = formData.get('model') ? String(formData.get('model')) : null
       imageUrl = formData.get('imageUrl') ? String(formData.get('imageUrl')) : null
 
@@ -128,6 +130,7 @@ export async function POST(request: Request) {
     } else {
       const body = await request.json()
       prompt = typeof body.prompt === 'string' ? body.prompt : ''
+      requestId = typeof body.requestId === 'string' ? body.requestId : null
       imageUrl = typeof body.imageUrl === 'string' ? body.imageUrl : null
       model = typeof body.model === 'string' ? body.model : null
     }
@@ -152,6 +155,7 @@ export async function POST(request: Request) {
       prompt: prompt.trim(),
       type: 'text-to-video',
       mediaKind: 'video',
+      requestId: requestId || undefined,
       createdAt,
     })
 
@@ -162,6 +166,7 @@ export async function POST(request: Request) {
       url: videoUrl,
       prompt: prompt.trim(),
       type: 'text-to-video',
+      requestId: requestId || undefined,
       createdAt,
       rateLimitInfo: updatedLimit,
     })

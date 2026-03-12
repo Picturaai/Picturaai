@@ -75,6 +75,7 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData()
     const prompt = formData.get('prompt') as string
+    const requestId = (formData.get('requestId') as string | null) || null
     const image = formData.get('image') as File | null
     const imageUrl = formData.get('imageUrl') as string | null
     const model = (formData.get('model') as string | null) || 'pi-1.0'
@@ -137,6 +138,7 @@ export async function POST(request: Request) {
             type: 'image-to-image',
             mediaKind: 'image',
             sourceImageUrl,
+            requestId: requestId || undefined,
             createdAt,
           })
           await incrementUsage(sessionId, { role: adminSession?.role, ...requestContext })
@@ -147,6 +149,7 @@ export async function POST(request: Request) {
             model,
             type: 'image-to-image',
             sourceImageUrl,
+            requestId: requestId || undefined,
             createdAt,
             rateLimitInfo: updatedRateLimitInfo,
           })
@@ -243,6 +246,7 @@ export async function POST(request: Request) {
       type: 'image-to-image',
       mediaKind: 'image',
       sourceImageUrl,
+      requestId: requestId || undefined,
       createdAt,
     })
 
@@ -255,6 +259,7 @@ export async function POST(request: Request) {
       model,
       type: 'image-to-image',
       sourceImageUrl,
+      requestId: requestId || undefined,
       createdAt,
       rateLimitInfo: updatedRateLimitInfo,
     })

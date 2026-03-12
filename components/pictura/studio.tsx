@@ -22,6 +22,7 @@ type Mode = 'text' | 'image' | 'video'
 type Feedback = 'up' | 'down' | null
 type PendingFeedback = { url: string; type: Exclude<Feedback, null> } | null
 type PendingGeneration = {
+  requestId: string
   mode: Mode
   prompt: string
   startedAt: string
@@ -387,7 +388,7 @@ function dedupeMedia(items: GeneratedMedia[]): GeneratedMedia[] {
   const unique: GeneratedMedia[] = []
 
   for (const item of items) {
-    const key = `${item.type}|${item.url}|${item.prompt.trim()}`
+    const key = `${item.type}|${item.url}|${item.prompt.trim()}|${item.requestId || ''}`
     if (seen.has(key)) continue
     seen.add(key)
     unique.push(item)
@@ -686,7 +687,7 @@ export function Studio() {
       const raw = window.localStorage.getItem(PENDING_GENERATION_KEY)
       if (!raw) return null
       const parsed = JSON.parse(raw) as PendingGeneration
-      if (!parsed?.mode || !parsed?.prompt || !parsed?.startedAt) return null
+      if (!parsed?.requestId || !parsed?.mode || !parsed?.prompt || !parsed?.startedAt) return null
       return parsed
     } catch {
       return null
@@ -748,15 +749,17 @@ export function Studio() {
   }, [buildAuthHeaders])
 
   const findResolvedGeneration = useCallback((saved: GeneratedMedia[], pending: PendingGeneration) => {
+    const byRequestId = saved.find((item) => item.requestId && item.requestId === pending.requestId)
+    if (byRequestId) return byRequestId
+
     const pendingStartedAt = new Date(pending.startedAt).getTime()
     const targetKind = pending.mode === 'video' ? 'video' : 'image'
 
-    // Find the newest item with matching kind that's within a reasonable time window
     return saved.find((item) => {
       const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
       const createdAt = new Date(item.createdAt).getTime()
-      // Match if: same kind AND created after startedAt (with some buffer)
-      return kind === targetKind && createdAt >= pendingStartedAt
+      const similarPrompt = item.prompt.trim().toLowerCase() === pending.prompt.trim().toLowerCase()
+      return kind === targetKind && createdAt >= pendingStartedAt && similarPrompt
     })
   }, [])
 
@@ -769,7 +772,7 @@ export function Studio() {
     
     try {
       const parsed = JSON.parse(rawPending) as PendingGeneration
-      if (parsed?.mode && parsed?.prompt && parsed?.startedAt) {
+      if (parsed?.requestId && parsed?.mode && parsed?.prompt && parsed?.startedAt) {
         // Set pending generation first - this will trigger the polling effect
         setPendingGeneration(parsed)
         setLoading(true)
@@ -824,16 +827,11 @@ export function Studio() {
               setImages(sorted)
               
               // Check if there's a matching result
-              const targetKind = parsed.mode === 'video' ? 'video' : 'image'
-              const startedAt = new Date(parsed.startedAt).getTime()
-              const resolved = sorted.find((item: GeneratedMedia) => {
-                const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
-                const createdAt = new Date(item.createdAt).getTime()
-                return kind === targetKind && createdAt >= startedAt
-              })
+              const resolved = findResolvedGeneration(sorted, parsed)
               
               if (resolved) {
-                if (targetKind === 'video') {
+                const resolvedKind = resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')
+                if (resolvedKind === 'video') {
                   setGeneratedVideoUrl(resolved.url)
                 }
                 setLoading(false)
@@ -848,7 +846,7 @@ export function Studio() {
                 }
                 window.localStorage.removeItem(PENDING_GENERATION_KEY)
                 setPendingGeneration(null)
-                if (targetKind === 'video') {
+                if (resolvedKind === 'video') {
                   void fetchVideoRateLimit()
                 } else {
                   void fetchRateLimit()
@@ -864,7 +862,7 @@ export function Studio() {
     } catch {
       window.localStorage.removeItem(PENDING_GENERATION_KEY)
     }
-  }, [fetchRateLimit, fetchVideoRateLimit])
+  }, [fetchRateLimit, fetchVideoRateLimit, findResolvedGeneration])
 
   useEffect(() => {
     setMounted(true)
@@ -992,6 +990,9 @@ export function Studio() {
     const modeAtSubmit = mode
     const promptAtSubmit = currentPrompt.trim()
     const generationStartedAt = new Date().toISOString()
+    const requestId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `gen-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
     if (!promptAtSubmit) return
 
@@ -1027,7 +1028,7 @@ export function Studio() {
     setLoading(true)
     setActiveGenerationMode(modeAtSubmit)
     setLoadingPrompt(promptAtSubmit)
-    persistPendingGeneration({ mode: modeAtSubmit, prompt: promptAtSubmit, startedAt: generationStartedAt })
+    persistPendingGeneration({ requestId, mode: modeAtSubmit, prompt: promptAtSubmit, startedAt: generationStartedAt })
     setShowExhausted(false)
 
     try {
@@ -1038,7 +1039,7 @@ export function Studio() {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
+          body: JSON.stringify({ requestId, prompt: promptAtSubmit, model: selectedModel }),
         })
       } else if (modeAtSubmit === 'image') {
         const form = new FormData()
@@ -1049,6 +1050,7 @@ export function Studio() {
           form.append('imageUrl', uploadPreview)
         }
         form.append('model', selectedModel)
+        form.append('requestId', requestId)
 
         res = await fetch('/api/generate/image-to-image', {
           method: 'POST',
@@ -1061,6 +1063,7 @@ export function Studio() {
           const form = new FormData()
           form.append('prompt', promptAtSubmit)
           form.append('model', selectedModel)
+          form.append('requestId', requestId)
           form.append('image', uploadedFile)
           res = await fetch('/api/generate/video', {
             method: 'POST',
@@ -1073,7 +1076,7 @@ export function Studio() {
             method: 'POST',
             credentials: 'include',
             headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel, imageUrl: uploadPreview || undefined }),
+            body: JSON.stringify({ requestId, prompt: promptAtSubmit, model: selectedModel, imageUrl: uploadPreview || undefined }),
           })
         }
       }
