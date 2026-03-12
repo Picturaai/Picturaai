@@ -1,9 +1,72 @@
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
+import { uploadObject } from '@/lib/storage'
 
 console.log('[TextToImage] Module loaded')
+
+async function pollAlibabaTask(apiKey: string, taskId: string): Promise<string> {
+  for (let i = 0; i < 30; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    const response = await fetch(`https://dashscope-intl.aliyuncs.com/api/v1/tasks/${taskId}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    })
+    if (!response.ok) continue
+    const data = await response.json()
+    const output = data.output || {}
+    const url = output.results?.[0]?.url || output.images?.[0]?.url || output.image_url || output.url
+    if (url) return url
+    if (output.task_status === 'FAILED' || output.task_status === 'CANCELED') {
+      throw new Error('Alibaba task failed')
+    }
+  }
+  throw new Error('Alibaba task timeout')
+}
+
+async function generateWithQwen(prompt: string): Promise<string> {
+  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
+  if (!apiKey) throw new Error('Alibaba API key not configured')
+
+  const candidateModels = [
+    process.env.ALIBABA_IMAGE_MODEL,
+    'wan2.2-t2i-plus',
+    'wan2.2-t2i',
+    'wanx2.1-t2i-turbo',
+  ].filter((m): m is string => Boolean(m))
+
+  let lastError = 'Alibaba text-to-image failed'
+
+  for (const model of candidateModels) {
+    const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-DashScope-Async': 'enable',
+      },
+      body: JSON.stringify({
+        model,
+        input: { prompt: prompt.trim() },
+        parameters: { size: '1024*1024' },
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      lastError = `model=${model} status=${response.status} body=${errorText}`
+      continue
+    }
+
+    const data = await response.json()
+    const taskId = data.output?.task_id
+    if (taskId) return pollAlibabaTask(apiKey, taskId)
+    const directUrl = data.output?.results?.[0]?.url || data.output?.images?.[0]?.url || data.output?.image_url || data.output?.url
+    if (directUrl) return directUrl
+    lastError = `model=${model} returned no task_id/image URL`
+  }
+
+  throw new Error(lastError)
+}
 
 // Provider-specific generation functions
 async function generateWithZyLabs(prompt: string): Promise<string> {
@@ -403,7 +466,7 @@ export async function POST(request: Request) {
     }
 
     // Check rate limit using session ID
-    const sessionId = await getOrCreateSessionId()
+    const sessionId = await getOrCreateSessionId(request)
     console.log('[TextToImage] Session ID:', sessionId)
     const rateLimitInfo = await getRateLimitInfo(sessionId)
     console.log('[TextToImage] Rate limit before:', rateLimitInfo)
@@ -424,23 +487,26 @@ export async function POST(request: Request) {
     // Pictura 1.0 uses free/fast providers first
     // All 10 providers are tried in order - just add the API key to enable
     let imageUrl: string
-    const providers = model === 'pi-1.5-turbo' 
+    const providers = model === 'pi-1.5-turbo'
       ? [
-          generateWithMistral,     // Mistral AI (primary for 1.5)
-          generateWithStability,   // Stability AI SD3
-          generateWithOpenAI,      // OpenAI DALL-E 3
-          generateWithBFL,         // Black Forest Labs Flux Pro
-          generateWithReplicate,   // Replicate
-          generateWithLeonardo,    // Leonardo AI
-          generateWithFal,         // Fal AI
-          generateWithTogether,    // Together AI
-          generateWithFireworks,   // Fireworks AI
-          generateWithDeepInfra,   // DeepInfra
-          generateWithHuggingFace, // HuggingFace
-          generateWithZyLabs,      // ZyLabs
+          generateWithQwen,
+          generateWithMistral,
+          generateWithStability,
+          generateWithOpenAI,
+          generateWithBFL,
+          generateWithReplicate,
+          generateWithLeonardo,
+          generateWithFal,
+          generateWithTogether,
+          generateWithFireworks,
+          generateWithDeepInfra,
+          generateWithHuggingFace,
+          generateWithZyLabs,
         ]
       : [
+
           generateWithZyLabs,      // ZyLabs (fast, free tier)
+          generateWithQwen,        // Alibaba Qwen fallback
           generateWithTogether,    // Together AI (free tier)
           generateWithDeepInfra,   // DeepInfra
           generateWithHuggingFace, // HuggingFace
@@ -495,10 +561,7 @@ export async function POST(request: Request) {
     const filename = `pictura/text-to-image/${timestamp}-${model}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
     // Upload to Vercel Blob
-    const blob = await put(filename, imageBuffer, {
-      access: 'public',
-      contentType: 'image/png',
-    })
+    const blob = await uploadObject(filename, imageBuffer, 'image/png')
 
     // Increment usage after successful generation
     console.log('[TextToImage] Incrementing usage...')

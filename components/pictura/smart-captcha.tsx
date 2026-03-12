@@ -313,35 +313,24 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   }, [])
   
   const startChallenge = useCallback(() => {
-    // Only allow starting from idle state
     if (status !== 'idle') return
     if (isVerifiedRef.current) return
-    
+
     setStatus('analyzing')
-    
+
     if (!(window as unknown as { __picturaLoadTime?: number }).__picturaLoadTime) {
       (window as unknown as { __picturaLoadTime: number }).__picturaLoadTime = Date.now()
     }
-    
-    // Simplified flow: auto-verify most users without challenges
+
     setTimeout(() => {
-      setStatus('verifying')
-      setTimeout(() => {
-        isVerifiedRef.current = true
-        setStatus('verified')
-        // Generate a base64-encoded token with verification data for server-side validation
-        const tokenData = {
-          t: Date.now(),           // Timestamp
-          s: siteKey,              // Site key
-          i: interactionsRef.current, // Interaction count
-          v: true,                 // Verified
-          r: Math.random().toString(36).substr(2, 9) // Random nonce
-        }
-        const token = Buffer.from(JSON.stringify(tokenData)).toString('base64')
-        onVerify?.(token)
-      }, 600)
-    }, 800)
-  }, [status, resetChallenge, analyzeRisk, siteKey, onVerify])
+      const stepsNeeded = analyzeRisk()
+      setRequiredSteps(stepsNeeded)
+      setCurrentStep(1)
+      resetChallenge()
+      setStatus('challenge')
+      hasStartedRef.current = true
+    }, 700)
+  }, [status, resetChallenge, analyzeRisk])
   
   // Show correct answer then give new challenge
   const handleWrong = useCallback(() => {

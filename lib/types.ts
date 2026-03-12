@@ -1,10 +1,16 @@
-export interface GeneratedImage {
+export type GeneratedMediaType = 'text-to-image' | 'image-to-image' | 'text-to-video'
+
+export interface GeneratedMedia {
   url: string
   prompt: string
-  type: 'text-to-image' | 'image-to-image'
+  type: GeneratedMediaType
+  mediaKind?: 'image' | 'video'
   sourceImageUrl?: string
   createdAt: string
 }
+
+// Backward-compatible alias for existing image-only usage sites.
+export type GeneratedImage = GeneratedMedia
 
 export interface RateLimitInfo {
   limit: number

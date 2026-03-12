@@ -1,11 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import { DM_Sans, Space_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { SecurityGuard } from '@/components/security-guard'
 import './globals.css'
-
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
-const spaceMono = Space_Mono({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-space-mono' })
 
 export const metadata: Metadata = {
   title: {
@@ -76,7 +72,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${spaceMono.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
         <SecurityGuard>
           {children}
         </SecurityGuard>

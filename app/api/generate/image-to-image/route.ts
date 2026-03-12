@@ -1,7 +1,71 @@
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
+import { uploadObject } from '@/lib/storage'
+
+async function pollQwenTask(apiKey: string, taskId: string): Promise<string | null> {
+  for (let i = 0; i < 30; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    const response = await fetch(`https://dashscope-intl.aliyuncs.com/api/v1/tasks/${taskId}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    })
+    if (!response.ok) continue
+    const data = await response.json()
+    const out = data.output || {}
+    const url = out.results?.[0]?.url || out.images?.[0]?.url || out.image_url || out.url
+    if (url) return url
+    if (out.task_status === 'FAILED' || out.task_status === 'CANCELED') return null
+  }
+  return null
+}
+
+async function generateWithQwenEdit(prompt: string, sourceImageUrl: string): Promise<string | null> {
+  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
+  if (!apiKey) return null
+
+  const candidateModels = [
+    process.env.ALIBABA_IMAGE_EDIT_MODEL,
+    'wan2.2-imageedit-plus',
+    'wanx2.1-imageedit',
+    'qwen-image-edit',
+  ].filter((m): m is string => Boolean(m))
+
+  for (const model of candidateModels) {
+    const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-DashScope-Async': 'enable',
+      },
+      body: JSON.stringify({
+        model,
+        input: { prompt: prompt.trim(), image_url: sourceImageUrl },
+        parameters: { size: '1024*1024' },
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      console.log(`[img2img:qwen] model=${model} failed`, response.status, errorText.slice(0, 300))
+      continue
+    }
+
+    const data = await response.json()
+    const taskId = data.output?.task_id
+    if (taskId) {
+      const polled = await pollQwenTask(apiKey, taskId)
+      if (polled) return polled
+      continue
+    }
+
+    const direct = data.output?.results?.[0]?.url || data.output?.images?.[0]?.url || data.output?.image_url || data.output?.url
+    if (direct) return direct
+  }
+
+  return null
+}
+
 
 export async function POST(request: Request) {
   try {
@@ -9,6 +73,7 @@ export async function POST(request: Request) {
     const prompt = formData.get('prompt') as string
     const image = formData.get('image') as File | null
     const imageUrl = formData.get('imageUrl') as string | null
+    const model = (formData.get('model') as string | null) || 'pi-1.0'
 
     if (!prompt || prompt.trim().length === 0) {
       return NextResponse.json({ error: 'A text prompt is required' }, { status: 400 })
@@ -19,7 +84,7 @@ export async function POST(request: Request) {
     }
 
     // Check rate limit using session ID
-    const sessionId = await getOrCreateSessionId()
+    const sessionId = await getOrCreateSessionId(request)
     const rateLimitInfo = await getRateLimitInfo(sessionId)
 
     if (rateLimitInfo.remaining <= 0) {
@@ -30,24 +95,45 @@ export async function POST(request: Request) {
     }
 
     const apiKey = process.env.ZYLABS_API_KEY
-    if (!apiKey) {
-      return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
-    }
+
+    const hasAlibabaKey = Boolean(process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY)
+
 
     // If we have a file, upload it to Blob first to get a public URL
     let sourceImageUrl = imageUrl || ''
     if (image) {
       const uploadTimestamp = Date.now()
       const uploadFilename = `pictura/uploads/${uploadTimestamp}-${image.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
-      const uploadBlob = await put(uploadFilename, image, {
-        access: 'public',
-        contentType: image.type,
-      })
+      const uploadBlob = await uploadObject(uploadFilename, image, image.type || 'application/octet-stream')
       sourceImageUrl = uploadBlob.url
     }
 
     console.log('[v0] img2img sourceImageUrl:', sourceImageUrl)
     console.log('[v0] img2img prompt:', prompt.trim())
+
+    if (model === 'pi-1.5-turbo' || !apiKey) {
+      const qwenImage = await generateWithQwenEdit(prompt, sourceImageUrl)
+      if (qwenImage) {
+        const imageResponse = await fetch(qwenImage)
+        if (imageResponse.ok) {
+          const imageBuffer = await imageResponse.arrayBuffer()
+          const timestamp = Date.now()
+          const filename = `pictura/image-to-image/${timestamp}-qwen-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
+          const blob = await uploadObject(filename, imageBuffer, 'image/png')
+          await incrementUsage(sessionId)
+          const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
+          return NextResponse.json({
+            url: blob.url,
+            prompt: prompt.trim(),
+            model,
+            type: 'image-to-image',
+            sourceImageUrl,
+            createdAt: new Date().toISOString(),
+            rateLimitInfo: updatedRateLimitInfo,
+          })
+        }
+      }
+    }
 
     // Try image-to-image endpoint with GET (matching text-to-image pattern)
     const params = new URLSearchParams({
@@ -61,16 +147,19 @@ export async function POST(request: Request) {
     let data: Record<string, unknown> | null = null
     let generatedImageUrl: string | null = null
 
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${apiKey}` },
-    })
+    let response: Response | null = null
+    if (apiKey) {
+      response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      })
+    }
 
-    if (response.ok) {
+    if (response?.ok) {
       data = await response.json()
       console.log('[v0] img2img response:', JSON.stringify(data).slice(0, 500))
       generatedImageUrl = extractImageUrl(data!)
-    } else {
+    } else if (response) {
       console.log('[v0] img2img GET failed:', response.status, await response.text().catch(() => ''))
     }
 
@@ -85,21 +174,26 @@ export async function POST(request: Request) {
       })
       const fallbackUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20188/text+to+image?${fallbackParams.toString()}`
 
-      const fallbackRes = await fetch(fallbackUrl, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${apiKey}` },
-      })
+      if (apiKey) {
+        const fallbackRes = await fetch(fallbackUrl, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${apiKey}` },
+        })
 
-      if (fallbackRes.ok) {
-        data = await fallbackRes.json()
-        console.log('[v0] img2img fallback response:', JSON.stringify(data).slice(0, 500))
-        generatedImageUrl = extractImageUrl(data!)
+        if (fallbackRes.ok) {
+          data = await fallbackRes.json()
+          console.log('[v0] img2img fallback response:', JSON.stringify(data).slice(0, 500))
+          generatedImageUrl = extractImageUrl(data!)
+        }
       }
     }
 
     if (!generatedImageUrl) {
+      const configHint = !apiKey && !hasAlibabaKey
+        ? 'No provider key found. Add ZYLABS_API_KEY or ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
+        : undefined
       return NextResponse.json(
-        { error: 'Image transformation failed. Please try again.' },
+        { error: 'Image transformation failed. Please try again.', details: configHint },
         { status: 500 }
       )
     }
@@ -114,10 +208,7 @@ export async function POST(request: Request) {
     const timestamp = Date.now()
     const filename = `pictura/image-to-image/${timestamp}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
-    const blob = await put(filename, imageBuffer, {
-      access: 'public',
-      contentType: 'image/png',
-    })
+    const blob = await uploadObject(filename, imageBuffer, 'image/png')
 
     await incrementUsage(sessionId)
     const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
@@ -125,6 +216,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       url: blob.url,
       prompt: prompt.trim(),
+      model,
       type: 'image-to-image',
       sourceImageUrl,
       createdAt: new Date().toISOString(),

@@ -1,25 +1,40 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
-  ThumbsUp, ThumbsDown, Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw, Pencil,
+  Grid3X3, ChevronLeft,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard, ThumbsUp, ThumbsDown, Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
 import { DownloadModal } from './download-modal'
+import { VideoDownloadModal } from './video-download-modal'
 import { AIImageEditor } from './ai-image-editor'
 import { playSuccessSound, playLimitSound } from '@/lib/sounds'
-import type { GeneratedImage, RateLimitInfo } from '@/lib/types'
+import type { GeneratedMedia, RateLimitInfo } from '@/lib/types'
 
-type Mode = 'text' | 'image'
+type Mode = 'text' | 'image' | 'video'
 type Feedback = 'up' | 'down' | null
+type PendingFeedback = { url: string; type: Exclude<Feedback, null> } | null
+type PendingGeneration = {
+  mode: Mode
+  prompt: string
+  startedAt: string
+}
 
+const PENDING_GENERATION_KEY = 'pictura_pending_generation'
+
+
+const VIDEO_LOADING_HINTS = [
+  'Adding audio layers and cinematic timing...',
+  'Enhancing motion and scene continuity...',
+  'Almost ready — final rendering in progress...',
+]
 const TOUR_STEPS = [
   {
     title: 'Welcome to Pictura Studio',
@@ -52,6 +67,11 @@ const TOUR_STEPS = [
     target: 'suggestions',
   },
   {
+    title: 'Video Result Area',
+    description: 'When you use Text to Video, your generated video appears here in the same result feed.',
+    target: 'video-result',
+  },
+  {
     title: 'Your Gallery',
     description: 'All your generated images appear here. Tap to view, download, or rate them.',
     target: 'gallery',
@@ -66,6 +86,7 @@ const TOUR_STEPS = [
 const MODELS = [
   { id: 'pi-1.0', name: 'Pictura pi-1.0', status: 'active' as const, description: 'General purpose image generation' },
   { id: 'pi-1.5-turbo', name: 'Pictura pi-1.5 Turbo', status: 'active' as const, description: 'Faster, higher quality output' },
+  { id: 'picturagen', name: 'PicturaGen', status: 'beta' as const, description: 'Our AI video model for cinematic Text to Video generation.' },
   { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture' },
 ]
 
@@ -76,6 +97,10 @@ function SendIcon({ className = '' }: { className?: string }) {
       <path d="M6 12h12M13 7l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
+}
+
+function VideoSendIcon({ className = '' }: { className?: string }) {
+  return <Clapperboard className={className} />
 }
 
 /* ---- Tour Overlay: highlights real elements with positioned tooltip ---- */
@@ -276,41 +301,234 @@ const IMG2IMG_EXAMPLES = [
   'Add snow and winter atmosphere',
 ]
 
+const VIDEO_EXAMPLES = [
+  'A cinematic drone shot of Lagos skyline at sunset, 6 seconds',
+  'A claymation fox running through a snowy forest, 5 seconds',
+  'Product showcase turntable animation of a sneaker, studio lighting',
+  'Aerial view of neon cyberpunk city with rain, 8 seconds',
+]
+
+
+const VIDEO_EXAMPLES_BY_REGION: Record<string, string[]> = {
+  NG: [
+    'Cinematic aerial of Lagos Third Mainland Bridge at sunset, smooth camera move',
+    'Bustling Abuja street market in golden hour, natural motion and color',
+  ],
+  US: [
+    'Downtown skyline time-lapse feel with cinematic motion and warm sunset tones',
+    'Cozy New York coffee shop scene with shallow depth and ambient movement',
+  ],
+  GB: [
+    'Rainy London street at night with neon reflections and slow dolly movement',
+    'Aerial sweep over historic architecture at blue hour with cinematic grading',
+  ],
+  IN: [
+    'Colorful Jaipur street scene with lively motion and warm cinematic light',
+    'Mumbai seafront evening atmosphere with gentle camera drift and crowd motion',
+  ],
+  CA: [
+    'Toronto skyline twilight shot with smooth drone movement and soft haze',
+    'Rocky mountain lake panorama with drifting clouds and cinematic color',
+  ],
+}
+
+const IMAGE_EXAMPLES_BY_REGION: Record<string, string[]> = {
+  NG: [
+    'A vibrant Lagos street fashion portrait at golden hour with rich skin tones and cinematic depth',
+    'A serene waterfront morning in Lekki with soft mist, palm trees, and realistic lighting',
+  ],
+  US: [
+    'A cinematic portrait in downtown Manhattan at blue hour with neon reflections',
+    'A warm desert road-trip scene in Arizona with dramatic sunset light and dust particles',
+  ],
+  GB: [
+    'A rainy London alley at night with reflections, umbrellas, and moody film lighting',
+    'A cozy countryside cottage in the Cotswolds at sunrise with soft fog and detailed textures',
+  ],
+  IN: [
+    'A colorful Jaipur palace courtyard at sunrise with intricate architecture and flowing fabrics',
+    'A bustling Mumbai evening street with cinematic bokeh lights and realistic atmosphere',
+  ],
+  CA: [
+    'A peaceful Banff mountain lake with pine forests, mirror reflections, and crisp morning light',
+    'A cozy Toronto winter street scene with warm storefront lights and light snowfall',
+  ],
+}
+
+function getRegionCodeFromLocale(locale?: string): string {
+  if (!locale) return 'GLOBAL'
+  const normalized = locale.replace('_', '-')
+  const parts = normalized.split('-')
+  if (parts.length >= 2) return parts[1].toUpperCase()
+  return 'GLOBAL'
+}
+
+function pickUniquePrompts(prompts: string[], count: number): string[] {
+  const pool = [...new Set(prompts)]
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+  }
+  return pool.slice(0, Math.min(count, pool.length))
+}
+
+function getPromptExamplesForMode(mode: Mode, imageExamples: string[], videoExamples: string[]): string[] {
+  if (mode === 'text') return imageExamples
+  if (mode === 'image') return IMG2IMG_EXAMPLES
+  return videoExamples
+}
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
-  const [images, setImages] = useState<GeneratedImage[]>([])
+  const [activeGenerationMode, setActiveGenerationMode] = useState<Mode | null>(null)
+  const [loadingPrompt, setLoadingPrompt] = useState('')
+  const [pendingGeneration, setPendingGeneration] = useState<PendingGeneration | null>(null)
+  const [images, setImages] = useState<GeneratedMedia[]>([])
   const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 5, remaining: 5, used: 0, resetAt: '' })
-  const [lightbox, setLightbox] = useState<GeneratedImage | null>(null)
+  const [videoRateLimit, setVideoRateLimit] = useState<RateLimitInfo>({ limit: 2, remaining: 2, used: 0, resetAt: '' })
+  const [lightbox, setLightbox] = useState<GeneratedMedia | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadPreview, setUploadPreview] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [feedbackMap, setFeedbackMap] = useState<Record<string, Feedback>>({})
+  const [pendingFeedback, setPendingFeedback] = useState<PendingFeedback>(null)
+  const [feedbackNote, setFeedbackNote] = useState('')
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [showExhausted, setShowExhausted] = useState(false)
   const [tourStep, setTourStep] = useState(-1) // -1 = not showing
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
+
+  // auto-switch model with mode
+  useEffect(() => {
+    if (mode === 'video' && selectedModel !== 'picturagen') {
+      setSelectedModel('picturagen')
+      return
+    }
+
+    if (mode !== 'video' && selectedModel === 'picturagen') {
+      setSelectedModel('pi-1.5-turbo')
+    }
+  }, [mode, selectedModel])
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [improving, setImproving] = useState(false)
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
-  const [downloadImage, setDownloadImage] = useState<GeneratedImage | null>(null)
+  const [downloadImage, setDownloadImage] = useState<GeneratedMedia | null>(null)
+  const [videoDownloadModalOpen, setVideoDownloadModalOpen] = useState(false)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editorImage, setEditorImage] = useState<string | null>(null)
+  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
+  const [videoLoadingHintIndex, setVideoLoadingHintIndex] = useState(0)
+  const [videoExamples, setVideoExamples] = useState<string[]>(VIDEO_EXAMPLES)
+  const [visibleVideoExamples, setVisibleVideoExamples] = useState<string[]>(VIDEO_EXAMPLES.slice(0, 4))
+  const [imageExamples, setImageExamples] = useState<string[]>(PROMPT_EXAMPLES)
+  const [visibleImageExamples, setVisibleImageExamples] = useState<string[]>(PROMPT_EXAMPLES.slice(0, 4))
+  const [ratingPromptOpen, setRatingPromptOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
 
+  const clientFingerprint = useMemo(() => {
+    if (typeof window === 'undefined') return ''
+
+    const raw = [
+      window.navigator.userAgent,
+      window.navigator.language,
+      window.navigator.platform,
+      String(window.navigator.hardwareConcurrency || 0),
+      String(window.navigator.maxTouchPoints || 0),
+    ].join('|')
+
+    let hash = 0
+    for (let i = 0; i < raw.length; i++) {
+      hash = ((hash << 5) - hash) + raw.charCodeAt(i)
+      hash |= 0
+    }
+    return `fp-${Math.abs(hash)}`
+  }, [])
+
+  const buildAuthHeaders = useCallback((headers?: HeadersInit) => {
+    const nextHeaders = new Headers(headers || {})
+    if (clientFingerprint) {
+      nextHeaders.set('x-client-fingerprint', clientFingerprint)
+    }
+    return nextHeaders
+  }, [clientFingerprint])
+
+  useEffect(() => {
+    if (!(loading && mode === 'video')) return
+    setVideoLoadingHintIndex(0)
+    const interval = setInterval(() => {
+      setVideoLoadingHintIndex((prev) => (prev + 1) % VIDEO_LOADING_HINTS.length)
+    }, 1600)
+    return () => clearInterval(interval)
+  }, [loading, mode])
+
+  useEffect(() => {
+    const locale = typeof navigator !== 'undefined' ? navigator.language : undefined
+    const region = getRegionCodeFromLocale(locale)
+
+    const regionalVideo = VIDEO_EXAMPLES_BY_REGION[region] || []
+    const mergedVideo = [...regionalVideo, ...VIDEO_EXAMPLES]
+    setVideoExamples(mergedVideo)
+    setVisibleVideoExamples(pickUniquePrompts(mergedVideo, 4))
+
+    const regionalImage = IMAGE_EXAMPLES_BY_REGION[region] || []
+    const mergedImage = [...regionalImage, ...PROMPT_EXAMPLES]
+    setImageExamples(mergedImage)
+    setVisibleImageExamples(pickUniquePrompts(mergedImage, 4))
+  }, [])
+
+  useEffect(() => {
+    if (mode !== 'video') return
+    const interval = setInterval(() => {
+      setVisibleVideoExamples(pickUniquePrompts(videoExamples, 4))
+    }, 5500)
+    return () => clearInterval(interval)
+  }, [mode, imageExamples, videoExamples])
+
+  useEffect(() => {
+    if (mode !== 'text') return
+    const interval = setInterval(() => {
+      setVisibleImageExamples(pickUniquePrompts(imageExamples, 4))
+    }, 5500)
+    return () => clearInterval(interval)
+  }, [mode, imageExamples])
+
+  const activePromptExamples = useMemo(
+    () => getPromptExamplesForMode(mode, imageExamples, videoExamples),
+    [mode, imageExamples, videoExamples],
+  )
+
+  const pickNextPlaceholderIndex = useCallback((prev: number) => {
+    const total = activePromptExamples.length
+    if (total <= 1) return 0
+
+    let next = prev
+    while (next === prev) {
+      next = Math.floor(Math.random() * total)
+    }
+    return next
+  }, [activePromptExamples])
+
   // Rotate prompt suggestions every 4s when input is empty
   useEffect(() => {
     if (prompt) return
-    const examples = mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES
+
     const interval = setInterval(() => {
-      setPlaceholderIdx((prev) => (prev + 1) % examples.length)
+      setPlaceholderIdx((prev) => pickNextPlaceholderIndex(prev))
     }, 4000)
+
     return () => clearInterval(interval)
-  }, [prompt, mode])
+  }, [prompt, pickNextPlaceholderIndex])
+
+  useEffect(() => {
+    const total = activePromptExamples.length
+    if (total === 0) return
+    setPlaceholderIdx(Math.floor(Math.random() * total))
+  }, [activePromptExamples])
 
   // Improve prompt using AI
   const handleImprovePrompt = async () => {
@@ -319,7 +537,7 @@ export function Studio() {
     try {
       const res = await fetch('/api/improve-prompt', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ prompt: prompt.trim(), mode }),
       })
       if (!res.ok) throw new Error('Failed')
@@ -338,7 +556,7 @@ export function Studio() {
   const fetchRateLimit = useCallback(async () => {
     try {
       console.log('[Client] Fetching rate limit...')
-      const res = await fetch('/api/rate-limit', { credentials: 'include' })
+      const res = await fetch('/api/rate-limit', { credentials: 'include', headers: buildAuthHeaders() })
       console.log('[Client] Rate limit response:', res.status, res.ok)
       if (res.ok) {
         const data = await res.json()
@@ -348,39 +566,155 @@ export function Studio() {
     } catch (e) { 
       console.error('[Client] Rate limit error:', e)
     }
+  }, [buildAuthHeaders])
+
+  const fetchVideoRateLimit = useCallback(async () => {
+    try {
+      const res = await fetch('/api/rate-limit/video', { credentials: 'include', headers: buildAuthHeaders() })
+      if (res.ok) {
+        const data = await res.json()
+        setVideoRateLimit(data)
+      }
+    } catch { /* silent */ }
+  }, [buildAuthHeaders])
+
+  const clearPendingGeneration = useCallback(() => {
+    setPendingGeneration(null)
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(PENDING_GENERATION_KEY)
+    }
+  }, [])
+
+  const persistPendingGeneration = useCallback((item: PendingGeneration) => {
+    setPendingGeneration(item)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(PENDING_GENERATION_KEY, JSON.stringify(item))
+    }
   }, [])
 
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
     try {
-      const res = await fetch('/api/gallery', { credentials: 'include' })
+      const res = await fetch('/api/gallery', { credentials: 'include', headers: buildAuthHeaders() })
       if (res.ok) {
         const { images: saved } = await res.json()
         if (saved && saved.length > 0) {
-          // Merge: keep any in-session images + all saved, deduplicate by URL
+          // Merge: keep any in-session media + all saved entries (including repeated URLs)
           setImages((prev) => {
-            const urlSet = new Set(prev.map((img) => img.url))
-            const merged = [...prev, ...saved.filter((img: GeneratedImage) => !urlSet.has(img.url))]
+            const merged = [...prev, ...saved]
             // Sort newest first by createdAt
             merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            const latestVideo = merged.find((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
+            if (latestVideo) setGeneratedVideoUrl(latestVideo.url)
             return merged
           })
         }
       }
     } catch { /* silent */ }
+  }, [buildAuthHeaders])
+
+  const findResolvedGeneration = useCallback((saved: GeneratedMedia[], pending: PendingGeneration) => {
+    const pendingStartedAt = new Date(pending.startedAt).getTime()
+    const targetKind = pending.mode === 'video' ? 'video' : 'image'
+
+    return saved.find((item) => {
+      const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
+      const createdAt = new Date(item.createdAt).getTime()
+      return kind === targetKind && item.prompt === pending.prompt && createdAt >= (pendingStartedAt - 60_000)
+    })
   }, [])
 
   useEffect(() => {
     setMounted(true)
     fetchRateLimit()
+    fetchVideoRateLimit()
     loadGallery()
-    // Show tour on first visit only
-    try {
-      if (!localStorage.getItem('pictura_tour_done')) {
+
+    if (typeof window !== 'undefined') {
+      const rawPending = window.localStorage.getItem(PENDING_GENERATION_KEY)
+      if (rawPending) {
+        try {
+          const parsed = JSON.parse(rawPending) as PendingGeneration
+          if (parsed?.mode && parsed?.prompt && parsed?.startedAt) {
+            setPendingGeneration(parsed)
+            setLoading(true)
+            setLoadingPrompt(parsed.prompt)
+            setActiveGenerationMode(parsed.mode)
+          }
+        } catch {
+          window.localStorage.removeItem(PENDING_GENERATION_KEY)
+        }
+      }
+    }
+
+    const loadTourPreference = async () => {
+      try {
+        const res = await fetch('/api/studio/preferences', { credentials: 'include', headers: buildAuthHeaders() })
+        const data = res.ok ? await res.json() : { completed: false }
+        if (!data.completed) {
+          setTimeout(() => setTourStep(0), 600)
+        }
+      } catch {
         setTimeout(() => setTourStep(0), 600)
       }
-    } catch { /* silent */ }
-  }, [fetchRateLimit, loadGallery])
+    }
+
+    loadTourPreference()
+  }, [fetchRateLimit, fetchVideoRateLimit, loadGallery, buildAuthHeaders])
+
+  useEffect(() => {
+    if (!pendingGeneration) return
+
+    let cancelled = false
+
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/gallery', { credentials: 'include', headers: buildAuthHeaders() })
+        if (!res.ok) return
+
+        const { images: saved } = await res.json()
+        if (!Array.isArray(saved)) return
+
+        if (!cancelled) {
+          const sortedSaved = [...(saved as GeneratedMedia[])].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          setImages(sortedSaved)
+        }
+
+        const resolved = findResolvedGeneration(saved as GeneratedMedia[], pendingGeneration)
+        if (resolved && !cancelled) {
+          if ((resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')) === 'video') {
+            setGeneratedVideoUrl(resolved.url)
+          }
+          setLoading(false)
+          setActiveGenerationMode(null)
+          setLoadingPrompt('')
+          clearPendingGeneration()
+          toast.success('Generation restored successfully.')
+          return
+        }
+
+        const startedAt = new Date(pendingGeneration.startedAt).getTime()
+        const ttlMs = pendingGeneration.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+        if (!cancelled && Date.now() - startedAt > ttlMs) {
+          setLoading(false)
+          setActiveGenerationMode(null)
+          setLoadingPrompt('')
+          clearPendingGeneration()
+          toast.info('Previous generation timed out. Please try again.')
+        }
+      } catch {
+        // Silent polling failures
+      }
+    }
+
+    checkStatus()
+    const interval = setInterval(checkStatus, 4500)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -409,80 +743,121 @@ export function Studio() {
   }
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return
-    if (rateLimit.remaining <= 0) {
+    const modeAtSubmit = mode
+    const promptAtSubmit = prompt.trim()
+    const generationStartedAt = new Date().toISOString()
+
+    if (!promptAtSubmit) return
+
+    if ((modeAtSubmit === 'text' || modeAtSubmit === 'image') && rateLimit.remaining <= 0) {
       playLimitSound()
       setShowExhausted(true)
       return
     }
-    if (mode === 'image' && !uploadedFile) {
-      toast.error('Upload a reference image first.')
+
+    if (modeAtSubmit === 'image' && !uploadedFile) {
+      toast.error('Please upload an image first')
       return
     }
 
     setLoading(true)
+    setActiveGenerationMode(modeAtSubmit)
+    setLoadingPrompt(promptAtSubmit)
+    persistPendingGeneration({ mode: modeAtSubmit, prompt: promptAtSubmit, startedAt: generationStartedAt })
+    setShowExhausted(false)
+
     try {
       let res: Response
-      if (mode === 'text') {
+
+      if (modeAtSubmit === 'text') {
         res = await fetch('/api/generate/text-to-image', {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
+        })
+      } else if (modeAtSubmit === 'image') {
+        const form = new FormData()
+        form.append('prompt', promptAtSubmit)
+        form.append('imageUrl', uploadPreview || '')
+        form.append('model', selectedModel)
+
+        res = await fetch('/api/generate/image-to-image', {
+          method: 'POST',
+          credentials: 'include',
+          headers: buildAuthHeaders(),
+          body: form,
         })
       } else {
-        const formData = new FormData()
-        formData.append('prompt', prompt.trim())
-        if (uploadedFile) formData.append('image', uploadedFile)
-        res = await fetch('/api/generate/image-to-image', { 
-          method: 'POST', 
+        if (videoRateLimit.remaining <= 0) {
+          playLimitSound()
+          setShowExhausted(true)
+          return
+        }
+        res = await fetch('/api/generate/video', {
+          method: 'POST',
           credentials: 'include',
-          body: formData 
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
         })
       }
 
       const data = await res.json()
       console.log('[Client] Generate response:', res.status, data.rateLimitInfo)
+
       if (!res.ok) {
-        toast.error(data.error || 'Generation failed. Please try again.')
-        if (data.rateLimitInfo) {
+        if (data.rateLimitInfo && modeAtSubmit !== 'video') {
           console.log('[Client] Setting rate limit from error:', data.rateLimitInfo)
           setRateLimit(data.rateLimitInfo)
         }
-        return
+        throw new Error(data.error || 'Failed to generate')
       }
 
-      setImages((prev) => [data, ...prev])
-      if (data.rateLimitInfo) {
-        console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
-        setRateLimit(data.rateLimitInfo)
+      if (modeAtSubmit === 'video') {
+        setGeneratedVideoUrl(data.url)
+        const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
+        setImages((prev) => [videoItem, ...prev])
+        if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
+        playSuccessSound()
+        toast.success('Video generated!')
+
+        await fetch('/api/gallery', {
+          method: 'POST',
+          credentials: 'include',
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify(videoItem),
+        }).catch(() => {})
+      } else {
+        const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
+        setImages((prev) => [imageItem, ...prev])
+        if (data.rateLimitInfo) {
+          console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
+          setRateLimit(data.rateLimitInfo)
+        }
+        playSuccessSound()
+        toast.success('Image generated!')
       }
-      setPrompt('')
-      playSuccessSound()
-      toast.success('Image generated!')
 
-      // Persist to gallery
-      fetch('/api/gallery', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).catch(() => { /* silent */ })
-      setTimeout(() => galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+      if (modeAtSubmit !== 'video') {
+        setPrompt('')
+      }
 
-      // Check if this was the last generation
-      const updatedRemaining = data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1
-      if (updatedRemaining <= 0) {
-        setTimeout(() => {
-          playLimitSound()
-          setShowExhausted(true)
-        }, 1500)
+      const updatedRemaining = modeAtSubmit === 'video'
+        ? (data.rateLimitInfo?.remaining ?? videoRateLimit.remaining - 1)
+        : (data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1)
+
+      if (updatedRemaining <= 2 && updatedRemaining > 1) {
+        setTimeout(() => toast.info(`You have ${updatedRemaining} generations left today.`), 800)
       } else if (updatedRemaining === 1) {
-        setTimeout(() => toast('You have 1 generation left today. Make it count!'), 800)
+        setTimeout(() => toast.info('You have 1 generation left today. Make it count!'), 800)
       }
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
+      setActiveGenerationMode(null)
+      setLoadingPrompt('')
+      clearPendingGeneration()
     }
   }
 
@@ -490,31 +865,94 @@ export function Studio() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate() }
   }
 
-  const handleDownload = (img: GeneratedImage) => {
+  const handleDownload = (img: GeneratedMedia) => {
     setDownloadImage(img)
     setDownloadModalOpen(true)
   }
 
-  const handleFeedback = (url: string, type: Feedback) => {
-    setFeedbackMap((prev) => ({
-      ...prev,
-      [url]: prev[url] === type ? null : type,
-    }))
-    if (type === 'up') toast.success('Thanks for the feedback!')
-    if (type === 'down') toast('We\'ll use this to improve Pictura.')
+  const handleCopyPrompt = async (promptText?: string) => {
+    if (!promptText?.trim()) return
+    try {
+      await navigator.clipboard.writeText(promptText)
+      toast.success('Prompt copied to clipboard.')
+    } catch {
+      toast.error('Could not copy prompt. Please copy manually.')
+    }
   }
 
-  const dismissTour = () => {
+  const handleFeedback = (url: string, type: Feedback) => {
+    if (!type) return
+    const nextType = feedbackMap[url] === type ? null : type
+    setFeedbackMap((prev) => ({
+      ...prev,
+      [url]: nextType,
+    }))
+
+    if (!nextType) {
+      setPendingFeedback(null)
+      setFeedbackNote('')
+      setRatingPromptOpen(false)
+      return
+    }
+
+    if (nextType === 'up') {
+      setPendingFeedback(null)
+      setFeedbackNote('')
+      setRatingPromptOpen(false)
+      toast.success('Thanks for the feedback!')
+      return
+    }
+
+    setPendingFeedback({ url, type: nextType })
+    setFeedbackNote('')
+    setRatingPromptOpen(true)
+  }
+
+  const handleModeSwitch = (nextMode: Mode) => {
+    if (loading) {
+      toast.info('Generation in progress. Please wait until it finishes.')
+      return
+    }
+
+    if (nextMode === 'text') {
+      setMode('text')
+      handleFileChange(null)
+      return
+    }
+
+    if (nextMode === 'image') {
+      setMode('image')
+      if (!uploadedFile) fileInputRef.current?.click()
+      return
+    }
+
+    setSelectedModel('picturagen')
+    setMode('video')
+    handleFileChange(null)
+  }
+
+  const dismissTour = async () => {
     setTourStep(-1)
-    try { localStorage.setItem('pictura_tour_done', '1') } catch { /* silent */ }
+    try {
+      await fetch('/api/studio/preferences', {
+        method: 'POST',
+        credentials: 'include',
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ completed: true }),
+      })
+    } catch { /* silent */ }
   }
   const nextTourStep = () => {
     if (tourStep >= TOUR_STEPS.length - 1) { dismissTour(); return }
     setTourStep((s) => s + 1)
   }
 
-  const creditsUsed = rateLimit.used
-  const creditsTotal = rateLimit.limit
+  const currentLimitInfo = mode === 'video' ? videoRateLimit : rateLimit
+  const imageItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'image')
+  const videoItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
+  const hasResults = mode === 'video' ? videoItems.length > 0 : imageItems.length > 0
+  const creditsUsed = currentLimitInfo.used
+  const creditsTotal = currentLimitInfo.limit
   const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
 
   if (!mounted) return null
@@ -548,7 +986,7 @@ export function Studio() {
               className="flex items-center gap-1 rounded-lg border border-border/40 bg-card px-2 py-1.5 text-[11px] font-medium text-foreground transition-colors hover:bg-secondary/60 sm:gap-1.5 sm:px-2.5"
             >
               <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
-              <span className="truncate max-w-[60px] sm:max-w-none">{selectedModel}</span>
+              <span className="truncate max-w-[60px] sm:max-w-none">{selectedModel === 'picturagen' ? 'PicturaGen' : selectedModel}</span>
               <ChevronDown className={`h-3 w-3 flex-shrink-0 text-muted-foreground transition-transform ${modelOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -568,7 +1006,7 @@ export function Studio() {
                     <button
                       key={model.id}
                       disabled={model.status === 'coming'}
-                      onClick={() => { setSelectedModel(model.id); setModelOpen(false) }}
+                      onClick={() => { setSelectedModel(model.id); if (model.id === 'picturagen') setMode('video'); setModelOpen(false) }}
                       className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors ${
                         model.status === 'coming'
                           ? 'cursor-not-allowed opacity-50'
@@ -578,20 +1016,23 @@ export function Studio() {
                       <div className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg ${
                         selectedModel === model.id ? 'bg-primary/10' : 'bg-secondary'
                       }`}>
-                        <PicturaIcon size={14} />
+                        {model.id === 'picturagen' ? <Clapperboard className="h-3.5 w-3.5 text-primary" /> : <PicturaIcon size={14} />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="text-xs font-medium text-foreground">{model.name}</span>
-                          {model.status === 'coming' && (
+                          {model.status === 'coming' ? (
                             <span className="rounded bg-muted px-1 py-px text-[9px] font-medium text-muted-foreground">Soon</span>
-                          )}
+                          ) : model.status === 'beta' ? (
+                            <span className="rounded bg-primary/10 px-1 py-px text-[9px] font-semibold text-primary">Beta</span>
+                          ) : null}
                         </div>
                         <p className="text-[10px] text-muted-foreground">{model.description}</p>
                       </div>
                       {selectedModel === model.id && <Check className="h-3.5 w-3.5 flex-shrink-0 text-primary" />}
                     </button>
                   ))}
+
                 </motion.div>
               )}
             </AnimatePresence>
@@ -615,7 +1056,7 @@ export function Studio() {
                 />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-foreground">{rateLimit.remaining}</span>
+            <span className="text-xs font-semibold text-foreground">{currentLimitInfo.remaining}</span>
             <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>
           </div>
 
@@ -646,7 +1087,7 @@ export function Studio() {
 
       {/* Main content area */}
       <div ref={galleryRef} data-tour="gallery" className="flex-1 overflow-y-auto">
-        {loading && images.length === 0 ? (
+        {loading && !hasResults ? (
           /* First-time loading state - orbital rings */
           <div className="flex h-full flex-col items-center justify-center px-6">
             <motion.div
@@ -673,8 +1114,8 @@ export function Studio() {
                   <PicturaIcon size={24} />
                 </div>
               </div>
-<p className="mt-8 text-sm font-semibold text-foreground">{mode === 'image' ? 'Transforming your image' : 'Creating your image'}</p>
-  <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
+<p className="mt-8 text-sm font-semibold text-foreground">{mode === 'video' ? 'Creating your video' : mode === 'image' ? 'Transforming your image' : 'Creating your image'}</p>
+  <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
               {/* Thin progress bar */}
               <div className="mt-5 h-1 w-48 overflow-hidden rounded-full bg-secondary">
                 <motion.div
@@ -686,43 +1127,63 @@ export function Studio() {
               </div>
             </motion.div>
           </div>
-        ) : images.length === 0 && !loading ? (
+        ) : !hasResults && !loading ? (
           /* Empty state */
-          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+          <div className={`flex h-full flex-col px-4 text-center sm:px-6 ${mode === 'video' ? 'items-center justify-start overflow-y-auto py-4 sm:py-8' : 'items-center justify-center'}`}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
-              className="flex flex-col items-center"
+              className={`flex flex-col ${mode === 'video' ? 'w-full max-w-3xl items-center rounded-3xl border border-border/40 bg-card/80 px-5 py-6 sm:px-8 sm:py-8' : 'items-center'}`}
             >
-              <PicturaIcon size={56} />
-              <h2 className="mt-5 text-xl font-semibold text-foreground">What will you create?</h2>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                Type a description below and Pictura will generate an image for you.
-                You have <strong className="text-foreground">{rateLimit.remaining} generation{rateLimit.remaining !== 1 ? 's' : ''}</strong> remaining today.
+              <div className={`${mode === 'video' ? 'rounded-2xl bg-primary/5 p-3' : ''}`}>
+                <PicturaIcon size={56} />
+              </div>
+              <h2 className="mt-5 text-xl font-semibold text-foreground sm:text-2xl">{mode === 'video' ? 'What video will you create?' : 'What will you create?'}</h2>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+                {mode === 'video'
+                  ? 'Describe your scene and PicturaGen will create an amazing cinematic video for you.'
+                  : 'Type a description below and Pictura will generate an image for you.'}
+                <span className="block mt-1.5">
+                  You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
+                </span>
               </p>
 
-              <div className="mt-8 flex flex-wrap justify-center gap-2" data-tour="suggestions">
-                {[
-                  'A serene Japanese garden at dawn',
-                  'Astronaut riding a horse on Mars',
-                  'Oil painting of a coastal sunset',
-                  'Macro photo of morning dew on a leaf',
-                ].map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setPrompt(s)}
-                    className="rounded-full border border-border/50 bg-card px-4 py-2 text-xs text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground hover:bg-card/80"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+              {mode === 'video' ? (
+                <div className="mt-7 w-full max-w-2xl" data-tour="suggestions">
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                    {visibleVideoExamples.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        onClick={() => setPrompt(suggestion)}
+                        className="rounded-2xl border border-border/50 bg-background px-4 py-3 text-sm leading-relaxed text-muted-foreground transition-all hover:border-primary/30 hover:bg-card hover:text-foreground"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground/80 sm:text-sm">
+                    Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-8 flex flex-wrap justify-center gap-2" data-tour="suggestions">
+                  {visibleImageExamples.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => setPrompt(suggestion)}
+                      className="rounded-full border border-border/50 bg-card px-4 py-2 text-xs text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground hover:bg-card/80"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
         ) : (
           /* Gallery */
-          <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+          <div className="mx-auto max-w-6xl px-4 py-6 md:px-6" data-tour="video-result">
             {/* Loading card at top when generating */}
             <AnimatePresence>
               {loading && (
@@ -742,8 +1203,12 @@ export function Studio() {
                         <PicturaIcon size={20} />
                       </div>
                       <div className="flex-1 min-w-0">
-<p className="text-sm font-semibold text-foreground">{mode === 'image' ? 'Transforming image...' : 'Generating image...'}</p>
-  <p className="mt-0.5 truncate text-xs text-muted-foreground">{prompt || (mode === 'image' ? 'Transforming your image' : 'Processing your request')}</p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {activeGenerationMode === 'video' ? 'Generating your video with PicturaGen...' : activeGenerationMode === 'image' ? 'Transforming image...' : 'Generating image...'}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {loadingPrompt || (activeGenerationMode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : activeGenerationMode === 'image' ? 'Transforming your image' : 'Processing your request')}
+                        </p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
                             className="h-full rounded-full bg-primary"
@@ -759,12 +1224,82 @@ export function Studio() {
               )}
             </AnimatePresence>
 
+            {mode === 'video' ? (
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                {videoItems.map((video, i) => (
+                  <motion.div
+                    key={`${video.url}-${video.createdAt}-${i}`}
+                    data-tour={i === 0 ? 'video-result' : undefined}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: i * 0.04 }}
+                    className="overflow-hidden rounded-2xl border border-border/30 bg-card"
+                  >
+                    <div className="aspect-video bg-muted/30">
+                      <video src={video.url} controls className="h-full w-full" />
+                    </div>
+                    <div className="px-4 pb-4 pt-3">
+                      <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground">{video.prompt}</p>
+                      <div className="mt-2.5 flex items-center gap-1.5">
+                        <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          Text to Video
+                        </span>
+                        <span className="text-[10px] font-mono text-muted-foreground/50">{new Date(video.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleFeedback(video.url, 'up')}
+                            className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
+                              feedbackMap[video.url] === 'up'
+                                ? 'bg-primary/10 text-primary'
+                                : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
+                            }`}
+                            aria-label="Like this video"
+                            title="Like"
+                          >
+                            <ThumbsUp className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => handleFeedback(video.url, 'down')}
+                            className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
+                              feedbackMap[video.url] === 'down'
+                                ? 'bg-destructive/10 text-destructive'
+                                : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
+                            }`}
+                            aria-label="Dislike this video"
+                            title="Needs work"
+                          >
+                            <ThumbsDown className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => handleCopyPrompt(video.prompt)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
+                            aria-label="Copy video prompt"
+                            title="Copy prompt"
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => { setGeneratedVideoUrl(video.url); setVideoDownloadModalOpen(true) }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/40 transition-all hover:bg-secondary hover:text-foreground"
+                          aria-label="Download video"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {images.map((img, i) => {
+              {imageItems.map((img, i) => {
                 const fb = feedbackMap[img.url] ?? null
                 return (
                   <motion.div
-                    key={img.url}
+                    key={`${img.url}-${img.createdAt}-${i}`}
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, delay: i * 0.04 }}
@@ -775,17 +1310,14 @@ export function Studio() {
                       <div className="relative aspect-square overflow-hidden bg-muted/30">
                         <button onClick={() => setLightbox(img)} className="relative block h-full w-full">
                           {img.url ? (
-                            <Image
+                            <img
                               src={img.url}
-                              alt={img.prompt}
-                              fill
-                              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              alt="Generated creation"
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                              loading="lazy"
                               onError={(e) => {
-                                // Hide broken image and show fallback
                                 e.currentTarget.style.display = 'none'
                               }}
-                              loading="lazy"
                             />
                           ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -793,11 +1325,9 @@ export function Studio() {
                             </div>
                           )}
                         </button>
-                        {/* Watermark logo */}
                         <div className="absolute top-2.5 right-2.5 rounded-lg bg-black/20 p-1.5 backdrop-blur-sm">
                           <PicturaIcon size={14} />
                         </div>
-                        {/* Expand button on hover */}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-200 group-hover:bg-black/10">
                           <div className="scale-0 rounded-full bg-white/20 p-3 backdrop-blur-sm transition-transform duration-200 group-hover:scale-100">
                             <ZoomIn className="h-5 w-5 text-white" />
@@ -815,31 +1345,39 @@ export function Studio() {
                           <span className="text-[10px] text-muted-foreground/50 font-mono">1024px</span>
                         </div>
 
-                        {/* Feedback + actions */}
                         <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3">
                           <div className="flex items-center gap-1">
-                            <span className="mr-1 text-[10px] text-muted-foreground/60">Rate</span>
                             <button
                               onClick={() => handleFeedback(img.url, 'up')}
-                              className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
                                 fb === 'up'
                                   ? 'bg-primary/10 text-primary'
-                                  : 'text-muted-foreground/40 hover:bg-secondary hover:text-foreground'
+                                  : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
                               }`}
                               aria-label="Like this image"
+                              title="Like"
                             >
-                              <ThumbsUp className="h-3.5 w-3.5" />
+                              <ThumbsUp className="h-3 w-3" />
                             </button>
                             <button
                               onClick={() => handleFeedback(img.url, 'down')}
-                              className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
                                 fb === 'down'
                                   ? 'bg-destructive/10 text-destructive'
-                                  : 'text-muted-foreground/40 hover:bg-secondary hover:text-foreground'
+                                  : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
                               }`}
                               aria-label="Dislike this image"
+                              title="Needs work"
                             >
-                              <ThumbsDown className="h-3.5 w-3.5" />
+                              <ThumbsDown className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => handleCopyPrompt(img.prompt)}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
+                              aria-label="Copy image prompt"
+                              title="Copy prompt"
+                            >
+                              <Copy className="h-3.5 w-3.5" />
                             </button>
                           </div>
                           <div className="flex items-center gap-1">
@@ -858,6 +1396,8 @@ export function Studio() {
                 )
               })}
             </div>
+            )}
+
           </div>
         )}
       </div>
@@ -898,12 +1438,27 @@ export function Studio() {
           <div data-tour="prompt" className="flex items-end gap-2 rounded-2xl border border-border/50 bg-background p-2 transition-colors focus-within:border-primary/30">
             <div className="flex items-center gap-1 pb-0.5">
               <button
-                onClick={() => { if (mode === 'text') { fileInputRef.current?.click() } else { setMode('text'); handleFileChange(null) } }}
+                onClick={() => {
+                  if (mode === 'video') {
+                    toast.info('Image reference for video is coming soon.')
+                    return
+                  }
+                  if (mode === 'text') {
+                    fileInputRef.current?.click()
+                    return
+                  }
+                  setMode('text')
+                  handleFileChange(null)
+                }}
                 className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
-                  mode === 'image' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  mode === 'image'
+                    ? 'bg-primary/10 text-primary'
+                    : mode === 'video'
+                      ? 'text-muted-foreground/40'
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
-                title={mode === 'text' ? 'Upload reference image' : 'Remove reference'}
-                aria-label="Toggle image mode"
+                title={mode === 'video' ? 'Image reference for video coming soon' : mode === 'text' ? 'Upload reference image' : 'Remove reference'}
+                aria-label={mode === 'video' ? 'Image reference for video coming soon' : 'Toggle image mode'}
               >
                 {mode === 'image' ? <ImageIcon className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
               </button>
@@ -921,7 +1476,7 @@ export function Studio() {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={mode === 'text' ? 'Describe the image you want to create...' : 'Describe how to transform this image...'}
+              placeholder={mode === 'text' ? 'Describe the image you want to create...' : mode === 'image' ? 'Describe how to transform this image...' : 'Create an amazing video: describe your scene, motion, and style...'}
               rows={1}
               disabled={loading}
               className="flex-1 resize-none bg-transparent py-2 text-sm leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/50 disabled:opacity-50"
@@ -929,14 +1484,14 @@ export function Studio() {
 
             <button
               onClick={handleGenerate}
-              disabled={loading || !prompt.trim() || rateLimit.remaining <= 0}
+              disabled={loading || !prompt.trim()}
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
-              aria-label="Generate image"
+              aria-label={mode === 'video' ? 'Generate video' : 'Generate image'}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <SendIcon className="h-4 w-4" />
+                mode === 'video' ? <VideoSendIcon className="h-4 w-4" /> : <SendIcon className="h-4 w-4" />
               )}
             </button>
           </div>
@@ -952,15 +1507,15 @@ export function Studio() {
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.25 }}
                 onClick={() => {
-                  const examples = mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES
-                  setPrompt(examples[placeholderIdx % examples.length])
+                  if (activePromptExamples.length === 0) return
+                  setPrompt(activePromptExamples[placeholderIdx % activePromptExamples.length])
                   textareaRef.current?.focus()
                 }}
                 className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-dashed border-border/50 px-3 py-1.5 text-left transition-colors hover:border-primary/30 hover:bg-primary/5"
               >
                 <RefreshCw className="h-3 w-3 flex-shrink-0 text-muted-foreground/50" />
                 <span className="truncate text-[11px] text-muted-foreground/70">
-                  {(mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES)[placeholderIdx % (mode === 'text' ? PROMPT_EXAMPLES : IMG2IMG_EXAMPLES).length]}
+                  {activePromptExamples.length > 0 ? activePromptExamples[placeholderIdx % activePromptExamples.length] : 'Try a creative prompt'}
                 </span>
               </motion.button>
             </AnimatePresence>
@@ -985,7 +1540,7 @@ export function Studio() {
           <div className="mt-2 flex items-center justify-between px-1">
             <div className="flex items-center gap-1 rounded-lg bg-secondary/50 p-0.5" data-tour="mode-tabs">
               <button
-                onClick={() => { setMode('text'); handleFileChange(null) }}
+                onClick={() => handleModeSwitch('text')}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'text'
                     ? 'bg-background text-foreground shadow-sm'
@@ -995,7 +1550,7 @@ export function Studio() {
                 Text to Image
               </button>
               <button
-                onClick={() => { setMode('image'); if (!uploadedFile) fileInputRef.current?.click() }}
+                onClick={() => handleModeSwitch('image')}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'image'
                     ? 'bg-background text-foreground shadow-sm'
@@ -1004,27 +1559,44 @@ export function Studio() {
               >
                 Image to Image
               </button>
+              <button
+                onClick={() => handleModeSwitch('video')}
+                className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
+                  mode === 'video'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Text to Video
+              </button>
             </div>
 
+            {mode === 'video' && (
+              <div className="mr-3 hidden items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-[11px] text-primary sm:flex">
+                <Clapperboard className="h-3.5 w-3.5" />
+                <span className="font-medium">PicturaGen • Text to Video</span>
+                <span className="rounded-full border border-primary/30 px-1.5 py-0.5 text-[10px]">Beta</span>
+              </div>
+            )}
+
             <div className="flex items-center gap-3">
-              {rateLimit.remaining <= 2 && rateLimit.remaining > 0 && (
+              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 2 && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) > 0 && (
                 <span className="text-[11px] font-medium text-accent-foreground">
-                  {rateLimit.remaining} left today
+                  {mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining} left today
                 </span>
               )}
-              {rateLimit.remaining <= 0 && (
+              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 0 && (
                 <span className="text-[11px] font-medium text-destructive">
                   Limit reached
                 </span>
               )}
               <span className="text-[10px] text-muted-foreground/40 font-mono">
-                {selectedModel} &middot; 1024
+                {mode === 'video' ? `${selectedModel} · video` : `${selectedModel} · 1024`}
               </span>
             </div>
           </div>
         </div>
       </div>
-
       {/* Walkthrough Tour - highlights real elements */}
       <AnimatePresence>
         {tourStep >= 0 && tourStep < TOUR_STEPS.length && (
@@ -1070,7 +1642,7 @@ export function Studio() {
                 {"Oops! You've used all your credits"}
               </h3>
               <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                {"You've exhausted your 5 free image generations for today. We're working hard to increase limits as Pictura grows."}
+                {`You've exhausted your ${currentLimitInfo.limit} free ${mode === 'video' ? 'video' : 'image'} generation${currentLimitInfo.limit !== 1 ? 's' : ''} for today. We're working hard to increase limits as Pictura grows.`}
               </p>
 
               <div className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-secondary/50 px-4 py-2.5">
@@ -1145,27 +1717,45 @@ export function Studio() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {images.map((img) => (
-                    <div key={img.url} className="flex flex-col gap-1">
+                  {images.map((img, idx) => {
+                    const isVideo = (img.mediaKind ?? (img.type === 'text-to-video' ? 'video' : 'image')) === 'video'
+                    return (
+                    <div key={`${img.url}-${img.createdAt}-${idx}`} className="flex flex-col gap-1">
                       <button
-                        onClick={() => { setLightbox(img); setGalleryOpen(false) }}
+                        onClick={() => {
+                          if (isVideo) {
+                            setGeneratedVideoUrl(img.url)
+                            setVideoDownloadModalOpen(true)
+                          } else {
+                            setLightbox(img)
+                          }
+                          setGalleryOpen(false)
+                        }}
                         className="group relative aspect-square overflow-hidden rounded-xl border border-border/30 bg-card"
                       >
-                        <Image
-                          src={img.url}
-                          alt={img.prompt}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="160px"
-                        />
+                        {isVideo ? (
+                          <video src={img.url} className="h-full w-full object-cover" muted />
+                        ) : (
+                          <img
+                            src={img.url}
+                            alt="Saved creation"
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                            }}
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                         <div className="absolute inset-x-0 bottom-0 p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                           <p className="line-clamp-2 text-[10px] leading-snug text-white/90">{img.prompt}</p>
                         </div>
-                        {/* Feedback indicator */}
-                        {feedbackMap[img.url] === 'up' && (
-                          <div className="absolute top-1.5 right-1.5 rounded-md bg-primary/20 p-0.5 backdrop-blur-sm">
-                            <ThumbsUp className="h-2.5 w-2.5 text-primary" />
+                        {isVideo && (
+                          <div className="absolute left-1.5 top-1.5 rounded-md bg-black/40 px-1.5 py-0.5 text-[9px] font-semibold text-white">VIDEO</div>
+                        )}
+                        {!isVideo && feedbackMap[img.url] === 'up' && (
+                          <div className="absolute top-1.5 right-1.5 rounded-md bg-primary/20 px-1.5 py-0.5 text-[9px] font-medium text-primary backdrop-blur-sm">
+                            Liked
                           </div>
                         )}
                       </button>
@@ -1175,14 +1765,15 @@ export function Studio() {
                         </p>
                       )}
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
 
             <div className="border-t border-border/40 px-4 py-3">
               <p className="text-center text-[10px] text-muted-foreground/50">
-                {images.length} image{images.length !== 1 ? 's' : ''} saved to your collection
+                {images.length} creation{images.length !== 1 ? 's' : ''} saved to your collection
               </p>
             </div>
           </motion.aside>
@@ -1218,13 +1809,11 @@ export function Studio() {
               {/* Image */}
               <div className="relative bg-muted/30">
                 {lightbox.url ? (
-                  <Image
+                  <img
                     src={lightbox.url}
-                    alt={lightbox.prompt}
-                    width={1024}
-                    height={1024}
+                    alt="Generated creation"
                     className="w-full h-auto max-h-[50vh] sm:max-h-[65vh] object-contain"
-                    priority
+                    loading="eager"
                     onError={(e) => { e.currentTarget.style.display = 'none' }}
                   />
                 ) : (
@@ -1258,7 +1847,9 @@ export function Studio() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleFeedback(lightbox.url, 'up')}
-                      className={`h-8 w-8 rounded-lg flex items-center justify-center shadow-lg transition-all ${
+                      aria-label="Like this generation"
+                      title="Like"
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-medium shadow-lg transition-all ${
                         feedbackMap[lightbox.url] === 'up' ? 'bg-primary text-primary-foreground' : 'bg-white/90 text-muted-foreground hover:text-foreground'
                       }`}
                     >
@@ -1266,7 +1857,9 @@ export function Studio() {
                     </button>
                     <button
                       onClick={() => handleFeedback(lightbox.url, 'down')}
-                      className={`h-8 w-8 rounded-lg flex items-center justify-center shadow-lg transition-all ${
+                      aria-label="Needs work"
+                      title="Needs work"
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg text-[11px] font-medium shadow-lg transition-all ${
                         feedbackMap[lightbox.url] === 'down' ? 'bg-destructive text-destructive-foreground' : 'bg-white/90 text-muted-foreground hover:text-foreground'
                       }`}
                     >
@@ -1282,12 +1875,22 @@ export function Studio() {
                   <PicturaIcon size={18} className="flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-semibold text-foreground">Generated Image</span>
+                      <span className="text-xs font-semibold text-foreground">{lightbox.type === 'text-to-video' ? 'Generated Video' : 'Generated Image'}</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                        {lightbox.type === 'text-to-image' ? 'Text to Image' : 'Image to Image'}
+                        {lightbox.type === 'text-to-image' ? 'Text to Image' : lightbox.type === 'image-to-image' ? 'Image to Image' : 'Text to Video'}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{lightbox.prompt}</p>
+                    <div className="mt-2 flex items-start justify-between gap-2">
+                      <p className="text-sm text-muted-foreground leading-relaxed">{lightbox.prompt}</p>
+                      <button
+                        onClick={() => handleCopyPrompt(lightbox.prompt)}
+                        className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-border/50 bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        aria-label="Copy prompt"
+                        title="Copy prompt"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                     <p className="text-[10px] text-muted-foreground/60 mt-3">
                       {new Date(lightbox.createdAt).toLocaleString()}
                     </p>
@@ -1299,6 +1902,65 @@ export function Studio() {
         )}
       </AnimatePresence>
 
+
+      {/* Feedback prompt card */}
+      <AnimatePresence>
+        {ratingPromptOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[65] flex items-end justify-center bg-black/35 p-4 sm:items-center"
+            onClick={() => setRatingPromptOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 20, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 20, opacity: 0, scale: 0.98 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 280 }}
+              className="w-full max-w-sm rounded-2xl border border-border/40 bg-background p-4 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-sm font-semibold text-foreground">How can we improve the model?</h3>
+              <p className="mt-1 text-xs text-muted-foreground">Tell us what went wrong so we can improve model quality and results.</p>
+
+              {pendingFeedback && (
+                <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-card px-2.5 py-1.5 text-xs">
+                  {pendingFeedback.type === 'up' ? <ThumbsUp className="h-3 w-3 text-primary" /> : <ThumbsDown className="h-3 w-3 text-destructive" />}
+                  <span className="text-foreground">{pendingFeedback.type === 'up' ? 'Liked' : 'Needs work'}</span>
+                </div>
+              )}
+
+              <div className="mt-3">
+                <textarea
+                  value={feedbackNote}
+                  onChange={(e) => setFeedbackNote(e.target.value)}
+                  rows={3}
+                  placeholder="Tell us what worked or what should improve..."
+                  className="w-full resize-none rounded-xl border border-border/50 bg-card px-3 py-2 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-primary/40"
+                />
+              </div>
+
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => { setRatingPromptOpen(false); setFeedbackNote(''); setPendingFeedback(null) }}
+                  className="rounded-lg border border-border/50 bg-card px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { setRatingPromptOpen(false); setFeedbackNote(''); setPendingFeedback(null); toast.success('Thank you — we will use this to improve the model.') }}
+                  className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary hover:bg-primary/15"
+                >
+                  Submit feedback
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
       {/* Download modal */}
       {downloadImage && (
         <DownloadModal
@@ -1306,6 +1968,15 @@ export function Studio() {
           onOpenChange={setDownloadModalOpen}
           imageUrl={downloadImage.url}
           imageName={`pictura-${Date.now()}`}
+        />
+      )}
+
+      {/* Video download modal */}
+      {generatedVideoUrl && (
+        <VideoDownloadModal
+          open={videoDownloadModalOpen}
+          onOpenChange={setVideoDownloadModalOpen}
+          videoUrl={generatedVideoUrl}
         />
       )}
 

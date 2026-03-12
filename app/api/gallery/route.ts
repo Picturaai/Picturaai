@@ -1,70 +1,54 @@
 import { NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
 import { getOrCreateSessionId } from '@/lib/session'
-import type { GeneratedImage } from '@/lib/types'
+import { readJsonObject, uploadObject } from '@/lib/storage'
+import type { GeneratedMedia } from '@/lib/types'
 
-// GET - Load user's saved gallery
-export async function GET() {
+// GET - Load user's saved gallery media (images + videos)
+export async function GET(request: Request) {
   try {
-    const sessionId = await getOrCreateSessionId()
+    const sessionId = await getOrCreateSessionId(request)
     const galleryPath = `pictura/galleries/${sessionId}.json`
 
-    // List blobs to find this user's gallery file
-    const { blobs } = await list({ prefix: galleryPath })
-
-    if (blobs.length === 0) {
-      return NextResponse.json({ images: [] })
-    }
-
-    // Fetch the gallery JSON
-    const res = await fetch(blobs[0].url)
-    if (!res.ok) {
-      return NextResponse.json({ images: [] })
-    }
-
-    const images: GeneratedImage[] = await res.json()
-    return NextResponse.json({ images })
+    const media = await readJsonObject<GeneratedMedia[]>(galleryPath)
+    if (!media) return NextResponse.json({ images: [] })
+    return NextResponse.json({ images: media })
   } catch (error) {
     console.error('Gallery load error:', error)
     return NextResponse.json({ images: [] })
   }
 }
 
-// POST - Save image to user's gallery
+// POST - Save media to user's gallery
 export async function POST(request: Request) {
   try {
-    const sessionId = await getOrCreateSessionId()
-    const image: GeneratedImage = await request.json()
+    const sessionId = await getOrCreateSessionId(request)
+    const mediaItem: GeneratedMedia = await request.json()
 
-    if (!image.url || !image.prompt) {
-      return NextResponse.json({ error: 'Invalid image data' }, { status: 400 })
+    if (!mediaItem.url || !mediaItem.prompt) {
+      return NextResponse.json({ error: 'Invalid media data' }, { status: 400 })
+    }
+
+    const normalizedMedia: GeneratedMedia = {
+      ...mediaItem,
+      mediaKind: mediaItem.mediaKind ?? (mediaItem.type === 'text-to-video' ? 'video' : 'image'),
     }
 
     const galleryPath = `pictura/galleries/${sessionId}.json`
 
     // Load existing gallery
-    let images: GeneratedImage[] = []
+    let media: GeneratedMedia[] = []
     try {
-      const { blobs } = await list({ prefix: galleryPath })
-      if (blobs.length > 0) {
-        const res = await fetch(blobs[0].url)
-        if (res.ok) {
-          images = await res.json()
-        }
-      }
+      const existing = await readJsonObject<GeneratedMedia[]>(galleryPath)
+      if (existing) media = existing
     } catch { /* start fresh */ }
 
-    // Add new image to the front (no cap - stored forever)
-    images = [image, ...images]
+    // Preserve every generation entry (including repeated URLs) and keep newest first.
+    media = [normalizedMedia, ...media]
 
     // Save updated gallery
-    await put(galleryPath, JSON.stringify(images), {
-      access: 'public',
-      contentType: 'application/json',
-      addRandomSuffix: false,
-    })
+    await uploadObject(galleryPath, JSON.stringify(media), 'application/json')
 
-    return NextResponse.json({ success: true, count: images.length })
+    return NextResponse.json({ success: true, count: media.length })
   } catch (error) {
     console.error('Gallery save error:', error)
     return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
