@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getOrCreateSessionId } from '@/lib/session'
 import { getVideoRateLimitInfo, incrementVideoUsage } from '@/lib/rate-limit'
+import { appendMediaToGallery } from '@/lib/gallery'
 
 type AlibabaTaskResponse = {
   output?: {
@@ -109,6 +110,16 @@ export async function POST(request: Request) {
     }
 
     const videoUrl = await generateWithAlibabaVideo(prompt)
+    const createdAt = new Date().toISOString()
+
+    await appendMediaToGallery(sessionId, {
+      url: videoUrl,
+      prompt: prompt.trim(),
+      type: 'text-to-video',
+      mediaKind: 'video',
+      createdAt,
+    })
+
     await incrementVideoUsage(sessionId)
     const updatedLimit = await getVideoRateLimitInfo(sessionId)
 
@@ -116,7 +127,7 @@ export async function POST(request: Request) {
       url: videoUrl,
       prompt: prompt.trim(),
       type: 'text-to-video',
-      createdAt: new Date().toISOString(),
+      createdAt,
       rateLimitInfo: updatedLimit,
     })
   } catch (error) {

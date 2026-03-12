@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getOrCreateSessionId } from '@/lib/session'
-import { readJsonObject, uploadObject } from '@/lib/storage'
+import { readJsonObject } from '@/lib/storage'
+import { appendMediaToGallery } from '@/lib/gallery'
 import type { GeneratedMedia } from '@/lib/types'
 
 // GET - Load user's saved gallery media (images + videos)
@@ -28,25 +29,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid media data' }, { status: 400 })
     }
 
-    const normalizedMedia: GeneratedMedia = {
-      ...mediaItem,
-      mediaKind: mediaItem.mediaKind ?? (mediaItem.type === 'text-to-video' ? 'video' : 'image'),
-    }
+    await appendMediaToGallery(sessionId, mediaItem)
 
     const galleryPath = `pictura/galleries/${sessionId}.json`
-
-    // Load existing gallery
-    let media: GeneratedMedia[] = []
-    try {
-      const existing = await readJsonObject<GeneratedMedia[]>(galleryPath)
-      if (existing) media = existing
-    } catch { /* start fresh */ }
-
-    // Preserve every generation entry (including repeated URLs) and keep newest first.
-    media = [normalizedMedia, ...media]
-
-    // Save updated gallery
-    await uploadObject(galleryPath, JSON.stringify(media), 'application/json')
+    const media = (await readJsonObject<GeneratedMedia[]>(galleryPath)) || []
 
     return NextResponse.json({ success: true, count: media.length })
   } catch (error) {
