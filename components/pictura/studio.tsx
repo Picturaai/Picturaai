@@ -619,23 +619,38 @@ export function Studio() {
 
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
+    let allImages: GeneratedMedia[] = []
+    
+    // First try to load from server
     try {
       const res = await fetch('/api/gallery', { credentials: 'include', headers: buildAuthHeaders() })
       if (res.ok) {
         const { images: saved } = await res.json()
         if (saved && saved.length > 0) {
-          // Merge: keep any in-session media + all saved entries (including repeated URLs)
-          setImages((prev) => {
-            const merged = [...prev, ...saved]
-            // Sort newest first by createdAt
-            merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            const latestVideo = merged.find((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
-            if (latestVideo) setGeneratedVideoUrl(latestVideo.url)
-            return merged
-          })
+          allImages = [...saved]
         }
       }
     } catch { /* silent */ }
+    
+    // Also check localStorage as fallback
+    try {
+      const localStored = window.localStorage.getItem('pictura_images')
+      if (localStored) {
+        const localImages: GeneratedMedia[] = JSON.parse(localStored)
+        if (localImages.length > 0) {
+          // Merge with server images
+          allImages = [...allImages, ...localImages]
+        }
+      }
+    } catch { /* silent */ }
+    
+    if (allImages.length > 0) {
+      // Sort newest first by createdAt
+      allImages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      setImages(allImages)
+      const latestVideo = allImages.find((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
+      if (latestVideo) setGeneratedVideoUrl(latestVideo.url)
+    }
   }, [buildAuthHeaders])
 
   const findResolvedGeneration = useCallback((saved: GeneratedMedia[], pending: PendingGeneration) => {
@@ -690,39 +705,56 @@ export function Studio() {
             }
             
             const res = await fetch('/api/gallery', { credentials: 'include', headers })
+            let allImages: GeneratedMedia[] = []
+            
             if (res.ok) {
               const { images: saved } = await res.json()
               if (saved && Array.isArray(saved)) {
-                const sorted = [...saved].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                setImages(sorted)
-                
-                // Check if there's a matching result
-                const targetKind = parsed.mode === 'video' ? 'video' : 'image'
-                const startedAt = new Date(parsed.startedAt).getTime()
-                const resolved = sorted.find((item: GeneratedMedia) => {
-                  const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
-                  const createdAt = new Date(item.createdAt).getTime()
-                  return kind === targetKind && createdAt >= startedAt
-                })
-                
-                if (resolved) {
-                  if (targetKind === 'video') {
-                    setGeneratedVideoUrl(resolved.url)
-                  }
-                  setLoading(false)
-                  setActiveGenerationMode(null)
-                  setLoadingPrompt('')
-                  if (parsed.mode === 'video') {
-                    setVideoPrompt('')
-                  } else if (parsed.mode === 'image') {
-                    setImagePrompt('')
-                  } else {
-                    setPrompt('')
-                  }
-                  window.localStorage.removeItem(PENDING_GENERATION_KEY)
-                  setPendingGeneration(null)
-                  // Note: We can't use toast here directly, but the UI will show the result
+                allImages = [...saved]
+              }
+            }
+            
+            // Also check localStorage fallback
+            try {
+              const localStored = window.localStorage.getItem('pictura_images')
+              if (localStored) {
+                const localImages: GeneratedMedia[] = JSON.parse(localStored)
+                if (localImages.length > 0) {
+                  allImages = [...allImages, ...localImages]
                 }
+              }
+            } catch { /* silent */ }
+            
+            if (allImages.length > 0) {
+              const sorted = allImages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              setImages(sorted)
+              
+              // Check if there's a matching result
+              const targetKind = parsed.mode === 'video' ? 'video' : 'image'
+              const startedAt = new Date(parsed.startedAt).getTime()
+              const resolved = sorted.find((item: GeneratedMedia) => {
+                const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
+                const createdAt = new Date(item.createdAt).getTime()
+                return kind === targetKind && createdAt >= startedAt
+              })
+              
+              if (resolved) {
+                if (targetKind === 'video') {
+                  setGeneratedVideoUrl(resolved.url)
+                }
+                setLoading(false)
+                setActiveGenerationMode(null)
+                setLoadingPrompt('')
+                if (parsed.mode === 'video') {
+                  setVideoPrompt('')
+                } else if (parsed.mode === 'image') {
+                  setImagePrompt('')
+                } else {
+                  setPrompt('')
+                }
+                window.localStorage.removeItem(PENDING_GENERATION_KEY)
+                setPendingGeneration(null)
+                // Note: We can't use toast here directly, but the UI will show the result
               }
             }
           } catch (e) {
@@ -941,12 +973,24 @@ export function Studio() {
         setImages((prev) => [imageItem, ...prev])
         
         // Save to gallery for persistence and refresh restoration
-        await fetch('/api/gallery', {
+        const galleryRes = await fetch('/api/gallery', {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(imageItem),
-        }).catch(() => {})
+        })
+        
+        // If gallery save fails, save to localStorage as fallback
+        if (!galleryRes.ok) {
+          console.log('[Client] Gallery save failed, using localStorage fallback')
+          try {
+            const existing = JSON.parse(window.localStorage.getItem('pictura_images') || '[]')
+            const updated = [imageItem, ...existing]
+            window.localStorage.setItem('pictura_images', JSON.stringify(updated))
+          } catch (e) {
+            console.error('localStorage fallback failed:', e)
+          }
+        }
         
         if (data.rateLimitInfo) {
           console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
