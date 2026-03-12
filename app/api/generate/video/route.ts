@@ -122,6 +122,20 @@ export async function POST(request: Request) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Video generation failed'
     console.error('Video generation error:', error)
-    return NextResponse.json({ error: message }, { status: 500 })
+    
+    // Provide user-friendly error messages based on error type
+    let userMessage = message
+    
+    if (message.includes('API not configured') || message.includes('API key') || message.includes('not set')) {
+      userMessage = 'We are under maintenance. Please check back later.'
+    } else if (message.includes('rate limit') || message.includes('quota') || message.includes('limit')) {
+      userMessage = 'Daily video limit reached. Please try again tomorrow.'
+    } else if (message.includes('timeout') || message.includes('timed out')) {
+      userMessage = 'Video generation is taking longer than expected. Please try again.'
+    } else if (message.includes('failed') || message.includes('error') || message.includes('Error')) {
+      userMessage = 'We are under maintenance. Please check back later.'
+    }
+    
+    return NextResponse.json({ error: userMessage }, { status: 500 })
   }
 }
