@@ -1046,7 +1046,7 @@ export function Studio() {
         form.append('prompt', promptAtSubmit)
         if (uploadedFile) {
           form.append('image', uploadedFile)
-        } else if (uploadPreview) {
+        } else if (uploadPreview && !uploadPreview.startsWith('blob:')) {
           form.append('imageUrl', uploadPreview)
         }
         form.append('model', selectedModel)
@@ -1484,6 +1484,14 @@ export function Studio() {
                         <p className="text-sm font-semibold text-foreground">
                           {activeGenerationMode === 'video' ? 'Generating your video with PicturaGen...' : activeGenerationMode === 'image' ? 'Transforming image...' : 'Generating image...'}
                         </p>
+                        {activeGenerationMode === 'image' && uploadPreview && (
+                          <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-border/50 bg-background px-2 py-1">
+                            <div className="relative h-6 w-6 overflow-hidden rounded-md">
+                              <Image src={uploadPreview} alt="Reference image" fill className="object-cover" sizes="24px" />
+                            </div>
+                            <span className="max-w-[180px] truncate text-[11px] text-muted-foreground">Transforming your uploaded image</span>
+                          </div>
+                        )}
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">
                           {loadingPrompt || (activeGenerationMode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : activeGenerationMode === 'image' ? 'Transforming your image' : 'Processing your request')}
                         </p>

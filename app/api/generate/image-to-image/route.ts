@@ -118,9 +118,9 @@ export async function POST(request: Request) {
     console.log('[v0] img2img sourceImageUrl:', sourceImageUrl)
     console.log('[v0] img2img prompt:', prompt.trim())
 
-    // pi-1.5-turbo: Alibaba first, then ZyLabs fallback
-    // pi-1.0: ZyLabs first, then Alibaba fallback
-    const shouldTryAlibabaFirst = model === 'pi-1.5-turbo' || !apiKey
+    // Always prioritize Alibaba for real image-to-image transformations.
+    // ZyLabs is retained as a compatibility fallback only.
+    const shouldTryAlibabaFirst = true
 
     if (shouldTryAlibabaFirst) {
       const qwenImage = await generateWithQwenEdit(prompt, sourceImageUrl)
