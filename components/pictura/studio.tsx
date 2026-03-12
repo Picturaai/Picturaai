@@ -739,9 +739,9 @@ export function Studio() {
         : (data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1)
 
       if (updatedRemaining <= 2 && updatedRemaining > 1) {
-        setTimeout(() => toast(`You have ${updatedRemaining} generations left today.`), 800)
+        setTimeout(() => toast.info(`You have ${updatedRemaining} generations left today.`), 800)
       } else if (updatedRemaining === 1) {
-        setTimeout(() => toast('You have 1 generation left today. Make it count!'), 800)
+        setTimeout(() => toast.info('You have 1 generation left today. Make it count!'), 800)
       }
     } catch {
       toast.error('Something went wrong. Please try again.')
@@ -800,7 +800,7 @@ export function Studio() {
 
   const handleModeSwitch = (nextMode: Mode) => {
     if (loading) {
-      toast('Generation in progress. Please wait until it finishes.')
+      toast.info('Generation in progress. Please wait until it finishes.')
       return
     }
 
@@ -1315,7 +1315,7 @@ export function Studio() {
               <button
                 onClick={() => {
                   if (mode === 'video') {
-                    toast('Image reference for video is coming soon.')
+                    toast.info('Image reference for video is coming soon.')
                     return
                   }
                   if (mode === 'text') {
@@ -1796,8 +1796,8 @@ export function Studio() {
               className="w-full max-w-sm rounded-2xl border border-border/40 bg-background p-4 shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-sm font-semibold text-foreground">How can we improve this generation?</h3>
-              <p className="mt-1 text-xs text-muted-foreground">Tell us what went wrong so we can improve the model quality.</p>
+              <h3 className="text-sm font-semibold text-foreground">How can we improve the model?</h3>
+              <p className="mt-1 text-xs text-muted-foreground">Tell us what went wrong so we can improve model quality and results.</p>
 
               {pendingFeedback && (
                 <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-card px-2.5 py-1.5 text-xs">
