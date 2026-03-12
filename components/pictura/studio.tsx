@@ -642,10 +642,12 @@ export function Studio() {
     const pendingStartedAt = new Date(pending.startedAt).getTime()
     const targetKind = pending.mode === 'video' ? 'video' : 'image'
 
+    // Find the newest item with matching kind that's within a reasonable time window
     return saved.find((item) => {
       const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
       const createdAt = new Date(item.createdAt).getTime()
-      return kind === targetKind && item.prompt === pending.prompt && createdAt >= (pendingStartedAt - 60_000)
+      // Match if: same kind AND created after startedAt (with some buffer)
+      return kind === targetKind && createdAt >= pendingStartedAt
     })
   }, [])
 
@@ -673,6 +675,60 @@ export function Studio() {
         } else {
           setPrompt(parsed.prompt)
         }
+        
+        // Manually check for completed generation immediately
+        // This ensures the UI updates even before the polling effect runs
+        setTimeout(async () => {
+          try {
+            // Get buildAuthHeaders (we need to call it dynamically)
+            const headers: HeadersInit = {}
+            if (typeof window !== 'undefined') {
+              const fpEl = document.querySelector('[data-fingerprint]') as HTMLElement & { dataset?: { fingerprint?: string } }
+              if (fpEl?.dataset?.fingerprint) {
+                headers['x-client-fingerprint'] = fpEl.dataset.fingerprint
+              }
+            }
+            
+            const res = await fetch('/api/gallery', { credentials: 'include', headers })
+            if (res.ok) {
+              const { images: saved } = await res.json()
+              if (saved && Array.isArray(saved)) {
+                const sorted = [...saved].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                setImages(sorted)
+                
+                // Check if there's a matching result
+                const targetKind = parsed.mode === 'video' ? 'video' : 'image'
+                const startedAt = new Date(parsed.startedAt).getTime()
+                const resolved = sorted.find((item: GeneratedMedia) => {
+                  const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
+                  const createdAt = new Date(item.createdAt).getTime()
+                  return kind === targetKind && createdAt >= startedAt
+                })
+                
+                if (resolved) {
+                  if (targetKind === 'video') {
+                    setGeneratedVideoUrl(resolved.url)
+                  }
+                  setLoading(false)
+                  setActiveGenerationMode(null)
+                  setLoadingPrompt('')
+                  if (parsed.mode === 'video') {
+                    setVideoPrompt('')
+                  } else if (parsed.mode === 'image') {
+                    setImagePrompt('')
+                  } else {
+                    setPrompt('')
+                  }
+                  window.localStorage.removeItem(PENDING_GENERATION_KEY)
+                  setPendingGeneration(null)
+                  // Note: We can't use toast here directly, but the UI will show the result
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Error checking restored generation:', e)
+          }
+        }, 100)
       }
     } catch {
       window.localStorage.removeItem(PENDING_GENERATION_KEY)
@@ -682,35 +738,7 @@ export function Studio() {
   useEffect(() => {
     setMounted(true)
     
-    // First, restore pending generation from localStorage (synchronous)
-    if (typeof window !== 'undefined') {
-      const rawPending = window.localStorage.getItem(PENDING_GENERATION_KEY)
-      if (rawPending) {
-        try {
-          const parsed = JSON.parse(rawPending) as PendingGeneration
-          if (parsed?.mode && parsed?.prompt && parsed?.startedAt) {
-            // Set pending generation first - this will trigger the polling effect
-            setPendingGeneration(parsed)
-            setLoading(true)
-            setLoadingPrompt(parsed.prompt)
-            setActiveGenerationMode(parsed.mode)
-            // Also set the mode and prompt to restore the UI state
-            setMode(parsed.mode)
-            if (parsed.mode === 'video') {
-              setVideoPrompt(parsed.prompt)
-            } else if (parsed.mode === 'image') {
-              setImagePrompt(parsed.prompt)
-            } else {
-              setPrompt(parsed.prompt)
-            }
-          }
-        } catch {
-          window.localStorage.removeItem(PENDING_GENERATION_KEY)
-        }
-      }
-    }
-    
-    // Then fetch rate limits and load gallery (async)
+    // Fetch rate limits and load gallery
     fetchRateLimit()
     fetchVideoRateLimit()
     loadGallery()
