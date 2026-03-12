@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getOrCreateSessionId } from '@/lib/session'
 import { getVideoRateLimitInfo, incrementVideoUsage } from '@/lib/rate-limit'
 import { appendMediaToGallery } from '@/lib/gallery'
+import { getAdminSessionFromRequest } from '@/lib/admin-auth'
+import { getRequestContext } from '@/lib/request-context'
 
 type AlibabaTaskResponse = {
   output?: {
@@ -43,15 +45,20 @@ async function pollVideoTask(apiKey: string, taskId: string): Promise<string> {
   throw new Error('Video generation timed out')
 }
 
-async function generateWithAlibabaVideo(prompt: string): Promise<string> {
+async function generateWithAlibabaVideo(prompt: string, imageUrl?: string | null, preferredModel?: string | null): Promise<string> {
   const apiKey = getAlibabaApiKey()
   if (!apiKey) throw new Error('Alibaba API not configured')
 
   const candidateModels = [
+    preferredModel,
     process.env.ALIBABA_VIDEO_MODEL,
+    imageUrl ? process.env.ALIBABA_VIDEO_I2V_MODEL : undefined,
+    imageUrl ? 'wan2.6-i2v-flash' : undefined,
+    imageUrl ? 'wanx2.1-i2v-turbo' : undefined,
+    'wan2.6-t2v-flash',
     'wan2.6-t2v',
     'wanx2.1-t2v-turbo',
-  ].filter((m): m is string => Boolean(m))
+  ].filter((m, index, arr): m is string => Boolean(m) && arr.indexOf(m) === index)
 
   let lastError = 'Unknown video provider error'
 
@@ -68,10 +75,11 @@ async function generateWithAlibabaVideo(prompt: string): Promise<string> {
         input: {
           prompt: prompt.trim(),
           text: prompt.trim(),
+          ...(imageUrl ? { img_url: imageUrl, image_url: imageUrl } : {}),
         },
         parameters: {
           size: '1280*720',
-          duration: 5,
+          duration: 15,
           prompt_extend: true,
         },
       }),
@@ -98,7 +106,7 @@ async function generateWithAlibabaVideo(prompt: string): Promise<string> {
 
 export async function POST(request: Request) {
   try {
-    const { prompt } = await request.json()
+    const { prompt, imageUrl, model } = await request.json()
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return NextResponse.json({ error: 'Prompt is required' }, { status: 400 })
     }
@@ -111,7 +119,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Daily video limit reached (${videoLimit.limit}/day).`, rateLimitInfo: videoLimit }, { status: 429 })
     }
 
-    const videoUrl = await generateWithAlibabaVideo(prompt)
+    const videoUrl = await generateWithAlibabaVideo(prompt, typeof imageUrl === 'string' ? imageUrl : null, typeof model === 'string' ? model : null)
     const createdAt = new Date().toISOString()
 
     await appendMediaToGallery(sessionId, {
@@ -122,8 +130,8 @@ export async function POST(request: Request) {
       createdAt,
     })
 
-    await incrementVideoUsage(sessionId)
-    const updatedLimit = await getVideoRateLimitInfo(sessionId)
+    await incrementVideoUsage(sessionId, { role: adminSession?.role, ...requestContext })
+    const updatedLimit = await getVideoRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
 
     return NextResponse.json({
       url: videoUrl,

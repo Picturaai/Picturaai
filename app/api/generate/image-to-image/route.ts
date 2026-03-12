@@ -3,6 +3,8 @@ import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
 import { appendMediaToGallery } from '@/lib/gallery'
+import { getAdminSessionFromRequest } from '@/lib/admin-auth'
+import { getRequestContext } from '@/lib/request-context'
 
 async function pollQwenTask(apiKey: string, taskId: string): Promise<string | null> {
   for (let i = 0; i < 30; i++) {
@@ -24,8 +26,9 @@ async function generateWithQwenEdit(prompt: string, sourceImageUrl: string): Pro
   const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
   if (!apiKey) return null
 
-  const candidateModels = [
+    const candidateModels = [
     process.env.ALIBABA_IMAGE_EDIT_MODEL,
+    'wan2.5-i2i-preview',
     'wan2.2-imageedit-plus',
     'wanx2.1-imageedit',
     'qwen-image-edit',
@@ -136,8 +139,8 @@ export async function POST(request: Request) {
             sourceImageUrl,
             createdAt,
           })
-          await incrementUsage(sessionId)
-          const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
+          await incrementUsage(sessionId, { role: adminSession?.role, ...requestContext })
+          const updatedRateLimitInfo = await getRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
           return NextResponse.json({
             url: blob.url,
             prompt: prompt.trim(),

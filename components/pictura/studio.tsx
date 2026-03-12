@@ -28,6 +28,7 @@ type PendingGeneration = {
 }
 
 const PENDING_GENERATION_KEY = 'pictura_pending_generation'
+const UNLIMITED_THRESHOLD = 900000
 
 
 const VIDEO_LOADING_HINTS = [
@@ -420,6 +421,7 @@ export function Studio() {
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(8)
+  const [isPoorNetwork, setIsPoorNetwork] = useState(false)
 
   // auto-switch model with mode
   useEffect(() => {
@@ -501,13 +503,35 @@ export function Studio() {
   }, [clientFingerprint])
 
   useEffect(() => {
-    if (!(loading && mode === 'video')) return
+    if (!(loading && activeGenerationMode === 'video')) return
     setVideoLoadingHintIndex(0)
     const interval = setInterval(() => {
       setVideoLoadingHintIndex((prev) => (prev + 1) % VIDEO_LOADING_HINTS.length)
     }, 1600)
     return () => clearInterval(interval)
-  }, [loading, mode])
+  }, [loading, activeGenerationMode])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const connection = (
+      navigator as Navigator & {
+        connection?: { effectiveType?: string; downlink?: number; addEventListener?: (type: string, listener: () => void) => void; removeEventListener?: (type: string, listener: () => void) => void }
+      }
+    ).connection
+
+    if (!connection) return
+
+    const syncNetworkQuality = () => {
+      const type = connection.effectiveType || ''
+      const poor = type === 'slow-2g' || type === '2g' || (typeof connection.downlink === 'number' && connection.downlink < 1)
+      setIsPoorNetwork(poor)
+    }
+
+    syncNetworkQuality()
+    connection.addEventListener?.('change', syncNetworkQuality)
+    return () => connection.removeEventListener?.('change', syncNetworkQuality)
+  }, [])
 
 
   useEffect(() => {
@@ -959,7 +983,9 @@ export function Studio() {
     if (file.size > 10 * 1024 * 1024) { toast.error('Image must be under 10MB.'); return }
     setUploadedFile(file)
     setUploadPreview(URL.createObjectURL(file))
-    setMode('image')
+    if (mode !== 'video') {
+      setMode('image')
+    }
   }
 
   const handleGenerate = async () => {
@@ -1031,7 +1057,7 @@ export function Studio() {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
+          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel, imageUrl: uploadPreview || undefined }),
         })
       }
 
@@ -1183,9 +1209,10 @@ export function Studio() {
   const imageItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'image')
   const videoItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
   const hasResults = mode === 'video' ? videoItems.length > 0 : imageItems.length > 0
+  const hasUnlimited = currentLimitInfo.limit >= UNLIMITED_THRESHOLD
   const creditsUsed = currentLimitInfo.used
   const creditsTotal = currentLimitInfo.limit
-  const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
+  const creditsFraction = hasUnlimited ? 0 : (creditsTotal > 0 ? creditsUsed / creditsTotal : 0)
 
   if (!mounted) return null
 
@@ -1288,7 +1315,7 @@ export function Studio() {
                 />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-foreground">{currentLimitInfo.remaining}</span>
+            <span className="text-xs font-semibold text-foreground">{hasUnlimited ? 'Unlimited' : currentLimitInfo.remaining}</span>
             <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>
           </div>
 
@@ -1440,13 +1467,11 @@ export function Studio() {
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">
                           {loadingPrompt || (activeGenerationMode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : activeGenerationMode === 'image' ? 'Transforming your image' : 'Processing your request')}
                         </p>
+                        {isPoorNetwork && (
+                          <p className="mt-1 text-[11px] text-amber-600">Poor network detected. We are keeping this generation in progress safely.</p>
+                        )}
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
-                          <motion.div
-                            className="h-full rounded-full bg-primary"
-                            initial={{ width: '0%' }}
-                            animate={{ width: '90%' }}
-                            transition={{ duration: 15, ease: 'easeOut' }}
-                          />
+                          <div className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out" style={{ width: `${loadingProgress}%` }} />
                         </div>
                       </div>
                     </div>
@@ -1466,8 +1491,11 @@ export function Studio() {
                     transition={{ duration: 0.35, delay: i * 0.04 }}
                     className="overflow-hidden rounded-2xl border border-border/30 bg-card"
                   >
-                    <div className="aspect-video bg-muted/30">
+                    <div className="relative aspect-video bg-muted/30">
                       <video src={video.url} controls className="h-full w-full" />
+                      <div className="pointer-events-none absolute right-2 top-2 rounded-lg bg-black/35 p-1.5 backdrop-blur-sm">
+                        <PicturaIcon size={14} />
+                      </div>
                     </div>
                     <div className="px-4 pb-4 pt-3">
                       <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground">{video.prompt}</p>
@@ -1651,7 +1679,7 @@ export function Studio() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-xs font-medium text-foreground">{uploadedFile?.name}</p>
-                    <p className="text-[11px] text-muted-foreground">Reference for transformation</p>
+                    <p className="text-[11px] text-muted-foreground">{mode === 'video' ? 'Reference image for image-to-video' : 'Reference for transformation'}</p>
                   </div>
                   <button
                     onClick={() => { handleFileChange(null); setMode('text') }}
@@ -1670,11 +1698,7 @@ export function Studio() {
             <div className="flex items-center gap-1 pb-0.5">
               <button
                 onClick={() => {
-                  if (mode === 'video') {
-                    toast.info('Image reference for video is coming soon.')
-                    return
-                  }
-                  if (mode === 'text') {
+                  if (mode === 'text' || mode === 'video') {
                     fileInputRef.current?.click()
                     return
                   }
@@ -1685,11 +1709,11 @@ export function Studio() {
                   mode === 'image'
                     ? 'bg-primary/10 text-primary'
                     : mode === 'video'
-                      ? 'text-muted-foreground/40'
+                      ? 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
-                title={mode === 'video' ? 'Image reference for video coming soon' : mode === 'text' ? 'Upload reference image' : 'Remove reference'}
-                aria-label={mode === 'video' ? 'Image reference for video coming soon' : 'Toggle image mode'}
+                title={mode === 'video' ? 'Upload reference image for video' : mode === 'text' ? 'Upload reference image' : 'Remove reference'}
+                aria-label={mode === 'video' ? 'Upload image reference for video' : 'Toggle image mode'}
               >
                 {mode === 'image' ? <ImageIcon className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
               </button>
@@ -1812,12 +1836,12 @@ export function Studio() {
             )}
 
             <div className="flex items-center gap-3">
-              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 2 && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) > 0 && (
+              {!hasUnlimited && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 2 && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) > 0 && (
                 <span className="text-[11px] font-medium text-accent-foreground">
                   {mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining} left today
                 </span>
               )}
-              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 0 && (
+              {!hasUnlimited && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 0 && (
                 <span className="text-[11px] font-medium text-destructive">
                   Limit reached
                 </span>
@@ -1966,7 +1990,12 @@ export function Studio() {
                         className="group relative aspect-square overflow-hidden rounded-xl border border-border/30 bg-card"
                       >
                         {isVideo ? (
-                          <video src={img.url} className="h-full w-full object-cover" muted />
+                          <>
+                            <video src={img.url} className="h-full w-full object-cover" muted />
+                            <div className="pointer-events-none absolute right-1.5 top-1.5 rounded-md bg-black/35 p-1 backdrop-blur-sm">
+                              <PicturaIcon size={10} />
+                            </div>
+                          </>
                         ) : (
                           <img
                             src={img.url}

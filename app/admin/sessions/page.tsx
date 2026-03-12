@@ -161,7 +161,7 @@ export default function AdminSessionsPage() {
           </div>
 
           <div className="mt-4 overflow-hidden rounded-xl border border-border/60">
-            <div className="max-h-[420px] overflow-auto">
+            <div className="hidden max-h-[420px] overflow-auto sm:block">
               <table className="w-full min-w-[420px] text-left text-xs">
                 <thead className="sticky top-0 bg-secondary/60">
                   <tr>
@@ -189,6 +189,24 @@ export default function AdminSessionsPage() {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            <div className="max-h-[420px] space-y-2 overflow-auto p-2 sm:hidden">
+              {rows.map((row) => {
+                const imageLeft = Math.max(0, limits.image - row.credits_used)
+                const videoLeft = Math.max(0, limits.video - row.video_used)
+                const active = row.session_id === selectedSession
+                return (
+                  <button
+                    key={row.session_id}
+                    onClick={() => setSelectedSession(row.session_id)}
+                    className={`w-full rounded-lg border p-2 text-left ${active ? 'border-primary/40 bg-primary/10' : 'border-border/40 bg-background'}`}
+                  >
+                    <p className="truncate font-mono text-[11px]">{row.session_id}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Image left: {imageLeft} • Video left: {videoLeft}</p>
+                  </button>
+                )
+              })}
             </div>
           </div>
         </section>

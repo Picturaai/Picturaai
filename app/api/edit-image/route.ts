@@ -8,53 +8,57 @@ async function imageUrlToBase64(url: string): Promise<string> {
   return Buffer.from(buffer).toString('base64')
 }
 
-// Alibaba Cloud Model Studio - Image Edit 
-// Note: Alibaba may not support direct image editing, so we use it as a fallback
-// The main edit providers are Stability, Replicate, Fal, and Mistral
-async function editWithAlibaba(imageBase64: string, instruction: string): Promise<string> {
-  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY
+// Alibaba Cloud Model Studio - Image Edit
+async function editWithAlibaba(imageUrl: string, instruction: string): Promise<string> {
+  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
   if (!apiKey) throw new Error('Alibaba API not configured')
 
-  // Try using Alibaba's image-to-image capability
-  // Using their vision model for image manipulation
-  const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-to-image/generation', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'X-DashScope-Async': 'enable',
-    },
-    body: JSON.stringify({
-      model: 'image-generation',
-      input: {
-        // Use instruction as prompt - generate new image based on instruction
-        prompt: `Edit this image: ${instruction}. Make it look natural and realistic.`,
+  const candidateModels = [
+    process.env.ALIBABA_IMAGE_EDIT_MODEL,
+    'wan2.5-i2i-preview',
+    'wan2.2-imageedit-plus',
+    'wanx2.1-imageedit',
+    'qwen-image-edit',
+  ].filter((m): m is string => Boolean(m))
+
+  let lastError = 'Alibaba edit failed'
+
+  for (const model of candidateModels) {
+    const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-DashScope-Async': 'enable',
       },
-      parameters: {
-        size: '1024x1024',
-        n: 1,
-      },
-    }),
-  })
+      body: JSON.stringify({
+        model,
+        input: {
+          prompt: instruction,
+          image_url: imageUrl,
+        },
+        parameters: {
+          size: '1024*1024',
+        },
+      }),
+    })
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Alibaba edit failed: ${response.status} - ${error}`)
+    if (!response.ok) {
+      const error = await response.text()
+      lastError = `model=${model} status=${response.status} ${error}`
+      continue
+    }
+
+    const data = await response.json()
+    if (data.output?.task_id) {
+      return await pollAlibabaEdit(apiKey, data.output.task_id)
+    }
+    if (data.output?.results?.[0]?.url || data.output?.images?.[0]?.url) {
+      return data.output?.results?.[0]?.url || data.output?.images?.[0]?.url
+    }
   }
 
-  const data = await response.json()
-  
-  // Handle async response
-  if (data.request_id) {
-    return await pollAlibabaEdit(apiKey, data.request_id)
-  }
-
-  // Handle sync response
-  if (data.output?.images?.[0]?.url) {
-    return data.output.images[0].url
-  }
-  
-  throw new Error('No edited image from Alibaba')
+  throw new Error(lastError)
 }
 
 async function pollAlibabaEdit(apiKey: string, requestId: string): Promise<string> {
@@ -63,17 +67,17 @@ async function pollAlibabaEdit(apiKey: string, requestId: string): Promise<strin
     await new Promise(resolve => setTimeout(resolve, 2000))
     
     const response = await fetch(
-      `https://dashscope.aliyuncs.com/api/v1/services/aigc/image-editing/generation/${requestId}`,
+      `https://dashscope-intl.aliyuncs.com/api/v1/tasks/${requestId}`,
       { headers: { 'Authorization': `Bearer ${apiKey}` } }
     )
     
     const data = await response.json()
     
-    if (data.output?.images?.[0]?.url) {
-      return data.output.images[0].url
+    if (data.output?.results?.[0]?.url || data.output?.images?.[0]?.url) {
+      return data.output?.results?.[0]?.url || data.output.images[0].url
     }
-    
-    if (data.code === 'Failed') {
+
+    if (data.output?.task_status === 'FAILED' || data.output?.task_status === 'CANCELED') {
       throw new Error('Alibaba edit failed')
     }
   }
@@ -273,9 +277,16 @@ export async function POST(request: NextRequest) {
     // Convert image to base64 for providers that need it
     const imageBase64 = await imageUrlToBase64(imageUrl)
 
-    // Try Stability first (best quality, charges at end of month)
+    // Prefer Alibaba for all image editing workloads.
     try {
-      editedImageUrl = await editWithStability(imageBase64, instruction)
+      editedImageUrl = await editWithAlibaba(imageUrl, instruction)
+    } catch (err) {
+      errors.push(`Alibaba: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
+
+    // Fallback providers
+    try {
+      if (!editedImageUrl) editedImageUrl = await editWithStability(imageBase64, instruction)
     } catch (err) {
       errors.push(`Stability: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
@@ -295,15 +306,6 @@ export async function POST(request: NextRequest) {
         editedImageUrl = await editWithFal(imageUrl, instruction)
       } catch (err) {
         errors.push(`Fal: ${err instanceof Error ? err.message : 'Unknown error'}`)
-      }
-    }
-
-    // Try Alibaba fourth (your API)
-    if (!editedImageUrl) {
-      try {
-        editedImageUrl = await editWithAlibaba(imageBase64, instruction)
-      } catch (err) {
-        errors.push(`Alibaba: ${err instanceof Error ? err.message : 'Unknown error'}`)
       }
     }
 
