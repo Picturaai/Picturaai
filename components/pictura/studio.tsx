@@ -710,6 +710,7 @@ export function Studio() {
         const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
         setImages((prev) => [videoItem, ...prev.filter((item) => item.url !== videoItem.url)])
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
+        playSuccessSound()
         toast.success('Video generated!')
 
         await fetch('/api/gallery', {
@@ -774,9 +775,40 @@ export function Studio() {
       return
     }
 
+    if (nextType === 'up') {
+      setPendingFeedback(null)
+      setFeedbackNote('')
+      setRatingPromptOpen(false)
+      toast.success('Thanks for the feedback!')
+      return
+    }
+
     setPendingFeedback({ url, type: nextType })
     setFeedbackNote('')
     setRatingPromptOpen(true)
+  }
+
+  const handleModeSwitch = (nextMode: Mode) => {
+    if (loading) {
+      toast('Generation in progress. Please wait until it finishes.')
+      return
+    }
+
+    if (nextMode === 'text') {
+      setMode('text')
+      handleFileChange(null)
+      return
+    }
+
+    if (nextMode === 'image') {
+      setMode('image')
+      if (!uploadedFile) fileInputRef.current?.click()
+      return
+    }
+
+    setSelectedModel('picturagen')
+    setMode('video')
+    handleFileChange(null)
   }
 
   const dismissTour = async () => {
@@ -1373,7 +1405,7 @@ export function Studio() {
           <div className="mt-2 flex items-center justify-between px-1">
             <div className="flex items-center gap-1 rounded-lg bg-secondary/50 p-0.5" data-tour="mode-tabs">
               <button
-                onClick={() => { if (loading) return; setMode('text'); handleFileChange(null) }}
+                onClick={() => handleModeSwitch('text')}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'text'
                     ? 'bg-background text-foreground shadow-sm'
@@ -1383,7 +1415,7 @@ export function Studio() {
                 Text to Image
               </button>
               <button
-                onClick={() => { if (loading) return; setMode('image'); if (!uploadedFile) fileInputRef.current?.click() }}
+                onClick={() => handleModeSwitch('image')}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'image'
                     ? 'bg-background text-foreground shadow-sm'
@@ -1393,7 +1425,7 @@ export function Studio() {
                 Image to Image
               </button>
               <button
-                onClick={() => { if (loading) return; setSelectedModel('picturagen'); setMode('video'); handleFileChange(null) }}
+                onClick={() => handleModeSwitch('video')}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'video'
                     ? 'bg-background text-foreground shadow-sm'
@@ -1742,8 +1774,8 @@ export function Studio() {
               className="w-full max-w-sm rounded-2xl border border-border/40 bg-background p-4 shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-sm font-semibold text-foreground">How would you rate this generation?</h3>
-              <p className="mt-1 text-xs text-muted-foreground">Your feedback helps us improve quality and prompts.</p>
+              <h3 className="text-sm font-semibold text-foreground">How can we improve this generation?</h3>
+              <p className="mt-1 text-xs text-muted-foreground">Tell us what went wrong so we can improve the model quality.</p>
 
               {pendingFeedback && (
                 <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-card px-2.5 py-1.5 text-xs">
