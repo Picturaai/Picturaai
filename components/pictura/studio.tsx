@@ -8,7 +8,7 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard, ThumbsUp, ThumbsDown,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
@@ -960,14 +960,16 @@ export function Studio() {
           </div>
         ) : !hasResults && !loading ? (
           /* Empty state */
-          <div className={`flex h-full flex-col px-6 text-center ${mode === 'video' ? 'items-center justify-center overflow-y-auto py-6' : 'items-center justify-center'}`}>
+          <div className={`flex h-full flex-col px-4 text-center sm:px-6 ${mode === 'video' ? 'items-center justify-start overflow-y-auto py-4 sm:py-8' : 'items-center justify-center'}`}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
-              className={`flex flex-col ${mode === 'video' ? 'items-center' : 'items-center'}`}
+              className={`flex flex-col ${mode === 'video' ? 'w-full max-w-3xl items-center rounded-3xl border border-border/40 bg-card/80 px-5 py-6 sm:px-8 sm:py-8' : 'items-center'}`}
             >
-              <PicturaIcon size={56} />
+              <div className={`${mode === 'video' ? 'rounded-2xl bg-primary/5 p-3' : ''}`}>
+                <PicturaIcon size={56} />
+              </div>
               <h2 className="mt-5 text-xl font-semibold text-foreground sm:text-2xl">{mode === 'video' ? 'What video will you create?' : 'What will you create?'}</h2>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
                 {mode === 'video'
@@ -979,19 +981,19 @@ export function Studio() {
               </p>
 
               {mode === 'video' ? (
-                <div className="mt-8 w-full max-w-2xl" data-tour="suggestions">
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="mt-7 w-full max-w-2xl" data-tour="suggestions">
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                     {visibleVideoExamples.map((suggestion) => (
                       <button
                         key={suggestion}
                         onClick={() => setPrompt(suggestion)}
-                        className="rounded-2xl border border-border/50 bg-card px-4 py-2 text-xs leading-relaxed text-muted-foreground transition-all hover:border-primary/30 hover:bg-card/80 hover:text-foreground"
+                        className="rounded-2xl border border-border/50 bg-background px-4 py-3 text-sm leading-relaxed text-muted-foreground transition-all hover:border-primary/30 hover:bg-card hover:text-foreground"
                       >
                         {suggestion}
                       </button>
                     ))}
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground/80">
+                  <p className="mt-3 text-xs text-muted-foreground/80 sm:text-sm">
                     Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
                   </p>
                 </div>
@@ -1075,7 +1077,33 @@ export function Studio() {
                         </span>
                         <span className="text-[10px] font-mono text-muted-foreground/50">{new Date(video.createdAt).toLocaleDateString()}</span>
                       </div>
-                      <div className="mt-3 flex items-center justify-end border-t border-border/30 pt-3">
+                      <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleFeedback(video.url, 'up')}
+                            className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                              feedbackMap[video.url] === 'up'
+                                ? 'bg-primary/10 text-primary'
+                                : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
+                            }`}
+                            aria-label="Like this video"
+                          >
+                            <ThumbsUp className="h-3 w-3" />
+                            Like
+                          </button>
+                          <button
+                            onClick={() => handleFeedback(video.url, 'down')}
+                            className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                              feedbackMap[video.url] === 'down'
+                                ? 'bg-destructive/10 text-destructive'
+                                : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
+                            }`}
+                            aria-label="Dislike this video"
+                          >
+                            <ThumbsDown className="h-3 w-3" />
+                            Needs work
+                          </button>
+                        </div>
                         <button
                           onClick={() => { setGeneratedVideoUrl(video.url); setVideoDownloadModalOpen(true) }}
                           className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/40 transition-all hover:bg-secondary hover:text-foreground"
@@ -1145,24 +1173,26 @@ export function Studio() {
                             <span className="mr-1 text-[10px] text-muted-foreground/60">Rate</span>
                             <button
                               onClick={() => handleFeedback(img.url, 'up')}
-                              className={`rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
                                 fb === 'up'
                                   ? 'bg-primary/10 text-primary'
                                   : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
                               }`}
                               aria-label="Like this image"
                             >
+                              <ThumbsUp className="h-3 w-3" />
                               Looks good
                             </button>
                             <button
                               onClick={() => handleFeedback(img.url, 'down')}
-                              className={`rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
+                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium transition-all ${
                                 fb === 'down'
                                   ? 'bg-destructive/10 text-destructive'
                                   : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
                               }`}
                               aria-label="Dislike this image"
                             >
+                              <ThumbsDown className="h-3 w-3" />
                               Needs work
                             </button>
                           </div>
@@ -1633,18 +1663,20 @@ export function Studio() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => handleFeedback(lightbox.url, 'up')}
-                      className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium shadow-lg transition-all ${
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium shadow-lg transition-all ${
                         feedbackMap[lightbox.url] === 'up' ? 'bg-primary text-primary-foreground' : 'bg-white/90 text-muted-foreground hover:text-foreground'
                       }`}
                     >
+                      <ThumbsUp className="h-3 w-3" />
                       Looks good
                     </button>
                     <button
                       onClick={() => handleFeedback(lightbox.url, 'down')}
-                      className={`rounded-lg px-2.5 py-1.5 text-[11px] font-medium shadow-lg transition-all ${
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium shadow-lg transition-all ${
                         feedbackMap[lightbox.url] === 'down' ? 'bg-destructive text-destructive-foreground' : 'bg-white/90 text-muted-foreground hover:text-foreground'
                       }`}
                     >
+                      <ThumbsDown className="h-3 w-3" />
                       Needs work
                     </button>
                   </div>
@@ -1696,9 +1728,9 @@ export function Studio() {
               <h3 className="text-sm font-semibold text-foreground">How would you rate this generation?</h3>
               <p className="mt-1 text-xs text-muted-foreground">Your feedback helps us improve quality and prompts.</p>
               <div className="mt-3 grid grid-cols-3 gap-2">
-                <button onClick={() => { setRatingPromptOpen(false); toast('Thanks!') }} className="rounded-lg border border-border/50 bg-card px-2 py-2 text-xs hover:bg-secondary">😕 Poor</button>
-                <button onClick={() => { setRatingPromptOpen(false); toast('Thanks!') }} className="rounded-lg border border-border/50 bg-card px-2 py-2 text-xs hover:bg-secondary">🙂 Good</button>
-                <button onClick={() => { setRatingPromptOpen(false); toast.success('Awesome, thank you!') }} className="rounded-lg border border-primary/30 bg-primary/10 px-2 py-2 text-xs text-primary hover:bg-primary/15">🔥 Great</button>
+                <button onClick={() => { setRatingPromptOpen(false); toast('Thanks!') }} className="rounded-lg border border-border/50 bg-card px-2 py-2 text-xs hover:bg-secondary">Needs improvement</button>
+                <button onClick={() => { setRatingPromptOpen(false); toast('Thanks!') }} className="rounded-lg border border-border/50 bg-card px-2 py-2 text-xs hover:bg-secondary">Good</button>
+                <button onClick={() => { setRatingPromptOpen(false); toast.success('Awesome, thank you!') }} className="rounded-lg border border-primary/30 bg-primary/10 px-2 py-2 text-xs text-primary hover:bg-primary/15">Excellent</button>
               </div>
             </motion.div>
           </motion.div>
