@@ -498,18 +498,18 @@ export function Studio() {
     const regionalVideo = VIDEO_EXAMPLES_BY_REGION[region] || []
     const mergedVideo = [...regionalVideo, ...VIDEO_EXAMPLES]
     setVideoExamples(mergedVideo)
-    setVisibleVideoExamples(pickUniquePrompts(mergedVideo, 4))
+    setVisibleVideoExamples(pickUniquePrompts(mergedVideo, 3))
 
     const regionalImage = IMAGE_EXAMPLES_BY_REGION[region] || []
     const mergedImage = [...regionalImage, ...PROMPT_EXAMPLES]
     setImageExamples(mergedImage)
-    setVisibleImageExamples(pickUniquePrompts(mergedImage, 4))
+    setVisibleImageExamples(pickUniquePrompts(mergedImage, 3))
   }, [])
 
   useEffect(() => {
     if (mode !== 'video') return
     const interval = setInterval(() => {
-      setVisibleVideoExamples(pickUniquePrompts(videoExamples, 4))
+      setVisibleVideoExamples(pickUniquePrompts(videoExamples, 3))
     }, 5500)
     return () => clearInterval(interval)
   }, [mode, imageExamples, videoExamples])
@@ -517,7 +517,7 @@ export function Studio() {
   useEffect(() => {
     if (mode !== 'text') return
     const interval = setInterval(() => {
-      setVisibleImageExamples(pickUniquePrompts(imageExamples, 4))
+      setVisibleImageExamples(pickUniquePrompts(imageExamples, 3))
     }, 5500)
     return () => clearInterval(interval)
   }, [mode, imageExamples])
@@ -647,6 +647,36 @@ export function Studio() {
       const createdAt = new Date(item.createdAt).getTime()
       return kind === targetKind && item.prompt === pending.prompt && createdAt >= (pendingStartedAt - 60_000)
     })
+  }, [])
+
+  // Restore pending generation on mount (runs immediately)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    const rawPending = window.localStorage.getItem(PENDING_GENERATION_KEY)
+    if (!rawPending) return
+    
+    try {
+      const parsed = JSON.parse(rawPending) as PendingGeneration
+      if (parsed?.mode && parsed?.prompt && parsed?.startedAt) {
+        // Set pending generation first - this will trigger the polling effect
+        setPendingGeneration(parsed)
+        setLoading(true)
+        setLoadingPrompt(parsed.prompt)
+        setActiveGenerationMode(parsed.mode)
+        // Also set the mode and prompt to restore the UI state
+        setMode(parsed.mode)
+        if (parsed.mode === 'video') {
+          setVideoPrompt(parsed.prompt)
+        } else if (parsed.mode === 'image') {
+          setImagePrompt(parsed.prompt)
+        } else {
+          setPrompt(parsed.prompt)
+        }
+      }
+    } catch {
+      window.localStorage.removeItem(PENDING_GENERATION_KEY)
+    }
   }, [])
 
   useEffect(() => {
