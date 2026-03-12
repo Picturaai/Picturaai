@@ -447,9 +447,9 @@ export function Studio() {
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
   const [videoLoadingHintIndex, setVideoLoadingHintIndex] = useState(0)
   const [videoExamples, setVideoExamples] = useState<string[]>(VIDEO_EXAMPLES)
-  const [visibleVideoExamples, setVisibleVideoExamples] = useState<string[]>(VIDEO_EXAMPLES.slice(0, 4))
+  const [visibleVideoExamples, setVisibleVideoExamples] = useState<string[]>(VIDEO_EXAMPLES.slice(0, 3))
   const [imageExamples, setImageExamples] = useState<string[]>(PROMPT_EXAMPLES)
-  const [visibleImageExamples, setVisibleImageExamples] = useState<string[]>(PROMPT_EXAMPLES.slice(0, 4))
+  const [visibleImageExamples, setVisibleImageExamples] = useState<string[]>(PROMPT_EXAMPLES.slice(0, 3))
   const [ratingPromptOpen, setRatingPromptOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -742,7 +742,8 @@ export function Studio() {
           setActiveGenerationMode(null)
           setLoadingPrompt('')
           clearPendingGeneration()
-          toast.info('Previous generation timed out. Please try again.')
+          // Don't clear prompt on timeout so user can retry
+          toast.info('Generation timed out. Please try again.')
         }
       } catch {
         // Silent polling failures
