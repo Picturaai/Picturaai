@@ -868,8 +868,8 @@ export function Studio() {
                   <PicturaIcon size={24} />
                 </div>
               </div>
-<p className="mt-8 text-sm font-semibold text-foreground">{mode === 'video' ? 'Creating your video' : mode === 'image' ? 'Transforming your image' : 'Creating your image'}</p>
-  <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
+              <p className="mt-8 text-sm font-semibold text-foreground">{mode === 'video' ? 'Creating your video' : mode === 'image' ? 'Transforming your image' : 'Creating your image'}</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
               {/* Thin progress bar */}
               <div className="mt-5 h-1 w-48 overflow-hidden rounded-full bg-secondary">
                 <motion.div
@@ -915,6 +915,8 @@ export function Studio() {
                     Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
                   </p>
                 </div>
+              )}
+
           <div className={`flex h-full flex-col px-6 text-center ${mode === 'video' ? 'items-center justify-center overflow-y-auto py-6' : 'items-center justify-center'}`}>
             <motion.div
                 <span className="block mt-1.5">
