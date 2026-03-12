@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getOrCreateSessionId } from '@/lib/session'
 import { getVideoRateLimitInfo, incrementVideoUsage } from '@/lib/rate-limit'
+import { appendMediaToGallery } from '@/lib/gallery'
+import { getAdminSessionFromRequest } from '@/lib/admin-auth'
+import { getRequestContext } from '@/lib/request-context'
 
 type AlibabaTaskResponse = {
   output?: {
@@ -103,20 +106,32 @@ export async function POST(request: Request) {
     }
 
     const sessionId = await getOrCreateSessionId(request)
-    const videoLimit = await getVideoRateLimitInfo(sessionId)
+    const adminSession = getAdminSessionFromRequest(request)
+    const requestContext = getRequestContext(request)
+    const videoLimit = await getVideoRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
     if (videoLimit.remaining <= 0) {
-      return NextResponse.json({ error: 'Daily video limit reached (2/day).', rateLimitInfo: videoLimit }, { status: 429 })
+      return NextResponse.json({ error: `Daily video limit reached (${videoLimit.limit}/day).`, rateLimitInfo: videoLimit }, { status: 429 })
     }
 
     const videoUrl = await generateWithAlibabaVideo(prompt)
-    await incrementVideoUsage(sessionId)
-    const updatedLimit = await getVideoRateLimitInfo(sessionId)
+    const createdAt = new Date().toISOString()
+
+    await appendMediaToGallery(sessionId, {
+      url: videoUrl,
+      prompt: prompt.trim(),
+      type: 'text-to-video',
+      mediaKind: 'video',
+      createdAt,
+    })
+
+    await incrementVideoUsage(sessionId, { role: adminSession?.role, ...requestContext })
+    const updatedLimit = await getVideoRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
 
     return NextResponse.json({
       url: videoUrl,
       prompt: prompt.trim(),
       type: 'text-to-video',
-      createdAt: new Date().toISOString(),
+      createdAt,
       rateLimitInfo: updatedLimit,
     })
   } catch (error) {

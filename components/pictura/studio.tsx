@@ -90,6 +90,8 @@ const MODELS = [
   { id: 'pi-2.0', name: 'Pictura pi-2.0', status: 'coming' as const, description: 'Next-gen architecture' },
 ]
 
+
+
 /* Custom Send Icon - clean arrow in circle */
 function SendIcon({ className = '' }: { className?: string }) {
   return (
@@ -378,6 +380,21 @@ function getPromptExamplesForMode(mode: Mode, imageExamples: string[], videoExam
   return videoExamples
 }
 
+
+function dedupeMedia(items: GeneratedMedia[]): GeneratedMedia[] {
+  const seen = new Set<string>()
+  const unique: GeneratedMedia[] = []
+
+  for (const item of items) {
+    const key = `${item.type}|${item.url}|${item.prompt.trim()}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    unique.push(item)
+  }
+
+  return unique
+}
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
@@ -402,6 +419,7 @@ export function Studio() {
   const [tourStep, setTourStep] = useState(-1) // -1 = not showing
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(8)
 
   // auto-switch model with mode
   useEffect(() => {
@@ -490,6 +508,27 @@ export function Studio() {
     }, 1600)
     return () => clearInterval(interval)
   }, [loading, mode])
+
+
+  useEffect(() => {
+    if (!loading || !pendingGeneration) {
+      setLoadingProgress(8)
+      return
+    }
+
+    const ttlMs = pendingGeneration.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+
+    const syncProgress = () => {
+      const elapsed = Date.now() - new Date(pendingGeneration.startedAt).getTime()
+      const normalized = Math.max(0, Math.min(1, elapsed / ttlMs))
+      const progress = Math.min(96, Math.max(8, Math.round(normalized * 100)))
+      setLoadingProgress(progress)
+    }
+
+    syncProgress()
+    const interval = setInterval(syncProgress, 1000)
+    return () => clearInterval(interval)
+  }, [loading, pendingGeneration])
 
   useEffect(() => {
     const locale = typeof navigator !== 'undefined' ? navigator.language : undefined
@@ -617,6 +656,36 @@ export function Studio() {
     }
   }, [])
 
+  const getStoredPendingGeneration = useCallback((): PendingGeneration | null => {
+    if (typeof window === 'undefined') return null
+    try {
+      const raw = window.localStorage.getItem(PENDING_GENERATION_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as PendingGeneration
+      if (!parsed?.mode || !parsed?.prompt || !parsed?.startedAt) return null
+      return parsed
+    } catch {
+      return null
+    }
+  }, [])
+
+  const restorePendingGenerationUI = useCallback((pending: PendingGeneration) => {
+    setLoading(true)
+    setActiveGenerationMode(pending.mode)
+    setLoadingPrompt(pending.prompt)
+    setMode(pending.mode)
+
+    if (pending.mode === 'video') {
+      setVideoPrompt(pending.prompt)
+    } else if (pending.mode === 'image') {
+      setImagePrompt(pending.prompt)
+    } else {
+      setPrompt(pending.prompt)
+    }
+
+    setPendingGeneration(pending)
+  }, [])
+
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
     let allImages: GeneratedMedia[] = []
@@ -639,13 +708,14 @@ export function Studio() {
         const localImages: GeneratedMedia[] = JSON.parse(localStored)
         if (localImages.length > 0) {
           // Merge with server images
-          allImages = [...allImages, ...localImages]
+          allImages = dedupeMedia([...allImages, ...localImages])
         }
       }
     } catch { /* silent */ }
     
     if (allImages.length > 0) {
       // Sort newest first by createdAt
+      allImages = dedupeMedia(allImages)
       allImages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       setImages(allImages)
       const latestVideo = allImages.find((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
@@ -720,13 +790,13 @@ export function Studio() {
               if (localStored) {
                 const localImages: GeneratedMedia[] = JSON.parse(localStored)
                 if (localImages.length > 0) {
-                  allImages = [...allImages, ...localImages]
+                  allImages = dedupeMedia([...allImages, ...localImages])
                 }
               }
             } catch { /* silent */ }
             
             if (allImages.length > 0) {
-              const sorted = allImages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              const sorted = dedupeMedia(allImages).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
               setImages(sorted)
               
               // Check if there's a matching result
@@ -754,6 +824,11 @@ export function Studio() {
                 }
                 window.localStorage.removeItem(PENDING_GENERATION_KEY)
                 setPendingGeneration(null)
+                if (targetKind === 'video') {
+                  void fetchVideoRateLimit()
+                } else {
+                  void fetchRateLimit()
+                }
                 // Note: We can't use toast here directly, but the UI will show the result
               }
             }
@@ -765,7 +840,7 @@ export function Studio() {
     } catch {
       window.localStorage.removeItem(PENDING_GENERATION_KEY)
     }
-  }, [])
+  }, [fetchRateLimit, fetchVideoRateLimit])
 
   useEffect(() => {
     setMounted(true)
@@ -804,7 +879,7 @@ export function Studio() {
         if (!Array.isArray(saved)) return
 
         if (!cancelled) {
-          const sortedSaved = [...(saved as GeneratedMedia[])].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          const sortedSaved = dedupeMedia([...(saved as GeneratedMedia[])]).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
           setImages(sortedSaved)
           
           // Check if the generation is complete by looking at the saved images
@@ -825,6 +900,11 @@ export function Studio() {
               setPrompt('')
             }
             clearPendingGeneration()
+            if ((resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')) === 'video') {
+              void fetchVideoRateLimit()
+            } else {
+              void fetchRateLimit()
+            }
             toast.success('Generation restored successfully.')
             return
           }
@@ -854,7 +934,7 @@ export function Studio() {
       cancelled = true
       clearInterval(interval)
     }
-  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration])
+  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration, fetchRateLimit, fetchVideoRateLimit])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -889,7 +969,25 @@ export function Studio() {
 
     if (!promptAtSubmit) return
 
+    const activePending = pendingGeneration || getStoredPendingGeneration()
+    if (activePending) {
+      const startedAt = new Date(activePending.startedAt).getTime()
+      const ttlMs = activePending.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+      if (Date.now() - startedAt < ttlMs) {
+        restorePendingGenerationUI(activePending)
+        toast.info('A generation is already in progress. We will continue that request instead of creating a new one.')
+        return
+      }
+      clearPendingGeneration()
+    }
+
     if ((modeAtSubmit === 'text' || modeAtSubmit === 'image') && rateLimit.remaining <= 0) {
+      playLimitSound()
+      setShowExhausted(true)
+      return
+    }
+
+    if (modeAtSubmit === 'video' && videoRateLimit.remaining <= 0) {
       playLimitSound()
       setShowExhausted(true)
       return
@@ -929,11 +1027,6 @@ export function Studio() {
           body: form,
         })
       } else {
-        if (videoRateLimit.remaining <= 0) {
-          playLimitSound()
-          setShowExhausted(true)
-          return
-        }
         res = await fetch('/api/generate/video', {
           method: 'POST',
           credentials: 'include',
@@ -956,41 +1049,14 @@ export function Studio() {
       if (modeAtSubmit === 'video') {
         setGeneratedVideoUrl(data.url)
         const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
-        setImages((prev) => [videoItem, ...prev])
+        setImages((prev) => dedupeMedia([videoItem, ...prev]))
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
         playSuccessSound()
         toast.success('Video generated!')
 
-        // Save to gallery for persistence
-        await fetch('/api/gallery', {
-          method: 'POST',
-          credentials: 'include',
-          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify(videoItem),
-        }).catch(() => {})
       } else {
         const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
-        setImages((prev) => [imageItem, ...prev])
-        
-        // Save to gallery for persistence and refresh restoration
-        const galleryRes = await fetch('/api/gallery', {
-          method: 'POST',
-          credentials: 'include',
-          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify(imageItem),
-        })
-        
-        // If gallery save fails, save to localStorage as fallback
-        if (!galleryRes.ok) {
-          console.log('[Client] Gallery save failed, using localStorage fallback')
-          try {
-            const existing = JSON.parse(window.localStorage.getItem('pictura_images') || '[]')
-            const updated = [imageItem, ...existing]
-            window.localStorage.setItem('pictura_images', JSON.stringify(updated))
-          } catch (e) {
-            console.error('localStorage fallback failed:', e)
-          }
-        }
+        setImages((prev) => dedupeMedia([imageItem, ...prev]))
         
         if (data.rateLimitInfo) {
           console.log('[Client] Setting rate limit from success:', data.rateLimitInfo)
@@ -1013,7 +1079,7 @@ export function Studio() {
         setTimeout(() => toast.info('You have 1 generation left today. Make it count!'), 800)
       }
       
-      // Clear pending generation AFTER gallery save is complete
+      // Clear pending generation after successful generation
       clearPendingGeneration()
     } catch (err) {
       // Display the error message from the API if available
@@ -1284,13 +1350,12 @@ export function Studio() {
   <p className="mt-1.5 text-xs text-muted-foreground">{mode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : mode === 'image' ? 'Pictura is transforming, this may take a moment' : 'Pictura is generating, this may take a moment'}</p>
               {/* Thin progress bar */}
               <div className="mt-5 h-1 w-48 overflow-hidden rounded-full bg-secondary">
-                <motion.div
-                  className="h-full rounded-full bg-primary"
-                  initial={{ width: '0%' }}
-                  animate={{ width: '90%' }}
-                  transition={{ duration: 15, ease: 'easeOut' }}
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
+                  style={{ width: `${loadingProgress}%` }}
                 />
               </div>
+              <p className="mt-1 text-[10px] text-muted-foreground/80">{loadingProgress}% complete</p>
             </motion.div>
           </div>
         ) : !hasResults && !loading ? (
@@ -1701,6 +1766,7 @@ export function Studio() {
               <span className="hidden sm:inline">{improving ? 'Improving...' : 'Improve'}</span>
             </button>
           </div>
+
 
           {/* Mode switcher + status */}
           <div className="mt-2 flex items-center justify-between px-1">
