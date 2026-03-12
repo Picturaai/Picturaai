@@ -20,6 +20,7 @@ import type { GeneratedMedia, RateLimitInfo } from '@/lib/types'
 
 type Mode = 'text' | 'image' | 'video'
 type Feedback = 'up' | 'down' | null
+type PendingFeedback = { url: string; type: Exclude<Feedback, null> } | null
 
 
 const VIDEO_LOADING_HINTS = [
@@ -374,6 +375,7 @@ export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
+  const [activeGenerationMode, setActiveGenerationMode] = useState<Mode | null>(null)
   const [images, setImages] = useState<GeneratedMedia[]>([])
   const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 5, remaining: 5, used: 0, resetAt: '' })
   const [videoRateLimit, setVideoRateLimit] = useState<RateLimitInfo>({ limit: 2, remaining: 2, used: 0, resetAt: '' })
@@ -382,6 +384,8 @@ export function Studio() {
   const [uploadPreview, setUploadPreview] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [feedbackMap, setFeedbackMap] = useState<Record<string, Feedback>>({})
+  const [pendingFeedback, setPendingFeedback] = useState<PendingFeedback>(null)
+  const [feedbackNote, setFeedbackNote] = useState('')
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [showExhausted, setShowExhausted] = useState(false)
   const [tourStep, setTourStep] = useState(-1) // -1 = not showing
@@ -635,37 +639,47 @@ export function Studio() {
   }
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return
-    if ((mode === 'text' || mode === 'image') && rateLimit.remaining <= 0) {
+    const modeAtSubmit = mode
+    const promptAtSubmit = prompt.trim()
+
+    if (!promptAtSubmit) return
+
+    if ((modeAtSubmit === 'text' || modeAtSubmit === 'image') && rateLimit.remaining <= 0) {
       playLimitSound()
       setShowExhausted(true)
       return
     }
-    if (mode === 'image' && !uploadedFile) {
-      toast.error('Upload a reference image first.')
+
+    if (modeAtSubmit === 'image' && !uploadedFile) {
+      toast.error('Please upload an image first')
       return
     }
 
     setLoading(true)
+    setActiveGenerationMode(modeAtSubmit)
+    setShowExhausted(false)
+
     try {
       let res: Response
-      if (mode === 'text') {
+
+      if (modeAtSubmit === 'text') {
         res = await fetch('/api/generate/text-to-image', {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
+          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
         })
-      } else if (mode === 'image') {
-        const formData = new FormData()
-        formData.append('prompt', prompt.trim())
-        if (uploadedFile) formData.append('image', uploadedFile)
-        formData.append('model', selectedModel)
-        res = await fetch('/api/generate/image-to-image', { 
-          method: 'POST', 
+      } else if (modeAtSubmit === 'image') {
+        const form = new FormData()
+        form.append('prompt', promptAtSubmit)
+        form.append('imageUrl', uploadPreview || '')
+        form.append('model', selectedModel)
+
+        res = await fetch('/api/generate/image-to-image', {
+          method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders(),
-          body: formData 
+          body: form,
         })
       } else {
         if (videoRateLimit.remaining <= 0) {
@@ -676,33 +690,34 @@ export function Studio() {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ prompt: prompt.trim(), model: selectedModel }),
+          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
         })
       }
 
       const data = await res.json()
       console.log('[Client] Generate response:', res.status, data.rateLimitInfo)
+
       if (!res.ok) {
-        toast.error(data.error || 'Generation failed. Please try again.')
-        if (data.rateLimitInfo) {
+        if (data.rateLimitInfo && modeAtSubmit !== 'video') {
           console.log('[Client] Setting rate limit from error:', data.rateLimitInfo)
           setRateLimit(data.rateLimitInfo)
         }
-        return
+        throw new Error(data.error || 'Failed to generate')
       }
 
-      if (mode === 'video') {
+      if (modeAtSubmit === 'video') {
         setGeneratedVideoUrl(data.url)
         const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
         setImages((prev) => [videoItem, ...prev.filter((item) => item.url !== videoItem.url)])
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
         toast.success('Video generated!')
-        fetch('/api/gallery', {
+
+        await fetch('/api/gallery', {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(videoItem),
-        }).catch(() => { /* silent */ })
+        }).catch(() => {})
       } else {
         const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
         setImages((prev) => [imageItem, ...prev.filter((item) => item.url !== imageItem.url)])
@@ -713,26 +728,17 @@ export function Studio() {
         playSuccessSound()
         toast.success('Image generated!')
       }
-      setPrompt('')
 
-      if (mode !== 'video') {
-        // Persist image to gallery
-        fetch('/api/gallery', {
-          method: 'POST',
-          credentials: 'include',
-          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ ...data, mediaKind: 'image' }),
-        }).catch(() => { /* silent */ })
+      if (modeAtSubmit !== 'video') {
+        setPrompt('')
       }
-      setTimeout(() => galleryRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 100)
 
-      // Check if this was the last generation
-      const updatedRemaining = mode === 'video' ? (data.rateLimitInfo?.remaining ?? videoRateLimit.remaining - 1) : (data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1)
-      if (updatedRemaining <= 0) {
-        setTimeout(() => {
-          playLimitSound()
-          setShowExhausted(true)
-        }, 1500)
+      const updatedRemaining = modeAtSubmit === 'video'
+        ? (data.rateLimitInfo?.remaining ?? videoRateLimit.remaining - 1)
+        : (data.rateLimitInfo?.remaining ?? rateLimit.remaining - 1)
+
+      if (updatedRemaining <= 2 && updatedRemaining > 1) {
+        setTimeout(() => toast(`You have ${updatedRemaining} generations left today.`), 800)
       } else if (updatedRemaining === 1) {
         setTimeout(() => toast('You have 1 generation left today. Make it count!'), 800)
       }
@@ -740,6 +746,7 @@ export function Studio() {
       toast.error('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
+      setActiveGenerationMode(null)
     }
   }
 
@@ -753,13 +760,23 @@ export function Studio() {
   }
 
   const handleFeedback = (url: string, type: Feedback) => {
+    if (!type) return
+    const nextType = feedbackMap[url] === type ? null : type
     setFeedbackMap((prev) => ({
       ...prev,
-      [url]: prev[url] === type ? null : type,
+      [url]: nextType,
     }))
+
+    if (!nextType) {
+      setPendingFeedback(null)
+      setFeedbackNote('')
+      setRatingPromptOpen(false)
+      return
+    }
+
+    setPendingFeedback({ url, type: nextType })
+    setFeedbackNote('')
     setRatingPromptOpen(true)
-    if (type === 'up') toast.success('Thanks for the feedback!')
-    if (type === 'down') toast('We\'ll use this to improve Pictura.')
   }
 
   const dismissTour = async () => {
@@ -1035,10 +1052,10 @@ export function Studio() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-foreground">
-                          {mode === 'video' ? 'Generating your video with PicturaGen...' : mode === 'image' ? 'Transforming image...' : 'Generating image...'}
+                          {activeGenerationMode === 'video' ? 'Generating your video with PicturaGen...' : activeGenerationMode === 'image' ? 'Transforming image...' : 'Generating image...'}
                         </p>
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {prompt || (mode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : mode === 'image' ? 'Transforming your image' : 'Processing your request')}
+                          {prompt || (activeGenerationMode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : activeGenerationMode === 'image' ? 'Transforming your image' : 'Processing your request')}
                         </p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
@@ -1356,7 +1373,7 @@ export function Studio() {
           <div className="mt-2 flex items-center justify-between px-1">
             <div className="flex items-center gap-1 rounded-lg bg-secondary/50 p-0.5" data-tour="mode-tabs">
               <button
-                onClick={() => { setMode('text'); handleFileChange(null) }}
+                onClick={() => { if (loading) return; setMode('text'); handleFileChange(null) }}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'text'
                     ? 'bg-background text-foreground shadow-sm'
@@ -1366,7 +1383,7 @@ export function Studio() {
                 Text to Image
               </button>
               <button
-                onClick={() => { setMode('image'); if (!uploadedFile) fileInputRef.current?.click() }}
+                onClick={() => { if (loading) return; setMode('image'); if (!uploadedFile) fileInputRef.current?.click() }}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'image'
                     ? 'bg-background text-foreground shadow-sm'
@@ -1376,7 +1393,7 @@ export function Studio() {
                 Image to Image
               </button>
               <button
-                onClick={() => { setSelectedModel('picturagen'); setMode('video'); handleFileChange(null) }}
+                onClick={() => { if (loading) return; setSelectedModel('picturagen'); setMode('video'); handleFileChange(null) }}
                 className={`rounded-md px-3 py-1 text-[11px] font-medium transition-all ${
                   mode === 'video'
                     ? 'bg-background text-foreground shadow-sm'
@@ -1727,10 +1744,37 @@ export function Studio() {
             >
               <h3 className="text-sm font-semibold text-foreground">How would you rate this generation?</h3>
               <p className="mt-1 text-xs text-muted-foreground">Your feedback helps us improve quality and prompts.</p>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <button onClick={() => { setRatingPromptOpen(false); toast('Thanks!') }} className="rounded-lg border border-border/50 bg-card px-2 py-2 text-xs hover:bg-secondary">Needs improvement</button>
-                <button onClick={() => { setRatingPromptOpen(false); toast('Thanks!') }} className="rounded-lg border border-border/50 bg-card px-2 py-2 text-xs hover:bg-secondary">Good</button>
-                <button onClick={() => { setRatingPromptOpen(false); toast.success('Awesome, thank you!') }} className="rounded-lg border border-primary/30 bg-primary/10 px-2 py-2 text-xs text-primary hover:bg-primary/15">Excellent</button>
+
+              {pendingFeedback && (
+                <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border/50 bg-card px-2.5 py-1.5 text-xs">
+                  {pendingFeedback.type === 'up' ? <ThumbsUp className="h-3 w-3 text-primary" /> : <ThumbsDown className="h-3 w-3 text-destructive" />}
+                  <span className="text-foreground">{pendingFeedback.type === 'up' ? 'Liked' : 'Needs work'}</span>
+                </div>
+              )}
+
+              <div className="mt-3">
+                <textarea
+                  value={feedbackNote}
+                  onChange={(e) => setFeedbackNote(e.target.value)}
+                  rows={3}
+                  placeholder="Tell us what worked or what should improve..."
+                  className="w-full resize-none rounded-xl border border-border/50 bg-card px-3 py-2 text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus:border-primary/40"
+                />
+              </div>
+
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => { setRatingPromptOpen(false); setFeedbackNote(''); setPendingFeedback(null) }}
+                  className="rounded-lg border border-border/50 bg-card px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { setRatingPromptOpen(false); setFeedbackNote(''); setPendingFeedback(null); toast.success('Thank you — we will use this to improve the model.') }}
+                  className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary hover:bg-primary/15"
+                >
+                  Submit feedback
+                </button>
               </div>
             </motion.div>
           </motion.div>
