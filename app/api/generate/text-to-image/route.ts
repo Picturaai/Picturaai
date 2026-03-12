@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
+import { appendMediaToGallery } from '@/lib/gallery'
 
 console.log('[TextToImage] Module loaded')
 
@@ -483,41 +484,19 @@ export async function POST(request: Request) {
     }
 
     // Generate based on selected model with automatic fallback
-    // Pictura 1.5 Turbo uses Mistral first for best quality, then premium providers
-    // Pictura 1.0 uses free/fast providers first
-    // All 10 providers are tried in order - just add the API key to enable
+    // Model-specific provider pipelines
     let imageUrl: string
     const providers = model === 'pi-1.5-turbo'
       ? [
-          generateWithQwen,
-          generateWithMistral,
-          generateWithStability,
-          generateWithOpenAI,
-          generateWithBFL,
-          generateWithReplicate,
-          generateWithLeonardo,
-          generateWithFal,
-          generateWithTogether,
-          generateWithFireworks,
-          generateWithDeepInfra,
-          generateWithHuggingFace,
-          generateWithZyLabs,
+          generateWithQwen,      // Alibaba
+          generateWithZyLabs,    // ZyLabs
+          generateWithStability, // Stability
+          generateWithMistral,   // Mistral
         ]
       : [
-
-          generateWithZyLabs,      // ZyLabs (fast, free tier)
-          generateWithQwen,        // Alibaba Qwen fallback
-          generateWithTogether,    // Together AI (free tier)
-          generateWithDeepInfra,   // DeepInfra
-          generateWithHuggingFace, // HuggingFace
-          generateWithFal,         // Fal AI
-          generateWithFireworks,   // Fireworks AI
-          generateWithReplicate,   // Replicate
-          generateWithMistral,     // Mistral AI
-          generateWithStability,   // Stability AI
-          generateWithLeonardo,    // Leonardo AI
-          generateWithOpenAI,      // OpenAI DALL-E 3
-          generateWithBFL,         // Black Forest Labs
+          generateWithLeonardo,  // Leonardo
+          generateWithZyLabs,    // ZyLabs
+          generateWithMistral,   // Mistral
         ]
     
     let lastError: Error | null = null
@@ -541,7 +520,7 @@ export async function POST(request: Request) {
     }
 
     // Handle base64 images (from Stability)
-    let imageBuffer: ArrayBuffer
+    let imageBuffer: ArrayBuffer | Buffer
     if (imageUrl.startsWith('data:')) {
       const base64Data = imageUrl.split(',')[1]
       imageBuffer = Buffer.from(base64Data, 'base64')
@@ -562,6 +541,14 @@ export async function POST(request: Request) {
 
     // Upload to Vercel Blob
     const blob = await uploadObject(filename, imageBuffer, 'image/png')
+
+    await appendMediaToGallery(sessionId, {
+      url: blob.url,
+      prompt: prompt.trim(),
+      type: 'text-to-image',
+      mediaKind: 'image',
+      createdAt: new Date().toISOString(),
+    })
 
     // Increment usage after successful generation
     console.log('[TextToImage] Incrementing usage...')
