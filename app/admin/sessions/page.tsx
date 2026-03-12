@@ -39,7 +39,13 @@ export default function AdminSessionsPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
-  const selected = useMemo(() => rows.find((row) => row.session_id === selectedSession) || null, [rows, selectedSession])
+  const dedupedRows = useMemo(() => {
+    const map = new Map<string, SessionRow>()
+    for (const row of rows) map.set(row.session_id, row)
+    return Array.from(map.values())
+  }, [rows])
+
+  const selected = useMemo(() => dedupedRows.find((row) => row.session_id === selectedSession) || null, [dedupedRows, selectedSession])
 
   useEffect(() => {
     const run = async () => {
@@ -120,6 +126,10 @@ export default function AdminSessionsPage() {
   const imageRemainingValue = selected ? Math.max(0, limits.image - selected.credits_used) : 0
   const videoRemainingValue = selected ? Math.max(0, limits.video - selected.video_used) : 0
 
+  const isUnlimitedImage = limits.image >= 999999
+  const isUnlimitedVideo = limits.video >= 999999
+  const limitLabel = (isUnlimited: boolean, value: number) => (isUnlimited ? 'Unlimited' : String(value))
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 backdrop-blur">
@@ -175,7 +185,7 @@ export default function AdminSessionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row) => {
+                  {dedupedRows.map((row) => {
                     const imageLeft = Math.max(0, limits.image - row.credits_used)
                     const videoLeft = Math.max(0, limits.video - row.video_used)
                     const active = row.session_id === selectedSession
@@ -186,13 +196,13 @@ export default function AdminSessionsPage() {
                         onClick={() => setSelectedSession(row.session_id)}
                       >
                         <td className="px-3 py-2 font-mono text-[11px]">{row.session_id}</td>
-                        <td className="px-3 py-2">{imageLeft}</td>
-                        <td className="px-3 py-2">{videoLeft}</td>
+                        <td className="px-3 py-2">{isUnlimitedImage ? "Unlimited" : imageLeft}</td>
+                        <td className="px-3 py-2">{isUnlimitedVideo ? "Unlimited" : videoLeft}</td>
                         <td className="px-3 py-2">{row.last_device || 'unknown'} • {row.last_city || '-'}, {row.last_region || '-'} {row.last_country || '-'} • {row.last_ip || '-'}</td>
                       </tr>
                     )
                   })}
-                  {rows.length === 0 && (
+                  {dedupedRows.length === 0 && (
                     <tr>
                       <td colSpan={4} className="px-3 py-8 text-center text-muted-foreground">No sessions found.</td>
                     </tr>
@@ -206,16 +216,16 @@ export default function AdminSessionsPage() {
         <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm sm:col-span-5">
           <h2 className="text-sm font-semibold">Selected session</h2>
           <p className="mt-1 break-all rounded-lg bg-secondary/50 px-2 py-1 font-mono text-[11px]">{selectedSession || '—'}</p>
-          <p className="mt-2 text-xs text-muted-foreground">Current role daily limits: image {limits.image} / video {limits.video}</p>
+          <p className="mt-2 text-xs text-muted-foreground">Current role daily limits: image {limitLabel(isUnlimitedImage, limits.image)} / video {limitLabel(isUnlimitedVideo, limits.video)}</p>
 
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
             <div className="rounded-lg border border-border/60 bg-background p-2">
               <p className="text-muted-foreground">Image remaining</p>
-              <p className="text-base font-semibold">{imageRemainingValue}</p>
+              <p className="text-base font-semibold">{isUnlimitedImage ? "Unlimited" : imageRemainingValue}</p>
             </div>
             <div className="rounded-lg border border-border/60 bg-background p-2">
               <p className="text-muted-foreground">Video remaining</p>
-              <p className="text-base font-semibold">{videoRemainingValue}</p>
+              <p className="text-base font-semibold">{isUnlimitedVideo ? "Unlimited" : videoRemainingValue}</p>
             </div>
           </div>
 

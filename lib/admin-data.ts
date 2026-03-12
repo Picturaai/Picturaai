@@ -112,14 +112,18 @@ export async function updateSupportReport(id: number, payload: { status?: Suppor
   return updated[0] || null
 }
 
-export async function getAdminOverview() {
+export async function getAdminOverview(excludeSessionId?: string) {
   const sql = getDb()
   await ensureSupportReportsTable()
   await sql`CREATE TABLE IF NOT EXISTS user_sessions (session_id TEXT PRIMARY KEY, created_at TIMESTAMPTZ DEFAULT NOW())`
 
+  const anonymousSessionsPromise = excludeSessionId
+    ? sql`SELECT COUNT(DISTINCT session_id)::int AS count FROM user_sessions WHERE session_id <> ${excludeSessionId}`
+    : sql`SELECT COUNT(DISTINCT session_id)::int AS count FROM user_sessions`
+
   const [developers, anonymousSessions, openReports, allReports] = await Promise.all([
     sql`SELECT COUNT(*)::int AS count FROM developers`,
-    sql`SELECT COUNT(*)::int AS count FROM user_sessions`,
+    anonymousSessionsPromise,
     sql`SELECT COUNT(*)::int AS count FROM support_reports WHERE status <> 'resolved'`,
     sql`SELECT COUNT(*)::int AS count FROM support_reports`,
   ])

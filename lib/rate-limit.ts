@@ -341,14 +341,30 @@ type AdminSessionRecord = {
   last_seen_at: string | Date | null
 }
 
-export async function listSessionsForAdmin(search?: string): Promise<AdminSessionRecord[]> {
+export async function listSessionsForAdmin(search?: string, excludeSessionId?: string): Promise<AdminSessionRecord[]> {
   await ensureTable()
   const sql = getDb()
   const query = (search || '').trim()
 
   if (query) {
+    if (excludeSessionId) {
+      return await sql`
+        SELECT DISTINCT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
+               last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
+        FROM user_sessions
+        WHERE session_id <> ${excludeSessionId}
+          AND (
+            session_id ILIKE ${query + '%'}
+            OR COALESCE(last_ip, '') ILIKE ${query + '%'}
+            OR COALESCE(last_country, '') ILIKE ${query + '%'}
+          )
+        ORDER BY created_at DESC
+        LIMIT 100
+      ` as AdminSessionRecord[]
+    }
+
     return await sql`
-      SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
+      SELECT DISTINCT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
              last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
       FROM user_sessions
       WHERE session_id ILIKE ${query + '%'}
@@ -359,8 +375,19 @@ export async function listSessionsForAdmin(search?: string): Promise<AdminSessio
     ` as AdminSessionRecord[]
   }
 
+  if (excludeSessionId) {
+    return await sql`
+      SELECT DISTINCT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
+             last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
+      FROM user_sessions
+      WHERE session_id <> ${excludeSessionId}
+      ORDER BY created_at DESC
+      LIMIT 100
+    ` as AdminSessionRecord[]
+  }
+
   return await sql`
-    SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
+    SELECT DISTINCT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at,
            last_ip, last_user_agent, last_country, last_city, last_region, last_device, last_seen_at
     FROM user_sessions
     ORDER BY created_at DESC

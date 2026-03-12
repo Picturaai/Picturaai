@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin-auth'
 import { getDailyLimits, listSessionsForAdmin, updateSessionCreditsForAdmin } from '@/lib/rate-limit'
+import { getSessionIdFromRequest } from '@/lib/session'
 
 export async function GET(request: Request) {
   const session = await requireAdminSession('staff')
@@ -11,7 +12,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
-    const sessions = await listSessionsForAdmin(search)
+    const currentSessionId = getSessionIdFromRequest({ headers: request.headers })
+    const sessions = await listSessionsForAdmin(search, currentSessionId)
     return NextResponse.json({ sessions, limits: getDailyLimits(session.role) })
   } catch (error) {
     console.error('[AdminSessions] GET error:', error)
