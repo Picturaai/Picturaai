@@ -656,6 +656,36 @@ export function Studio() {
     }
   }, [])
 
+  const getStoredPendingGeneration = useCallback((): PendingGeneration | null => {
+    if (typeof window === 'undefined') return null
+    try {
+      const raw = window.localStorage.getItem(PENDING_GENERATION_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as PendingGeneration
+      if (!parsed?.mode || !parsed?.prompt || !parsed?.startedAt) return null
+      return parsed
+    } catch {
+      return null
+    }
+  }, [])
+
+  const restorePendingGenerationUI = useCallback((pending: PendingGeneration) => {
+    setLoading(true)
+    setActiveGenerationMode(pending.mode)
+    setLoadingPrompt(pending.prompt)
+    setMode(pending.mode)
+
+    if (pending.mode === 'video') {
+      setVideoPrompt(pending.prompt)
+    } else if (pending.mode === 'image') {
+      setImagePrompt(pending.prompt)
+    } else {
+      setPrompt(pending.prompt)
+    }
+
+    setPendingGeneration(pending)
+  }, [])
+
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
     let allImages: GeneratedMedia[] = []
@@ -939,7 +969,25 @@ export function Studio() {
 
     if (!promptAtSubmit) return
 
+    const activePending = pendingGeneration || getStoredPendingGeneration()
+    if (activePending) {
+      const startedAt = new Date(activePending.startedAt).getTime()
+      const ttlMs = activePending.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+      if (Date.now() - startedAt < ttlMs) {
+        restorePendingGenerationUI(activePending)
+        toast.info('A generation is already in progress. We will continue that request instead of creating a new one.')
+        return
+      }
+      clearPendingGeneration()
+    }
+
     if ((modeAtSubmit === 'text' || modeAtSubmit === 'image') && rateLimit.remaining <= 0) {
+      playLimitSound()
+      setShowExhausted(true)
+      return
+    }
+
+    if (modeAtSubmit === 'video' && videoRateLimit.remaining <= 0) {
       playLimitSound()
       setShowExhausted(true)
       return
@@ -979,11 +1027,6 @@ export function Studio() {
           body: form,
         })
       } else {
-        if (videoRateLimit.remaining <= 0) {
-          playLimitSound()
-          setShowExhausted(true)
-          return
-        }
         res = await fetch('/api/generate/video', {
           method: 'POST',
           credentials: 'include',
