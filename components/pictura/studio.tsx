@@ -21,6 +21,13 @@ import type { GeneratedMedia, RateLimitInfo } from '@/lib/types'
 type Mode = 'text' | 'image' | 'video'
 type Feedback = 'up' | 'down' | null
 type PendingFeedback = { url: string; type: Exclude<Feedback, null> } | null
+type PendingGeneration = {
+  mode: Mode
+  prompt: string
+  startedAt: string
+}
+
+const PENDING_GENERATION_KEY = 'pictura_pending_generation'
 
 
 const VIDEO_LOADING_HINTS = [
@@ -376,6 +383,8 @@ export function Studio() {
   const [prompt, setPrompt] = useState('')
   const [loading, setLoading] = useState(false)
   const [activeGenerationMode, setActiveGenerationMode] = useState<Mode | null>(null)
+  const [loadingPrompt, setLoadingPrompt] = useState('')
+  const [pendingGeneration, setPendingGeneration] = useState<PendingGeneration | null>(null)
   const [images, setImages] = useState<GeneratedMedia[]>([])
   const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 5, remaining: 5, used: 0, resetAt: '' })
   const [videoRateLimit, setVideoRateLimit] = useState<RateLimitInfo>({ limit: 2, remaining: 2, used: 0, resetAt: '' })
@@ -569,6 +578,20 @@ export function Studio() {
     } catch { /* silent */ }
   }, [buildAuthHeaders])
 
+  const clearPendingGeneration = useCallback(() => {
+    setPendingGeneration(null)
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(PENDING_GENERATION_KEY)
+    }
+  }, [])
+
+  const persistPendingGeneration = useCallback((item: PendingGeneration) => {
+    setPendingGeneration(item)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(PENDING_GENERATION_KEY, JSON.stringify(item))
+    }
+  }, [])
+
   // Load saved gallery on mount
   const loadGallery = useCallback(async () => {
     try {
@@ -590,11 +613,39 @@ export function Studio() {
     } catch { /* silent */ }
   }, [buildAuthHeaders])
 
+  const findResolvedGeneration = useCallback((saved: GeneratedMedia[], pending: PendingGeneration) => {
+    const pendingStartedAt = new Date(pending.startedAt).getTime()
+    const targetKind = pending.mode === 'video' ? 'video' : 'image'
+
+    return saved.find((item) => {
+      const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
+      const createdAt = new Date(item.createdAt).getTime()
+      return kind === targetKind && item.prompt === pending.prompt && createdAt >= (pendingStartedAt - 60_000)
+    })
+  }, [])
+
   useEffect(() => {
     setMounted(true)
     fetchRateLimit()
     fetchVideoRateLimit()
     loadGallery()
+
+    if (typeof window !== 'undefined') {
+      const rawPending = window.localStorage.getItem(PENDING_GENERATION_KEY)
+      if (rawPending) {
+        try {
+          const parsed = JSON.parse(rawPending) as PendingGeneration
+          if (parsed?.mode && parsed?.prompt && parsed?.startedAt) {
+            setPendingGeneration(parsed)
+            setLoading(true)
+            setLoadingPrompt(parsed.prompt)
+            setActiveGenerationMode(parsed.mode)
+          }
+        } catch {
+          window.localStorage.removeItem(PENDING_GENERATION_KEY)
+        }
+      }
+    }
 
     const loadTourPreference = async () => {
       try {
@@ -610,6 +661,60 @@ export function Studio() {
 
     loadTourPreference()
   }, [fetchRateLimit, fetchVideoRateLimit, loadGallery, buildAuthHeaders])
+
+  useEffect(() => {
+    if (!pendingGeneration) return
+
+    let cancelled = false
+
+    const checkStatus = async () => {
+      try {
+        const res = await fetch('/api/gallery', { credentials: 'include', headers: buildAuthHeaders() })
+        if (!res.ok) return
+
+        const { images: saved } = await res.json()
+        if (!Array.isArray(saved)) return
+
+        if (!cancelled) {
+          const sortedSaved = [...(saved as GeneratedMedia[])].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          setImages(sortedSaved)
+        }
+
+        const resolved = findResolvedGeneration(saved as GeneratedMedia[], pendingGeneration)
+        if (resolved && !cancelled) {
+          if ((resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')) === 'video') {
+            setGeneratedVideoUrl(resolved.url)
+          }
+          setLoading(false)
+          setActiveGenerationMode(null)
+          setLoadingPrompt('')
+          clearPendingGeneration()
+          toast.success('Generation restored successfully.')
+          return
+        }
+
+        const startedAt = new Date(pendingGeneration.startedAt).getTime()
+        const ttlMs = pendingGeneration.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+        if (!cancelled && Date.now() - startedAt > ttlMs) {
+          setLoading(false)
+          setActiveGenerationMode(null)
+          setLoadingPrompt('')
+          clearPendingGeneration()
+          toast.info('Previous generation timed out. Please try again.')
+        }
+      } catch {
+        // Silent polling failures
+      }
+    }
+
+    checkStatus()
+    const interval = setInterval(checkStatus, 4500)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -640,6 +745,7 @@ export function Studio() {
   const handleGenerate = async () => {
     const modeAtSubmit = mode
     const promptAtSubmit = prompt.trim()
+    const generationStartedAt = new Date().toISOString()
 
     if (!promptAtSubmit) return
 
@@ -656,6 +762,8 @@ export function Studio() {
 
     setLoading(true)
     setActiveGenerationMode(modeAtSubmit)
+    setLoadingPrompt(promptAtSubmit)
+    persistPendingGeneration({ mode: modeAtSubmit, prompt: promptAtSubmit, startedAt: generationStartedAt })
     setShowExhausted(false)
 
     try {
@@ -682,7 +790,8 @@ export function Studio() {
         })
       } else {
         if (videoRateLimit.remaining <= 0) {
-          toast.error('Daily video limit reached (2/day).')
+          playLimitSound()
+          setShowExhausted(true)
           return
         }
         res = await fetch('/api/generate/video', {
@@ -747,6 +856,8 @@ export function Studio() {
     } finally {
       setLoading(false)
       setActiveGenerationMode(null)
+      setLoadingPrompt('')
+      clearPendingGeneration()
     }
   }
 
@@ -1096,7 +1207,7 @@ export function Studio() {
                           {activeGenerationMode === 'video' ? 'Generating your video with PicturaGen...' : activeGenerationMode === 'image' ? 'Transforming image...' : 'Generating image...'}
                         </p>
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {prompt || (activeGenerationMode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : activeGenerationMode === 'image' ? 'Transforming your image' : 'Processing your request')}
+                          {loadingPrompt || (activeGenerationMode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : activeGenerationMode === 'image' ? 'Transforming your image' : 'Processing your request')}
                         </p>
                         <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <motion.div
@@ -1373,7 +1484,7 @@ export function Studio() {
 
             <button
               onClick={handleGenerate}
-              disabled={loading || !prompt.trim() || (mode === 'video' ? videoRateLimit.remaining <= 0 : rateLimit.remaining <= 0)}
+              disabled={loading || !prompt.trim()}
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
               aria-label={mode === 'video' ? 'Generate video' : 'Generate image'}
             >
@@ -1606,10 +1717,10 @@ export function Studio() {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {images.map((img) => {
+                  {images.map((img, idx) => {
                     const isVideo = (img.mediaKind ?? (img.type === 'text-to-video' ? 'video' : 'image')) === 'video'
                     return (
-                    <div key={img.url} className="flex flex-col gap-1">
+                    <div key={`${img.url}-${img.createdAt}-${idx}`} className="flex flex-col gap-1">
                       <button
                         onClick={() => {
                           if (isVideo) {
