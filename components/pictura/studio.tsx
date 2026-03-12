@@ -381,6 +381,8 @@ function getPromptExamplesForMode(mode: Mode, imageExamples: string[], videoExam
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
+  const [imagePrompt, setImagePrompt] = useState('')
+  const [videoPrompt, setVideoPrompt] = useState('')
   const [loading, setLoading] = useState(false)
   const [activeGenerationMode, setActiveGenerationMode] = useState<Mode | null>(null)
   const [loadingPrompt, setLoadingPrompt] = useState('')
@@ -412,6 +414,29 @@ export function Studio() {
       setSelectedModel('pi-1.5-turbo')
     }
   }, [mode, selectedModel])
+
+  // Switch prompt based on mode
+  const currentPrompt = mode === 'video' ? videoPrompt : mode === 'image' ? imagePrompt : prompt
+  const setCurrentPrompt = (value: string) => {
+    if (mode === 'video') {
+      setVideoPrompt(value)
+    } else if (mode === 'image') {
+      setImagePrompt(value)
+    } else {
+      setPrompt(value)
+    }
+  }
+
+  // Update the textarea input to use currentPrompt
+  const handlePromptChange = (value: string) => {
+    setCurrentPrompt(value)
+  }
+
+  // Update setPrompt calls to use setCurrentPrompt for suggestions
+  const handleSetPrompt = (value: string) => {
+    setCurrentPrompt(value)
+  }
+
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [improving, setImproving] = useState(false)
   const [downloadModalOpen, setDownloadModalOpen] = useState(false)
@@ -522,7 +547,7 @@ export function Studio() {
     }, 4000)
 
     return () => clearInterval(interval)
-  }, [prompt, pickNextPlaceholderIndex])
+  }, [currentPrompt, pickNextPlaceholderIndex])
 
   useEffect(() => {
     const total = activePromptExamples.length
@@ -532,18 +557,18 @@ export function Studio() {
 
   // Improve prompt using AI
   const handleImprovePrompt = async () => {
-    if (!prompt.trim() || improving) return
+    if (!currentPrompt.trim() || improving) return
     setImproving(true)
     try {
       const res = await fetch('/api/improve-prompt', {
         method: 'POST',
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ prompt: prompt.trim(), mode }),
+        body: JSON.stringify({ prompt: currentPrompt.trim(), mode }),
       })
       if (!res.ok) throw new Error('Failed')
       const { improved } = await res.json()
       if (improved) {
-        setPrompt(improved)
+        setCurrentPrompt(improved)
         toast.success('Prompt improved')
       }
     } catch {
@@ -640,6 +665,15 @@ export function Studio() {
             setLoading(true)
             setLoadingPrompt(parsed.prompt)
             setActiveGenerationMode(parsed.mode)
+            // Also set the mode and prompt to restore the state
+            setMode(parsed.mode)
+            if (parsed.mode === 'video') {
+              setVideoPrompt(parsed.prompt)
+            } else if (parsed.mode === 'image') {
+              setImagePrompt(parsed.prompt)
+            } else {
+              setPrompt(parsed.prompt)
+            }
           }
         } catch {
           window.localStorage.removeItem(PENDING_GENERATION_KEY)
@@ -688,6 +722,14 @@ export function Studio() {
           setLoading(false)
           setActiveGenerationMode(null)
           setLoadingPrompt('')
+          // Clear the prompt after successful generation restore
+          if (pendingGeneration.mode === 'video') {
+            setVideoPrompt('')
+          } else if (pendingGeneration.mode === 'image') {
+            setImagePrompt('')
+          } else {
+            setPrompt('')
+          }
           clearPendingGeneration()
           toast.success('Generation restored successfully.')
           return
@@ -744,7 +786,7 @@ export function Studio() {
 
   const handleGenerate = async () => {
     const modeAtSubmit = mode
-    const promptAtSubmit = prompt.trim()
+    const promptAtSubmit = currentPrompt.trim()
     const generationStartedAt = new Date().toISOString()
 
     if (!promptAtSubmit) return
@@ -838,9 +880,8 @@ export function Studio() {
         toast.success('Image generated!')
       }
 
-      if (modeAtSubmit !== 'video') {
-        setPrompt('')
-      }
+      // Clear prompt after successful generation for all modes
+      setCurrentPrompt('')
 
       const updatedRemaining = modeAtSubmit === 'video'
         ? (data.rateLimitInfo?.remaining ?? videoRateLimit.remaining - 1)
@@ -1129,18 +1170,18 @@ export function Studio() {
           </div>
         ) : !hasResults && !loading ? (
           /* Empty state */
-          <div className={`flex h-full flex-col px-4 text-center sm:px-6 ${mode === 'video' ? 'items-center justify-start overflow-y-auto py-4 sm:py-8' : 'items-center justify-center'}`}>
+          <div className={`flex h-full flex-col text-center ${mode === 'video' ? 'items-start justify-start overflow-y-auto px-3 py-4 sm:px-6 sm:py-8' : 'items-center justify-center px-4 sm:px-6'}`}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
-              className={`flex flex-col ${mode === 'video' ? 'w-full max-w-3xl items-center rounded-3xl border border-border/40 bg-card/80 px-5 py-6 sm:px-8 sm:py-8' : 'items-center'}`}
+              className={`flex flex-col ${mode === 'video' ? 'w-full max-w-2xl items-center rounded-3xl border border-border/40 bg-card/80 px-4 py-5 sm:px-8 sm:py-8' : 'w-full max-w-lg items-center'}`}
             >
-              <div className={`${mode === 'video' ? 'rounded-2xl bg-primary/5 p-3' : ''}`}>
-                <PicturaIcon size={56} />
+              <div className={`${mode === 'video' ? 'rounded-2xl bg-primary/5 p-2.5 sm:p-3' : ''}`}>
+                <PicturaIcon size={mode === 'video' ? 40 : 48} className="sm:h-14 sm:w-14" />
               </div>
-              <h2 className="mt-5 text-xl font-semibold text-foreground sm:text-2xl">{mode === 'video' ? 'What video will you create?' : 'What will you create?'}</h2>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <h2 className="mt-4 sm:mt-5 text-lg sm:text-xl font-semibold text-foreground">{mode === 'video' ? 'What video will you create?' : 'What will you create?'}</h2>
+              <p className="mt-2 max-w-xs sm:max-w-md text-sm leading-relaxed text-muted-foreground">
                 {mode === 'video'
                   ? 'Describe your scene and PicturaGen will create an amazing cinematic video for you.'
                   : 'Type a description below and Pictura will generate an image for you.'}
@@ -1150,28 +1191,28 @@ export function Studio() {
               </p>
 
               {mode === 'video' ? (
-                <div className="mt-7 w-full max-w-2xl" data-tour="suggestions">
-                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                <div className="mt-5 sm:mt-7 w-full" data-tour="suggestions">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {visibleVideoExamples.map((suggestion) => (
                       <button
                         key={suggestion}
-                        onClick={() => setPrompt(suggestion)}
-                        className="rounded-2xl border border-border/50 bg-background px-4 py-3 text-sm leading-relaxed text-muted-foreground transition-all hover:border-primary/30 hover:bg-card hover:text-foreground"
+                        onClick={() => handleSetPrompt(suggestion)}
+                        className="rounded-xl sm:rounded-2xl border border-border/50 bg-background px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm leading-relaxed text-muted-foreground transition-all hover:border-primary/30 hover:bg-card hover:text-foreground"
                       >
                         {suggestion}
                       </button>
                     ))}
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground/80 sm:text-sm">
+                  <p className="mt-3 text-xs text-muted-foreground/80">
                     Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
                   </p>
                 </div>
               ) : (
-                <div className="mt-8 flex flex-wrap justify-center gap-2" data-tour="suggestions">
+                <div className="mt-6 sm:mt-8 flex flex-wrap justify-center gap-2 px-2" data-tour="suggestions">
                   {visibleImageExamples.map((suggestion) => (
                     <button
                       key={suggestion}
-                      onClick={() => setPrompt(suggestion)}
+                      onClick={() => handleSetPrompt(suggestion)}
                       className="rounded-full border border-border/50 bg-card px-4 py-2 text-xs text-muted-foreground transition-all hover:border-primary/30 hover:text-foreground hover:bg-card/80"
                     >
                       {suggestion}
@@ -1473,8 +1514,8 @@ export function Studio() {
 
             <textarea
               ref={textareaRef}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              value={currentPrompt}
+              onChange={(e) => handlePromptChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={mode === 'text' ? 'Describe the image you want to create...' : mode === 'image' ? 'Describe how to transform this image...' : 'Create an amazing video: describe your scene, motion, and style...'}
               rows={1}
@@ -1484,7 +1525,7 @@ export function Studio() {
 
             <button
               onClick={handleGenerate}
-              disabled={loading || !prompt.trim()}
+              disabled={loading || !currentPrompt.trim()}
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
               aria-label={mode === 'video' ? 'Generate video' : 'Generate image'}
             >
@@ -1508,7 +1549,7 @@ export function Studio() {
                 transition={{ duration: 0.25 }}
                 onClick={() => {
                   if (activePromptExamples.length === 0) return
-                  setPrompt(activePromptExamples[placeholderIdx % activePromptExamples.length])
+                  handleSetPrompt(activePromptExamples[placeholderIdx % activePromptExamples.length])
                   textareaRef.current?.focus()
                 }}
                 className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-dashed border-border/50 px-3 py-1.5 text-left transition-colors hover:border-primary/30 hover:bg-primary/5"
@@ -1523,7 +1564,7 @@ export function Studio() {
             {/* Improve prompt button */}
             <button
               onClick={handleImprovePrompt}
-              disabled={!prompt.trim() || improving || loading}
+              disabled={!currentPrompt.trim() || improving || loading}
               className="flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-border/50 bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:border-primary/30 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
               title="Improve your prompt with AI"
             >
