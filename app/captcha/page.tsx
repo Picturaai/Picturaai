@@ -694,7 +694,7 @@ export default function CaptchaPage() {
           >
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Ready to protect your website?</h2>
             <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
-              Get started in minutes with our free CAPTCHA service. No credit card required.
+              Get started in minutes with our free CAPTCHA service and npm package support.
             </p>
             <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3">
               <Link

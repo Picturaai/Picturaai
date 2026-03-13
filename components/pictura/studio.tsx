@@ -1128,7 +1128,8 @@ export function Studio() {
           console.log('[Client] Setting rate limit from error:', data.rateLimitInfo)
           setRateLimit(data.rateLimitInfo)
         }
-        throw new Error(data.error || 'Failed to generate')
+        const details = typeof data.details === 'string' ? ` (${data.details})` : ''
+        throw new Error((data.error || 'Failed to generate') + details)
       }
 
       if (modeAtSubmit === 'video') {

@@ -46,16 +46,25 @@ async function pollVideoTask(apiKey: string, taskId: string): Promise<string> {
   throw new Error('Video generation timed out')
 }
 
-async function generateWithAlibabaVideo(prompt: string, imageUrl?: string | null, preferredModel?: string | null): Promise<string> {
+async function fileToDataUrl(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer()
+  const contentType = file.type || 'image/png'
+  return `data:${contentType};base64,${Buffer.from(bytes).toString('base64')}`
+}
+
+async function generateWithAlibabaVideo(prompt: string, imageInputs?: string[] | null, preferredModel?: string | null): Promise<string> {
   const apiKey = getAlibabaApiKey()
   if (!apiKey) throw new Error('Alibaba API not configured')
+
+  const uniqueInputs = (imageInputs || []).map((item) => item.trim()).filter(Boolean)
+  const hasImageInput = uniqueInputs.length > 0
 
   const candidateModels = [
     preferredModel && !preferredModel.toLowerCase().startsWith('pictura') ? preferredModel : undefined,
     process.env.ALIBABA_VIDEO_MODEL,
-    imageUrl ? process.env.ALIBABA_VIDEO_I2V_MODEL : undefined,
-    imageUrl ? 'wan2.6-i2v-flash' : undefined,
-    imageUrl ? 'wanx2.1-i2v-turbo' : undefined,
+    hasImageInput ? process.env.ALIBABA_VIDEO_I2V_MODEL : undefined,
+    hasImageInput ? 'wan2.6-i2v-flash' : undefined,
+    hasImageInput ? 'wanx2.1-i2v-turbo' : undefined,
     'wan2.6-t2v-flash',
     'wan2.6-t2v',
     'wanx2.1-t2v-turbo',
@@ -64,40 +73,48 @@ async function generateWithAlibabaVideo(prompt: string, imageUrl?: string | null
   let lastError = 'Unknown video provider error'
 
   for (const model of candidateModels) {
-    const res = await fetch(`${API_BASE}/services/aigc/video-generation/video-synthesis`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'X-DashScope-Async': 'enable',
-      },
-      body: JSON.stringify({
-        model,
-        input: {
-          prompt: prompt.trim(),
-          text: prompt.trim(),
-          ...(imageUrl ? { img_url: imageUrl, image_url: imageUrl } : {}),
+    const payloadCandidates = hasImageInput
+      ? uniqueInputs.flatMap((input) => [
+        {
+          input: { prompt: prompt.trim(), text: prompt.trim(), img_url: input, image_url: input },
+          parameters: { size: '1280*720', duration: 15, prompt_extend: true },
         },
-        parameters: {
-          size: '1280*720',
-          duration: 15,
-          prompt_extend: true,
+        {
+          input: { prompt: prompt.trim(), text: prompt.trim(), image: input },
+          parameters: { size: '1280*720', duration: 15, prompt_extend: true },
         },
-      }),
-    })
+      ])
+      : [
+        {
+          input: { prompt: prompt.trim(), text: prompt.trim() },
+          parameters: { size: '1280*720', duration: 15, prompt_extend: true },
+        },
+      ]
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => '')
-      lastError = `model=${model} status=${res.status} body=${errorText}`
-      continue
+    for (const candidate of payloadCandidates) {
+      const res = await fetch(`${API_BASE}/services/aigc/video-generation/video-synthesis`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'X-DashScope-Async': 'enable',
+        },
+        body: JSON.stringify({ model, ...candidate }),
+      })
+
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => '')
+        lastError = `model=${model} status=${res.status} body=${errorText}`
+        continue
+      }
+
+      const data = (await res.json()) as AlibabaTaskResponse
+      const taskId = data.output?.task_id
+      if (taskId) return pollVideoTask(apiKey, taskId)
+
+      const directUrl = data.output?.video_url || data.output?.video || data.output?.url || data.output?.results?.[0]?.video_url || data.output?.results?.[0]?.url
+      if (directUrl) return directUrl
     }
-
-    const data = (await res.json()) as AlibabaTaskResponse
-    const taskId = data.output?.task_id
-    if (taskId) return pollVideoTask(apiKey, taskId)
-
-    const directUrl = data.output?.video_url || data.output?.video || data.output?.url || data.output?.results?.[0]?.video_url || data.output?.results?.[0]?.url
-    if (directUrl) return directUrl
 
     lastError = `model=${model} returned no task_id/video_url`
   }
@@ -111,6 +128,7 @@ export async function POST(request: Request) {
     let prompt = ''
     let requestId: string | null = null
     let imageUrl: string | null = null
+    let uploadedImageDataUrl: string | null = null
     let model: string | null = null
 
     if (contentType.includes('multipart/form-data')) {
@@ -126,6 +144,11 @@ export async function POST(request: Request) {
         const uploadFilename = `pictura/video-uploads/${uploadTimestamp}-${image.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
         const uploadBlob = await uploadObject(uploadFilename, image, image.type || 'application/octet-stream')
         imageUrl = uploadBlob.url
+        try {
+          uploadedImageDataUrl = await fileToDataUrl(image)
+        } catch {
+          uploadedImageDataUrl = null
+        }
       }
     } else {
       const body = await request.json()
@@ -147,7 +170,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Daily video limit reached (${videoLimit.limit}/day).`, rateLimitInfo: videoLimit }, { status: 429 })
     }
 
-    const videoUrl = await generateWithAlibabaVideo(prompt, imageUrl, model)
+    const imageInputs = [imageUrl, uploadedImageDataUrl].filter((item): item is string => Boolean(item))
+    const videoUrl = await generateWithAlibabaVideo(prompt, imageInputs, model)
     const createdAt = new Date().toISOString()
 
     await appendMediaToGallery(sessionId, {

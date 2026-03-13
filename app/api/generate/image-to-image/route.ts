@@ -77,6 +77,12 @@ async function fetchSourceImageDataUrl(sourceImageUrl: string): Promise<string |
   }
 }
 
+async function fileToDataUrl(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer()
+  const contentType = file.type || 'image/png'
+  return `data:${contentType};base64,${Buffer.from(bytes).toString('base64')}`
+}
+
 async function generateWithQwenImageGenEdit(prompt: string, sourceCandidates: string[]): Promise<string | null> {
   const apiKey = getAlibabaKey()
   if (!apiKey) return null
@@ -260,6 +266,13 @@ export async function POST(request: Request) {
     }
 
     const sourceCandidates = [sourceImageUrl]
+    if (image) {
+      try {
+        sourceCandidates.push(await fileToDataUrl(image))
+      } catch {
+        // Ignore file conversion failure and continue with URL candidates
+      }
+    }
     const sourceDataUrl = await fetchSourceImageDataUrl(sourceImageUrl)
     if (sourceDataUrl) sourceCandidates.push(sourceDataUrl)
 
@@ -310,10 +323,43 @@ export async function POST(request: Request) {
       }
     }
 
+    const internalEditFallback = await generateViaInternalEditRoute(request, prompt, sourceImageUrl)
+    if (internalEditFallback) {
+      const imageBuffer = await resolveGeneratedImageBuffer(internalEditFallback)
+      if (imageBuffer) {
+        const timestamp = Date.now()
+        const filename = `pictura/image-to-image/${timestamp}-internal-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
+        const blob = await uploadObject(filename, imageBuffer, 'image/png')
+        const createdAt = new Date().toISOString()
+        await appendMediaToGallery(sessionId, {
+          url: blob.url,
+          prompt: prompt.trim(),
+          type: 'image-to-image',
+          mediaKind: 'image',
+          sourceImageUrl,
+          requestId: requestId || undefined,
+          createdAt,
+        })
+        await incrementUsage(sessionId, { role: adminSession?.role, ...requestContext })
+        const updatedRateLimitInfo = await getRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
+        return NextResponse.json({
+          url: blob.url,
+          prompt: prompt.trim(),
+          model,
+          type: 'image-to-image',
+          sourceImageUrl,
+          requestId: requestId || undefined,
+          createdAt,
+          rateLimitInfo: updatedRateLimitInfo,
+          provider: 'internal-edit-fallback',
+        })
+      }
+    }
+
     if (!allowLegacyFallback) {
       const configHint = !hasAlibabaKey
         ? 'No Alibaba provider key found. Add ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
-        : 'Alibaba provider returned no usable image output. Check model and task logs.'
+        : 'Alibaba provider returned no usable image output and internal fallback also failed.'
       return NextResponse.json(
         { error: 'Image transformation failed. Please try a different prompt or source image.', details: configHint },
         { status: 500 }
@@ -345,13 +391,6 @@ export async function POST(request: Request) {
       generatedImageUrl = extractImageUrl(data)
     } else if (response) {
       console.log('[v0] img2img GET failed:', response.status, await response.text().catch(() => ''))
-    }
-
-    if (!generatedImageUrl) {
-      const internalEditFallback = await generateViaInternalEditRoute(request, prompt, sourceImageUrl)
-      if (internalEditFallback) {
-        generatedImageUrl = internalEditFallback
-      }
     }
 
     if (!generatedImageUrl) {

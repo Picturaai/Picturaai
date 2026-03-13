@@ -248,10 +248,31 @@ export default function CaptchaDocsPage() {
 </script>`}
                 />
                 
-                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">NPM Package (Coming Soon)</h3>
+                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">NPM Package</h3>
                 <CodeBlock 
                   filename="terminal"
                   code={`npm install @pictura/captcha`}
+                />
+                <CodeBlock 
+                  filename="react-example.tsx"
+                  code={`import React from 'react'
+import { createReactCaptcha } from '@pictura/captcha'
+
+const PicturaCaptcha = createReactCaptcha(React)
+
+export function ContactForm() {
+  const [token, setToken] = React.useState('')
+
+  return (
+    <form>
+      <PicturaCaptcha
+        siteKey="YOUR_SITE_KEY"
+        onVerify={setToken}
+      />
+      <button disabled={!token}>Submit</button>
+    </form>
+  )
+}`}
                 />
               </section>
               
