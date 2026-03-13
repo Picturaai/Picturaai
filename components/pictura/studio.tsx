@@ -1467,7 +1467,7 @@ export function Studio() {
               <p className="mt-2 max-w-xs sm:max-w-md text-sm leading-relaxed text-muted-foreground">
                 {mode === 'video'
                   ? 'Describe your scene and PicturaGen will create an amazing cinematic video for you.'
-                  : 'Type a description below and Pictura will generate an image for you.'}
+                  : 'Describe your image. Pictura will generate it.'}
                 <span className="block mt-1.5">
                   {hasUnlimited
                     ? <><strong className="text-foreground">Unlimited image generations</strong> are available today.</>

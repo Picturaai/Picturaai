@@ -82,9 +82,11 @@ export default function AdminSessionsPage() {
         return
       }
 
-      const uniqueSessions = (data.sessions || []).filter((row: SessionRow, idx: number, all: SessionRow[]) => (
-        all.findIndex((candidate) => candidate.session_id === row.session_id) === idx
-      ))
+      const uniqueSessions = (data.sessions || []).filter((row: SessionRow, idx: number, all: SessionRow[]) => {
+        const id = row.session_id?.trim()
+        if (!id) return false
+        return all.findIndex((candidate) => candidate.session_id?.trim() === id) === idx
+      })
 
       setRows(uniqueSessions)
       setLimits(data.limits || { image: 5, video: 2 })
@@ -142,13 +144,13 @@ export default function AdminSessionsPage() {
       <header className="border-b border-border/50 bg-card/60">
         <div className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <Link href="/admin" className="transition-opacity hover:opacity-80">
                 <PicturaLogo size="sm" />
               </Link>
               <div>
-                <h1 className="text-base font-semibold leading-tight sm:text-lg">Anonymous User Sessions</h1>
-                <p className="text-xs text-muted-foreground">Manage real anonymous session usage, location, and device activity.</p>
+                <h1 className="text-sm font-semibold leading-tight sm:text-lg">Anonymous User Sessions</h1>
+                <p className="text-xs leading-relaxed text-muted-foreground">Real anonymous session activity, location, and device data.</p>
               </div>
             </div>
             <nav className="flex flex-wrap items-center gap-2 text-xs sm:justify-end">
@@ -230,9 +232,9 @@ export default function AdminSessionsPage() {
                   <button
                     key={row.session_id}
                     onClick={() => setSelectedSession(row.session_id)}
-                    className={`w-full rounded-lg border p-2 text-left ${active ? 'border-primary/40 bg-primary/10' : 'border-border/40 bg-background'}`}
+                    className={`w-full rounded-lg border p-2.5 text-left ${active ? 'border-primary/40 bg-primary/10' : 'border-border/40 bg-background'}`}
                   >
-                    <p className="truncate font-mono text-[11px]">{row.session_id}</p>
+                    <p className="break-all font-mono text-[11px] leading-relaxed">{row.session_id}</p>
                     <p className="mt-1 text-xs text-muted-foreground">Seen: {formatRelativeDate(row.last_seen_at || row.created_at)}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{formatLocation(row)}</p>
                     <p className="mt-1 text-xs text-muted-foreground">Image left: {imageLeft} • Video left: {videoLeft}</p>
