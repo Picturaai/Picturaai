@@ -6,6 +6,10 @@ import { appendMediaToGallery } from '@/lib/gallery'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { getRequestContext } from '@/lib/request-context'
 
+function getAlibabaKey(): string | null {
+  return process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY || null
+}
+
 async function pollQwenTask(apiKey: string, taskId: string): Promise<string | null> {
   for (let i = 0; i < 30; i++) {
     await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -24,10 +28,13 @@ async function pollQwenTask(apiKey: string, taskId: string): Promise<string | nu
 
 function extractAlibabaImageUrl(out: Record<string, unknown> | null | undefined): string | null {
   if (!out) return null
-  const direct = (out as { results?: Array<{ url?: string }>; images?: Array<{ url?: string }>; image_url?: string; url?: string })
+  const direct = (out as { results?: Array<{ url?: string; image?: string }>; images?: Array<{ url?: string; image?: string }>; image_url?: string; image?: string; url?: string })
   if (direct.results?.[0]?.url) return direct.results[0].url
+  if (direct.results?.[0]?.image) return direct.results[0].image
   if (direct.images?.[0]?.url) return direct.images[0].url
+  if (direct.images?.[0]?.image) return direct.images[0].image
   if (typeof direct.image_url === 'string') return direct.image_url
+  if (typeof direct.image === 'string') return direct.image
   if (typeof direct.url === 'string') return direct.url
 
   const choices = (out as { choices?: Array<{ message?: { content?: Array<{ image?: string; image_url?: string; url?: string }> } }> }).choices
@@ -41,8 +48,21 @@ function extractAlibabaImageUrl(out: Record<string, unknown> | null | undefined)
   return null
 }
 
-async function generateWithQwenImageGenEdit(prompt: string, sourceImageUrl: string): Promise<string | null> {
-  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
+async function fetchSourceImageDataUrl(sourceImageUrl: string): Promise<string | null> {
+  try {
+    const response = await fetch(sourceImageUrl)
+    if (!response.ok) return null
+    const contentType = response.headers.get('content-type') || 'image/png'
+    const bytes = await response.arrayBuffer()
+    const base64 = Buffer.from(bytes).toString('base64')
+    return `data:${contentType};base64,${base64}`
+  } catch {
+    return null
+  }
+}
+
+async function generateWithQwenImageGenEdit(prompt: string, sourceCandidates: string[]): Promise<string | null> {
+  const apiKey = getAlibabaKey()
   if (!apiKey) return null
 
   const candidateModels = [
@@ -52,60 +72,62 @@ async function generateWithQwenImageGenEdit(prompt: string, sourceImageUrl: stri
   ].filter((m): m is string => Boolean(m))
 
   for (const model of candidateModels) {
-    const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image-generation/generation', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'X-DashScope-Async': 'enable',
-      },
-      body: JSON.stringify({
-        model,
-        input: {
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { image: sourceImageUrl },
-                { text: prompt.trim() },
-              ],
-            },
-          ],
+    for (const sourceImage of sourceCandidates) {
+      const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image-generation/generation', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'X-DashScope-Async': 'enable',
         },
-        parameters: {
-          n: 1,
-          size: '1280*1280',
-          enable_interleave: true,
-        },
-      }),
-    })
+        body: JSON.stringify({
+          model,
+          input: {
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { image: sourceImage },
+                  { text: prompt.trim() },
+                ],
+              },
+            ],
+          },
+          parameters: {
+            n: 1,
+            size: '1280*1280',
+            enable_interleave: true,
+          },
+        }),
+      })
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => '')
-      console.log(`[img2img:qwen-image] model=${model} failed`, response.status, errorText.slice(0, 300))
-      continue
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '')
+        console.log(`[img2img:qwen-image] model=${model} failed`, response.status, errorText.slice(0, 300))
+        continue
+      }
+
+      const data = await response.json()
+      const taskId = data.output?.task_id
+      if (taskId) {
+        const polled = await pollQwenTask(apiKey, taskId)
+        if (polled) return polled
+        continue
+      }
+
+      const direct = extractAlibabaImageUrl(data.output)
+      if (direct) return direct
     }
-
-    const data = await response.json()
-    const taskId = data.output?.task_id
-    if (taskId) {
-      const polled = await pollQwenTask(apiKey, taskId)
-      if (polled) return polled
-      continue
-    }
-
-    const direct = extractAlibabaImageUrl(data.output)
-    if (direct) return direct
   }
 
   return null
 }
 
-async function generateWithQwenEdit(prompt: string, sourceImageUrl: string): Promise<string | null> {
-  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
+async function generateWithQwenEdit(prompt: string, sourceCandidates: string[]): Promise<string | null> {
+  const apiKey = getAlibabaKey()
   if (!apiKey) return null
 
-    const candidateModels = [
+  const candidateModels = [
     process.env.ALIBABA_IMAGE_EDIT_MODEL,
     'wan2.5-i2i-preview',
     'wan2.2-imageedit-plus',
@@ -114,41 +136,71 @@ async function generateWithQwenEdit(prompt: string, sourceImageUrl: string): Pro
   ].filter((m): m is string => Boolean(m))
 
   for (const model of candidateModels) {
-    const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'X-DashScope-Async': 'enable',
-      },
-      body: JSON.stringify({
-        model,
-        input: { prompt: prompt.trim(), image_url: sourceImageUrl },
-        parameters: { size: '1024*1024' },
-      }),
-    })
+    for (const sourceImage of sourceCandidates) {
+      const payloads = [
+        { input: { prompt: prompt.trim(), image_url: sourceImage }, parameters: { size: '1024*1024' } },
+        { input: { prompt: prompt.trim(), image: sourceImage }, parameters: { size: '1024*1024' } },
+      ]
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => '')
-      console.log(`[img2img:qwen] model=${model} failed`, response.status, errorText.slice(0, 300))
-      continue
+      for (const payload of payloads) {
+        const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'X-DashScope-Async': 'enable',
+          },
+          body: JSON.stringify({
+            model,
+            ...payload,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => '')
+          console.log(`[img2img:qwen] model=${model} failed`, response.status, errorText.slice(0, 300))
+          continue
+        }
+
+        const data = await response.json()
+        const taskId = data.output?.task_id
+        if (taskId) {
+          const polled = await pollQwenTask(apiKey, taskId)
+          if (polled) return polled
+          continue
+        }
+
+        const direct = extractAlibabaImageUrl(data.output)
+        if (direct) return direct
+      }
     }
-
-    const data = await response.json()
-    const taskId = data.output?.task_id
-    if (taskId) {
-      const polled = await pollQwenTask(apiKey, taskId)
-      if (polled) return polled
-      continue
-    }
-
-    const direct = data.output?.results?.[0]?.url || data.output?.images?.[0]?.url || data.output?.image_url || data.output?.url
-    if (direct) return direct
   }
 
   return null
 }
 
+async function resolveGeneratedImageBuffer(imageValue: string): Promise<ArrayBuffer | null> {
+  const trimmed = imageValue.trim()
+  if (!trimmed) return null
+
+  if (trimmed.startsWith('data:image/')) {
+    const base64Part = trimmed.split(',')[1]
+    if (!base64Part) return null
+    return Buffer.from(base64Part, 'base64')
+  }
+
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && /^[A-Za-z0-9+/=\n\r]+$/.test(trimmed) && trimmed.length > 128) {
+    try {
+      return Buffer.from(trimmed, 'base64')
+    } catch {
+      return null
+    }
+  }
+
+  const imageResponse = await fetch(trimmed)
+  if (!imageResponse.ok) return null
+  return imageResponse.arrayBuffer()
+}
 
 export async function POST(request: Request) {
   try {
@@ -167,7 +219,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'An image file or URL is required' }, { status: 400 })
     }
 
-    // Check rate limit using session ID
     const sessionId = await getOrCreateSessionId(request)
     const adminSession = getAdminSessionFromRequest(request)
     const requestContext = getRequestContext(request)
@@ -182,11 +233,8 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.ZYLABS_API_KEY
     const allowLegacyFallback = process.env.ENABLE_LEGACY_IMG2IMG_FALLBACK !== 'false'
+    const hasAlibabaKey = Boolean(getAlibabaKey())
 
-    const hasAlibabaKey = Boolean(process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY)
-
-
-    // If we have a file, upload it to Blob first to get a public URL
     let sourceImageUrl = imageUrl || ''
     if (image) {
       const uploadTimestamp = Date.now()
@@ -195,27 +243,28 @@ export async function POST(request: Request) {
       sourceImageUrl = uploadBlob.url
     }
 
+    const sourceCandidates = [sourceImageUrl]
+    const sourceDataUrl = await fetchSourceImageDataUrl(sourceImageUrl)
+    if (sourceDataUrl) sourceCandidates.push(sourceDataUrl)
+
     console.log('[v0] img2img sourceImageUrl:', sourceImageUrl)
     console.log('[v0] img2img prompt:', prompt.trim())
 
-    // Always prioritize Alibaba for real image-to-image transformations.
-    // ZyLabs is retained as a compatibility fallback only.
     const shouldTryAlibabaFirst = true
 
     if (shouldTryAlibabaFirst) {
       const alibabaResults = [
-        await generateWithQwenImageGenEdit(prompt, sourceImageUrl),
-        await generateWithQwenEdit(prompt, sourceImageUrl),
+        await generateWithQwenImageGenEdit(prompt, sourceCandidates),
+        await generateWithQwenEdit(prompt, sourceCandidates),
       ].filter((url): url is string => Boolean(url))
 
       for (const transformedUrl of alibabaResults) {
-        const imageResponse = await fetch(transformedUrl)
-        if (!imageResponse.ok) {
-          console.log('[v0] img2img transformed image fetch failed:', imageResponse.status, transformedUrl)
+        const imageBuffer = await resolveGeneratedImageBuffer(transformedUrl)
+        if (!imageBuffer) {
+          console.log('[v0] img2img transformed image could not be resolved:', transformedUrl.slice(0, 120))
           continue
         }
 
-        const imageBuffer = await imageResponse.arrayBuffer()
         const timestamp = Date.now()
         const filename = `pictura/image-to-image/${timestamp}-qwen-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
         const blob = await uploadObject(filename, imageBuffer, 'image/png')
@@ -247,14 +296,13 @@ export async function POST(request: Request) {
     if (!allowLegacyFallback) {
       const configHint = !hasAlibabaKey
         ? 'No Alibaba provider key found. Add ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
-        : undefined
+        : 'Alibaba provider returned no usable image output. Check model and task logs.'
       return NextResponse.json(
         { error: 'Image transformation failed. Please try a different prompt or source image.', details: configHint },
         { status: 500 }
       )
     }
 
-    // Optional legacy fallback (disabled by default)
     const params = new URLSearchParams({
       prompt: prompt.trim(),
       image_url: sourceImageUrl,
@@ -270,40 +318,33 @@ export async function POST(request: Request) {
     if (apiKey) {
       response = await fetch(apiUrl, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${apiKey}` },
+        headers: { Authorization: `Bearer ${apiKey}` },
       })
     }
 
     if (response?.ok) {
       data = await response.json()
       console.log('[v0] img2img response:', JSON.stringify(data).slice(0, 500))
-      generatedImageUrl = extractImageUrl(data!)
+      generatedImageUrl = extractImageUrl(data)
     } else if (response) {
       console.log('[v0] img2img GET failed:', response.status, await response.text().catch(() => ''))
-    }
-
-    if (!generatedImageUrl && !shouldTryAlibabaFirst) {
-      const qwenFallback = await generateWithQwenImageGenEdit(prompt, sourceImageUrl) || await generateWithQwenEdit(prompt, sourceImageUrl)
-      if (qwenFallback) generatedImageUrl = qwenFallback
     }
 
     if (!generatedImageUrl) {
       const configHint = !apiKey && !hasAlibabaKey
         ? 'No provider key found. Add ZYLABS_API_KEY or ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
-        : undefined
+        : 'Providers returned no usable image output. Please retry with a clearer prompt and a high-quality image.'
       return NextResponse.json(
         { error: 'Image transformation failed. Please try a different prompt or image.', details: configHint, fallbackUsed: allowLegacyFallback },
         { status: 500 }
       )
     }
 
-    // Download and store in Blob
-    const imageResponse = await fetch(generatedImageUrl)
-    if (!imageResponse.ok) {
+    const imageBuffer = await resolveGeneratedImageBuffer(generatedImageUrl)
+    if (!imageBuffer) {
       return NextResponse.json({ error: 'Failed to download generated image' }, { status: 500 })
     }
 
-    const imageBuffer = await imageResponse.arrayBuffer()
     const timestamp = Date.now()
     const filename = `pictura/image-to-image/${timestamp}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
@@ -348,7 +389,10 @@ function extractImageUrl(data: Record<string, unknown>): string | null {
   if (data.output && typeof data.output === 'string') return data.output
   if (data.result && typeof data.result === 'string') return data.result
   if (data.images && Array.isArray(data.images) && data.images.length > 0) {
-    return data.images[0].url || data.images[0].src || data.images[0].image
+    const first = data.images[0] as Record<string, unknown>
+    if (typeof first.url === 'string') return first.url
+    if (typeof first.src === 'string') return first.src
+    if (typeof first.image === 'string') return first.image
   }
   const nested = data.data as Record<string, unknown> | undefined
   if (nested?.image && typeof nested.image === 'string') return nested.image
