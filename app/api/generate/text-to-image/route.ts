@@ -120,7 +120,7 @@ async function generateWithStability(prompt: string): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('[v0] Stability API error:', response.status, errorText)
+    console.error('[Pictura] Stability API error:', response.status, errorText)
     throw new Error(`Stability generation failed: ${response.status}`)
   }
 
@@ -513,7 +513,7 @@ export async function POST(request: Request) {
         break // Success, exit loop
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err))
-        console.log(`[v0] Provider failed, trying next: ${lastError.message}`)
+        console.log(`[Pictura] Provider failed, trying next: ${lastError.message}`)
         continue // Try next provider
       }
     }

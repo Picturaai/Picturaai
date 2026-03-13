@@ -276,8 +276,8 @@ export async function POST(request: Request) {
     const sourceDataUrl = await fetchSourceImageDataUrl(sourceImageUrl)
     if (sourceDataUrl) sourceCandidates.push(sourceDataUrl)
 
-    console.log('[v0] img2img sourceImageUrl:', sourceImageUrl)
-    console.log('[v0] img2img prompt:', prompt.trim())
+    console.log('[Pictura] img2img sourceImageUrl:', sourceImageUrl)
+    console.log('[Pictura] img2img prompt:', prompt.trim())
 
     const shouldTryAlibabaFirst = true
 
@@ -291,7 +291,7 @@ export async function POST(request: Request) {
       for (const transformedUrl of alibabaResults) {
         const imageBuffer = await resolveGeneratedImageBuffer(transformedUrl)
         if (!imageBuffer) {
-          console.log('[v0] img2img transformed image could not be resolved:', transformedUrl.slice(0, 120))
+          console.log('[Pictura] img2img transformed image could not be resolved:', transformedUrl.slice(0, 120))
           continue
         }
 
@@ -323,7 +323,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const internalEditFallback = await generateViaInternalEditRoute(request, prompt, sourceImageUrl)
+    const internalEditFallback = await generateViaInternalEditRoute(request, prompt, sourceDataUrl || sourceImageUrl)
     if (internalEditFallback) {
       const imageBuffer = await resolveGeneratedImageBuffer(internalEditFallback)
       if (imageBuffer) {
@@ -387,10 +387,10 @@ export async function POST(request: Request) {
 
     if (response?.ok) {
       data = await response.json()
-      console.log('[v0] img2img response:', JSON.stringify(data).slice(0, 500))
+      console.log('[Pictura] img2img response:', JSON.stringify(data).slice(0, 500))
       generatedImageUrl = extractImageUrl(data)
     } else if (response) {
-      console.log('[v0] img2img GET failed:', response.status, await response.text().catch(() => ''))
+      console.log('[Pictura] img2img GET failed:', response.status, await response.text().catch(() => ''))
     }
 
     if (!generatedImageUrl) {
