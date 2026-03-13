@@ -237,7 +237,7 @@ export function Landing() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg"
             >
-              Free AI image generation by Imoogle Labs. Create stunning visuals from text or transform existing images.
+              Free AI image generation by Pictura Labs. Create stunning visuals from text or transform existing images.
             </motion.p>
 
             {/* CTA buttons - minimal shadows */}
@@ -771,7 +771,7 @@ export function Landing() {
                     { feature: 'API Access', pictura: true, dalle: true, midjourney: false, stable: true, nano: true },
                     { feature: 'Safety Filter', pictura: true, dalle: true, midjourney: true, stable: 'Optional', nano: true },
                     { feature: 'Open Source', pictura: 'Planned', dalle: false, midjourney: false, stable: true, nano: false },
-                    { feature: 'Daily Free Tier', pictura: '5 images', dalle: 'None', midjourney: 'None', stable: 'Unlimited*', nano: 'Limited' },
+                    { feature: 'Daily Free Tier', pictura: 'Unlimited', dalle: 'None', midjourney: 'None', stable: 'Unlimited*', nano: 'Limited' },
                     { feature: 'Speed', pictura: 'Fast', dalle: 'Medium', midjourney: 'Slow', stable: 'Varies', nano: 'Fast' },
                   ].map((row, i) => (
                     <div
@@ -989,7 +989,7 @@ export function Landing() {
                       Pictura: Multi-Stage Diffusion for High-Fidelity Image Synthesis
                     </h3>
                     <p className="mt-1.5 text-xs text-muted-foreground">
-                      Imoogle Labs &middot; Research Division &middot; 2025
+                      Pictura Labs &middot; Research Division &middot; 2025
                     </p>
                   </div>
                 </div>
@@ -1053,7 +1053,7 @@ export function Landing() {
                 <div className="mt-6 rounded-xl bg-secondary/40 px-4 py-3">
                   <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Citation</p>
                   <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">
-                    Imoogle Labs (2025). Pictura: Multi-Stage Diffusion for High-Fidelity Image Synthesis. <em>Imoogle Research Technical Report</em>, TR-2025-001.
+                    Pictura Labs (2025). Pictura: Multi-Stage Diffusion for High-Fidelity Image Synthesis. <em>Pictura Research Technical Report</em>, TR-2025-001.
                   </p>
                 </div>
               </div>
@@ -1189,11 +1189,11 @@ export function Landing() {
                 <br />for the world
               </h2>
               <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                Pictura is the Imoogle Picture Model &mdash; developed by Imoogle Labs, a non-profit AI
+                Pictura is our flagship image model &mdash; developed by Pictura Labs, a non-profit AI
                 research lab. We believe powerful creative AI should be free and accessible to everyone.
               </p>
               <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                During beta, every user gets 5 free generations per day. We are actively improving
+                During beta, every user gets unlimited image generations. We are actively improving
                 the model and working toward releasing a public API.
               </p>
 
@@ -1202,8 +1202,8 @@ export function Landing() {
                 {[
                   {
                     icon: ImageIcon,
-                    value: '5',
-                    label: 'Daily Limit',
+                    value: '∞',
+                    label: 'Daily Image Limit',
                     sub: 'Free generations',
                   },
                   {

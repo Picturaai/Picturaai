@@ -42,7 +42,7 @@ function generateDonorEmailHtml(name: string, amount: number, reference: string)
       </p>
     </div>
     <p style="color: #999; font-size: 12px; text-align: center; margin: 24px 0 0;">
-      Pictura by Imoogle | info@picturaai.sbs
+      Pictura AI | info@picturaai.sbs
     </p>
   </div>
 </body>

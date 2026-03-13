@@ -158,7 +158,7 @@ export function Navbar() {
                 className="mt-auto flex items-center gap-2 px-4 text-xs text-muted-foreground"
               >
                 <FlaskConical className="h-3 w-3" />
-                <span>Beta &middot; Built by Imoogle Labs, Nigeria</span>
+                <span>Beta &middot; Built by Pictura Labs, Nigeria</span>
               </motion.div>
             </nav>
           </motion.div>

@@ -124,7 +124,7 @@ export default function AboutPage() {
           {/* Header - centered */}
           <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp} className="text-center">
             <PicturaIcon size={48} className="mx-auto" />
-            <h1 className="mt-5 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">About Imoogle</h1>
+            <h1 className="mt-5 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">About Pictura</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Non-profit AI Research &middot; Nigeria
             </p>
@@ -137,13 +137,13 @@ export default function AboutPage() {
             <h2 className="text-lg font-semibold text-foreground">Who We Are</h2>
             <div className="mt-4 flex flex-col gap-4 text-sm leading-relaxed text-muted-foreground">
               <p>
-                Imoogle Technology is a non-profit Nigerian artificial intelligence company.
-                Through our research division, <strong className="text-foreground">Imoogle Labs</strong>, we build
+                Pictura AI is a non-profit Nigerian artificial intelligence company.
+                Through our research division, <strong className="text-foreground">Pictura Labs</strong>, we build
                 AI-powered creative tools for Africa and the world.
               </p>
               <p>
                 We believe powerful AI should not be exclusive to a few companies in Silicon Valley.
-                Africa has incredible talent, creativity, and ambition&mdash;and Imoogle exists to channel
+                Africa has incredible talent, creativity, and ambition&mdash;and Pictura exists to channel
                 that energy into world-class products.
               </p>
             </div>
@@ -154,12 +154,12 @@ export default function AboutPage() {
             <h2 className="text-lg font-semibold text-foreground">About Pictura</h2>
             <div className="mt-4 flex flex-col gap-4 text-sm leading-relaxed text-muted-foreground">
               <p>
-                Pictura is the <strong className="text-foreground">Imoogle Picture Model</strong>&mdash;an AI image
+                Pictura is our <strong className="text-foreground">flagship image model</strong>&mdash;an AI image
                 generation system that creates images from text descriptions and transforms existing images based on prompts.
               </p>
               <p>
                 Pictura is in <span className="inline-flex items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">Beta</span>.
-                During this period, the model is completely free with a limit of 5 generations per day per user.
+                During this period, the model is completely free with unlimited image generations for users.
                 No sign-up required.
               </p>
             </div>

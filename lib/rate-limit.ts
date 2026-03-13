@@ -1,10 +1,26 @@
 import { neon } from '@neondatabase/serverless'
 import type { AdminRole } from '@/lib/admin-auth'
 
-const DAILY_LIMIT = 5
+const DAILY_LIMIT = 999999
 const DAILY_VIDEO_LIMIT = 2
-const STAFF_LIMIT = 20
+const STAFF_LIMIT = 999999
 const ADMIN_UNLIMITED = 999999
+
+type SessionContext = {
+  role?: AdminRole
+  ip?: string | null
+  userAgent?: string | null
+  country?: string | null
+  city?: string | null
+  region?: string | null
+  deviceType?: 'mobile' | 'tablet' | 'desktop' | 'bot' | 'unknown' | null
+}
+
+function limitsByRole(role?: AdminRole) {
+  if (role === 'admin') return { image: ADMIN_UNLIMITED, video: ADMIN_UNLIMITED }
+  if (role === 'staff') return { image: STAFF_LIMIT, video: STAFF_LIMIT }
+  return { image: DAILY_LIMIT, video: DAILY_VIDEO_LIMIT }
+}
 
 export function getDailyLimits() {
   return { image: DAILY_LIMIT, video: DAILY_VIDEO_LIMIT }
@@ -319,6 +335,12 @@ type AdminSessionRecord = {
   video_used: number
   video_reset_at: string | Date | null
   tour_completed: boolean
+  last_ip: string | null
+  last_country: string | null
+  last_region: string | null
+  last_city: string | null
+  last_device: string | null
+  last_seen_at: string | Date | null
   created_at: string | Date
 }
 
@@ -329,7 +351,8 @@ export async function listSessionsForAdmin(search?: string): Promise<AdminSessio
 
   if (query) {
     return await sql`
-      SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at
+      SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed,
+             last_ip, last_country, last_region, last_city, last_device, last_seen_at, created_at
       FROM user_sessions
       WHERE session_id ILIKE ${query + '%'}
       ORDER BY created_at DESC
@@ -338,7 +361,8 @@ export async function listSessionsForAdmin(search?: string): Promise<AdminSessio
   }
 
   return await sql`
-    SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at
+    SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed,
+           last_ip, last_country, last_region, last_city, last_device, last_seen_at, created_at
     FROM user_sessions
     ORDER BY created_at DESC
     LIMIT 100
@@ -412,7 +436,8 @@ export async function updateSessionCreditsForAdmin(input: {
   }
 
   const rows = await sql`
-    SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed, created_at
+    SELECT session_id, credits_used, credits_reset_at, video_used, video_reset_at, tour_completed,
+           last_ip, last_country, last_region, last_city, last_device, last_seen_at, created_at
     FROM user_sessions
     WHERE session_id = ${sessionId}
     LIMIT 1

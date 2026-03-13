@@ -25,7 +25,7 @@ export function Footer() {
               <span className="text-lg font-bold tracking-tight text-foreground">Pictura</span>
             </span>
             <p className="mt-3 max-w-[240px] text-sm leading-relaxed text-muted-foreground">
-              Non-profit AI image generation by Imoogle Labs. Free and accessible to everyone.
+              Non-profit AI image generation by Pictura Labs. Free and accessible to everyone.
             </p>
             
             {/* Social Links */}
@@ -89,7 +89,7 @@ export function Footer() {
 
           <div className="flex flex-col gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Company</span>
-            <Link href="/about" className="text-sm text-foreground/70 transition-colors hover:text-primary">About Imoogle</Link>
+            <Link href="/about" className="text-sm text-foreground/70 transition-colors hover:text-primary">About Pictura</Link>
             <Link href="/blog" className="text-sm text-foreground/70 transition-colors hover:text-primary">Blog</Link>
             <Link href="/support" className="text-sm text-foreground/70 transition-colors hover:text-primary">Support Us</Link>
             <Link href="/report" className="text-sm text-foreground/70 transition-colors hover:text-primary">Report a Bug</Link>
@@ -104,7 +104,7 @@ export function Footer() {
 
         <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-border/40 pt-8 md:flex-row md:items-center">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Imoogle Technology. All rights reserved.
+            &copy; {new Date().getFullYear()} Pictura AI. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -112,7 +112,7 @@ export function Footer() {
               All systems operational
             </span>
             <span className="font-mono text-[10px] tracking-widest text-muted-foreground/50">
-              IMOOGLE LABS
+              PICTURA LABS
             </span>
           </div>
         </div>

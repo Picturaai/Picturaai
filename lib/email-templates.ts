@@ -66,7 +66,7 @@ export const emailTemplates = {
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 32px 20px; text-align: center;">
-                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Pictura Labs</p>
                             <p style="margin: 0; font-size: 12px; color: #999;">
                                 <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
                             </p>
@@ -186,7 +186,7 @@ export const emailTemplates = {
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 32px 20px; text-align: center;">
-                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Pictura Labs</p>
                             <p style="margin: 0; font-size: 12px; color: #999;">
                                 <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
                             </p>
@@ -268,7 +268,7 @@ export const emailTemplates = {
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 32px 20px; text-align: center;">
-                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Pictura Labs</p>
                             <p style="margin: 0; font-size: 12px; color: #999;">
                                 <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
                             </p>
@@ -376,7 +376,7 @@ export const emailTemplates = {
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 32px 20px; text-align: center;">
-                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Pictura Labs</p>
                             <p style="margin: 0; font-size: 12px; color: #999;">
                                 <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
                             </p>
@@ -450,7 +450,7 @@ export const emailTemplates = {
                     <!-- Footer -->
                     <tr>
                         <td style="padding: 32px 20px; text-align: center;">
-                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Imoogle Labs</p>
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #999;">Pictura AI by Pictura Labs</p>
                             <p style="margin: 0; font-size: 12px; color: #999;">
                                 <a href="https://picturaai.sbs" style="color: #666; text-decoration: none;">picturaai.sbs</a>
                             </p>

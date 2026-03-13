@@ -6,6 +6,7 @@ export interface GeneratedMedia {
   type: GeneratedMediaType
   mediaKind?: 'image' | 'video'
   sourceImageUrl?: string
+  requestId?: string
   createdAt: string
 }
 

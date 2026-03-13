@@ -111,7 +111,7 @@ export async function GET() {
         >
           <span>picturaai.sbs</span>
           <span style={{ color: '#ccc' }}>|</span>
-          <span>by Imoogle</span>
+          <span>by Pictura</span>
         </div>
       </div>
     ),
