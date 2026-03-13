@@ -181,7 +181,7 @@ export async function POST(request: Request) {
     }
 
     const apiKey = process.env.ZYLABS_API_KEY
-    const allowLegacyFallback = process.env.ENABLE_LEGACY_IMG2IMG_FALLBACK === 'true'
+    const allowLegacyFallback = process.env.ENABLE_LEGACY_IMG2IMG_FALLBACK !== 'false'
 
     const hasAlibabaKey = Boolean(process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY)
 
@@ -292,7 +292,7 @@ export async function POST(request: Request) {
         ? 'No provider key found. Add ZYLABS_API_KEY or ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
         : undefined
       return NextResponse.json(
-        { error: 'Image transformation failed. Please try a different prompt or image.', details: configHint },
+        { error: 'Image transformation failed. Please try a different prompt or image.', details: configHint, fallbackUsed: allowLegacyFallback },
         { status: 500 }
       )
     }
