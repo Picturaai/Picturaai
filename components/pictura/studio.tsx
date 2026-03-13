@@ -1037,10 +1037,36 @@ export function Studio() {
     setLoading(true)
     setActiveGenerationMode(modeAtSubmit)
     setLoadingPrompt(promptAtSubmit)
-    persistPendingGeneration({ requestId, mode: modeAtSubmit, prompt: promptAtSubmit, startedAt: generationStartedAt })
     setShowExhausted(false)
 
     try {
+      let finalPrompt = promptAtSubmit
+
+      // Auto-improve prompt before generation (silent fallback on failure)
+      try {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 6000)
+        const improveRes = await fetch('/api/improve-prompt', {
+          method: 'POST',
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ prompt: promptAtSubmit, mode: modeAtSubmit }),
+          signal: controller.signal,
+        })
+        clearTimeout(timeout)
+
+        if (improveRes.ok) {
+          const improvedData = await improveRes.json()
+          if (typeof improvedData?.improved === 'string' && improvedData.improved.trim()) {
+            finalPrompt = improvedData.improved.trim()
+          }
+        }
+      } catch {
+        // Do not block generation if prompt enhancement fails
+      }
+
+      setLoadingPrompt(finalPrompt)
+      persistPendingGeneration({ requestId, mode: modeAtSubmit, prompt: finalPrompt, startedAt: generationStartedAt })
+
       let res: Response
 
       if (modeAtSubmit === 'text') {
@@ -1048,11 +1074,11 @@ export function Studio() {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ requestId, prompt: promptAtSubmit, model: selectedModel }),
+          body: JSON.stringify({ requestId, prompt: finalPrompt, model: selectedModel }),
         })
       } else if (modeAtSubmit === 'image') {
         const form = new FormData()
-        form.append('prompt', promptAtSubmit)
+        form.append('prompt', finalPrompt)
         if (uploadedFile) {
           form.append('image', uploadedFile)
         } else if (uploadPreview && !uploadPreview.startsWith('blob:')) {
@@ -1070,7 +1096,7 @@ export function Studio() {
       } else {
         if (uploadedFile) {
           const form = new FormData()
-          form.append('prompt', promptAtSubmit)
+          form.append('prompt', finalPrompt)
           form.append('model', selectedModel)
           form.append('requestId', requestId)
           form.append('image', uploadedFile)
@@ -1085,7 +1111,7 @@ export function Studio() {
             method: 'POST',
             credentials: 'include',
             headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify({ requestId, prompt: promptAtSubmit, model: selectedModel, imageUrl: uploadPreview || undefined }),
+            body: JSON.stringify({ requestId, prompt: finalPrompt, model: selectedModel, imageUrl: uploadPreview || undefined }),
           })
         }
       }
@@ -1142,6 +1168,7 @@ export function Studio() {
       // Display the error message from the API if available
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
       toast.error(errorMessage)
+      clearPendingGeneration()
       // Keep the prompt in the input so user can retry
     } finally {
       setLoading(false)

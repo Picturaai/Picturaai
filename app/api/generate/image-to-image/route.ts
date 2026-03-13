@@ -181,6 +181,7 @@ export async function POST(request: Request) {
     }
 
     const apiKey = process.env.ZYLABS_API_KEY
+    const allowLegacyFallback = process.env.ENABLE_LEGACY_IMG2IMG_FALLBACK === 'true'
 
     const hasAlibabaKey = Boolean(process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY)
 
@@ -236,7 +237,17 @@ export async function POST(request: Request) {
       }
     }
 
-    // Try image-to-image endpoint with GET (matching text-to-image pattern)
+    if (!allowLegacyFallback) {
+      const configHint = !hasAlibabaKey
+        ? 'No Alibaba provider key found. Add ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
+        : undefined
+      return NextResponse.json(
+        { error: 'Image transformation failed. Please try a different prompt or source image.', details: configHint },
+        { status: 500 }
+      )
+    }
+
+    // Optional legacy fallback (disabled by default)
     const params = new URLSearchParams({
       prompt: prompt.trim(),
       image_url: sourceImageUrl,
