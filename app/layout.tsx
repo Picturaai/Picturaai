@@ -6,13 +6,13 @@ import './globals.css'
 export const metadata: Metadata = {
   title: {
     default: 'Pictura - AI Image Generation | Create Stunning Images Free',
-    template: '%s | Pictura by Imoogle',
+    template: '%s | Pictura',
   },
-  description: 'Create stunning AI-generated images for free with Pictura by Imoogle. Transform text into beautiful artwork or remix existing images. No sign-up required.',
-  keywords: ['AI image generation', 'text to image', 'image to image', 'AI art', 'free AI image generator', 'Pictura', 'Imoogle', 'AI artwork'],
-  authors: [{ name: 'Imoogle', url: 'https://imoogle.com' }],
-  creator: 'Imoogle',
-  publisher: 'Imoogle',
+  description: 'Create stunning AI-generated images and videos with Pictura. Fast text-to-image, image-to-image, and video generation with powerful AI models.',
+  keywords: ['AI image generation', 'text to image', 'image to image', 'AI video generation', 'AI art generator', 'Pictura', 'creative AI tools'],
+  authors: [{ name: 'Pictura', url: 'https://picturaai.sbs' }],
+  creator: 'Pictura',
+  publisher: 'Pictura',
   metadataBase: new URL('https://picturaai.sbs'),
   alternates: {
     canonical: '/',
@@ -23,10 +23,10 @@ export const metadata: Metadata = {
     url: 'https://picturaai.sbs',
     siteName: 'Pictura',
     title: 'Pictura - AI Image Generation | Create Stunning Images Free',
-    description: 'Create stunning AI-generated images for free with Pictura by Imoogle. Transform text into beautiful artwork or remix existing images. No sign-up required.',
+    description: 'Create stunning AI-generated images and videos with Pictura. Fast text-to-image, image-to-image, and video generation with powerful AI models.',
     images: [
       {
-        url: '/api/og',
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'Pictura - AI-Powered Image Generation',
@@ -36,9 +36,13 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Pictura - AI Image Generation | Create Stunning Images Free',
-    description: 'Create stunning AI-generated images for free with Pictura by Imoogle. Transform text into beautiful artwork. No sign-up required.',
-    images: ['/api/og'],
+    description: 'Create stunning AI-generated images and videos with Pictura.',
+    images: ['/og-image.jpg'],
     creator: '@imoogle',
+  },
+  category: 'technology',
+  other: {
+    'theme-color': '#c87941',
   },
   robots: {
     index: true,

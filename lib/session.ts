@@ -41,6 +41,22 @@ function getStableFingerprint(request?: RequestLike): string | null {
   return createHash('sha256').update(raw).digest('hex')
 }
 
+
+function parseCookieHeader(cookieHeader: string | null): Record<string, string> {
+  if (!cookieHeader) return {}
+  return cookieHeader.split(';').reduce<Record<string, string>>((acc, part) => {
+    const [key, ...rest] = part.trim().split('=')
+    if (!key) return acc
+    acc[key] = decodeURIComponent(rest.join('='))
+    return acc
+  }, {})
+}
+
+export function getSessionIdFromRequest(request: RequestLike): string | undefined {
+  const cookiesMap = parseCookieHeader(request.headers.get('cookie'))
+  return cookiesMap[SESSION_COOKIE_NAME] || cookiesMap[LEGACY_SESSION_COOKIE_NAME] || undefined
+}
+
 export async function getOrCreateSessionId(request?: RequestLike): Promise<string> {
   const cookieStore = await cookies()
   let sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value

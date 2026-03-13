@@ -3,6 +3,8 @@ import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
 import { appendMediaToGallery } from '@/lib/gallery'
+import { getAdminSessionFromRequest } from '@/lib/admin-auth'
+import { getRequestContext } from '@/lib/request-context'
 
 console.log('[TextToImage] Module loaded')
 
@@ -118,7 +120,7 @@ async function generateWithStability(prompt: string): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('[v0] Stability API error:', response.status, errorText)
+    console.error('[Pictura] Stability API error:', response.status, errorText)
     throw new Error(`Stability generation failed: ${response.status}`)
   }
 
@@ -459,8 +461,11 @@ function extractImageUrl(data: Record<string, unknown>): string {
 export async function POST(request: Request) {
   console.log('[TextToImage] POST request received')
   try {
-    const { prompt, model = 'pi-1.0' } = await request.json()
-    console.log('[TextToImage] Prompt:', prompt.substring(0, 50), 'Model:', model)
+    const body = await request.json()
+    const prompt = typeof body.prompt === 'string' ? body.prompt : ''
+    const model = typeof body.model === 'string' ? body.model : 'pi-1.0'
+    const requestId = typeof body.requestId === 'string' ? body.requestId : null
+    console.log('[TextToImage] Prompt:', prompt.slice(0, 50), 'Model:', model)
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
       return NextResponse.json({ error: 'A text prompt is required' }, { status: 400 })
@@ -468,15 +473,17 @@ export async function POST(request: Request) {
 
     // Check rate limit using session ID
     const sessionId = await getOrCreateSessionId(request)
+    const adminSession = getAdminSessionFromRequest(request)
+    const requestContext = getRequestContext(request)
     console.log('[TextToImage] Session ID:', sessionId)
-    const rateLimitInfo = await getRateLimitInfo(sessionId)
+    const rateLimitInfo = await getRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
     console.log('[TextToImage] Rate limit before:', rateLimitInfo)
 
     if (rateLimitInfo.remaining <= 0) {
       console.log('[TextToImage] Rate limit reached!')
       return NextResponse.json(
         {
-          error: 'Daily limit reached. You can generate up to 5 images per day during beta.',
+          error: `Daily limit reached. You can generate up to ${rateLimitInfo.limit} images per day.`,
           rateLimitInfo,
         },
         { status: 429 }
@@ -506,7 +513,7 @@ export async function POST(request: Request) {
         break // Success, exit loop
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err))
-        console.log(`[v0] Provider failed, trying next: ${lastError.message}`)
+        console.log(`[Pictura] Provider failed, trying next: ${lastError.message}`)
         continue // Try next provider
       }
     }
@@ -542,18 +549,20 @@ export async function POST(request: Request) {
     // Upload to Vercel Blob
     const blob = await uploadObject(filename, imageBuffer, 'image/png')
 
+    const createdAt = new Date().toISOString()
     await appendMediaToGallery(sessionId, {
       url: blob.url,
       prompt: prompt.trim(),
       type: 'text-to-image',
       mediaKind: 'image',
-      createdAt: new Date().toISOString(),
+      requestId: requestId || undefined,
+      createdAt,
     })
 
     // Increment usage after successful generation
     console.log('[TextToImage] Incrementing usage...')
-    await incrementUsage(sessionId)
-    const updatedRateLimitInfo = await getRateLimitInfo(sessionId)
+    await incrementUsage(sessionId, { role: adminSession?.role, ...requestContext })
+    const updatedRateLimitInfo = await getRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
     console.log('[TextToImage] Rate limit after:', updatedRateLimitInfo)
 
     return NextResponse.json({
@@ -561,7 +570,8 @@ export async function POST(request: Request) {
       prompt: prompt.trim(),
       model,
       type: 'text-to-image',
-      createdAt: new Date().toISOString(),
+      requestId: requestId || undefined,
+      createdAt,
       rateLimitInfo: updatedRateLimitInfo,
     })
   } catch (error) {

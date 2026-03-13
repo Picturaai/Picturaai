@@ -159,7 +159,7 @@ export default function AboutPage() {
               </p>
               <p>
                 Pictura is in <span className="inline-flex items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">Beta</span>.
-                During this period, the model is completely free with a limit of 5 generations per day per user.
+                During this period, the model is completely free with unlimited image generations for users.
                 No sign-up required.
               </p>
             </div>

@@ -195,6 +195,23 @@ export async function POST(request: NextRequest) {
     }
 
     const ticketId = generateTicketId()
+    const context = getRequestContext(request)
+
+    await insertSupportReport({
+      ticketId,
+      name: body.name,
+      email: body.email,
+      type: body.type,
+      subject: body.subject,
+      description: body.description,
+      source: 'website',
+      ip: context.ip || undefined,
+      userAgent: context.userAgent || undefined,
+      country: context.country || undefined,
+      city: context.city || undefined,
+      region: context.region || undefined,
+      deviceType: context.deviceType,
+    })
 
     await insertSupportReport({
       ticketId,

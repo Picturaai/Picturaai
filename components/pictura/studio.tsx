@@ -22,12 +22,14 @@ type Mode = 'text' | 'image' | 'video'
 type Feedback = 'up' | 'down' | null
 type PendingFeedback = { url: string; type: Exclude<Feedback, null> } | null
 type PendingGeneration = {
+  requestId: string
   mode: Mode
   prompt: string
   startedAt: string
 }
 
 const PENDING_GENERATION_KEY = 'pictura_pending_generation'
+const UNLIMITED_THRESHOLD = 900000
 
 
 const VIDEO_LOADING_HINTS = [
@@ -48,7 +50,7 @@ const TOUR_STEPS = [
   },
   {
     title: 'Your Daily Credits',
-    description: 'You get 5 free generations per day. This shows how many you have left.',
+    description: 'Image generation is unlimited. This shows your active generation availability.',
     target: 'credits',
   },
   {
@@ -386,7 +388,7 @@ function dedupeMedia(items: GeneratedMedia[]): GeneratedMedia[] {
   const unique: GeneratedMedia[] = []
 
   for (const item of items) {
-    const key = `${item.type}|${item.url}|${item.prompt.trim()}`
+    const key = `${item.type}|${item.url}|${item.prompt.trim()}|${item.requestId || ''}`
     if (seen.has(key)) continue
     seen.add(key)
     unique.push(item)
@@ -405,7 +407,7 @@ export function Studio() {
   const [loadingPrompt, setLoadingPrompt] = useState('')
   const [pendingGeneration, setPendingGeneration] = useState<PendingGeneration | null>(null)
   const [images, setImages] = useState<GeneratedMedia[]>([])
-  const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 5, remaining: 5, used: 0, resetAt: '' })
+  const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 999999, remaining: 999999, used: 0, resetAt: '' })
   const [videoRateLimit, setVideoRateLimit] = useState<RateLimitInfo>({ limit: 2, remaining: 2, used: 0, resetAt: '' })
   const [lightbox, setLightbox] = useState<GeneratedMedia | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -420,6 +422,7 @@ export function Studio() {
   const [selectedModel, setSelectedModel] = useState('pi-1.0')
   const [modelOpen, setModelOpen] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(8)
+  const [isPoorNetwork, setIsPoorNetwork] = useState(false)
 
   // auto-switch model with mode
   useEffect(() => {
@@ -473,6 +476,11 @@ export function Studio() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
 
+  const completeLoadingAndSettle = useCallback(async () => {
+    setLoadingProgress(100)
+    await new Promise((resolve) => setTimeout(resolve, 350))
+  }, [])
+
   const clientFingerprint = useMemo(() => {
     if (typeof window === 'undefined') return ''
 
@@ -501,27 +509,51 @@ export function Studio() {
   }, [clientFingerprint])
 
   useEffect(() => {
-    if (!(loading && mode === 'video')) return
+    if (!(loading && activeGenerationMode === 'video')) return
     setVideoLoadingHintIndex(0)
     const interval = setInterval(() => {
       setVideoLoadingHintIndex((prev) => (prev + 1) % VIDEO_LOADING_HINTS.length)
     }, 1600)
     return () => clearInterval(interval)
-  }, [loading, mode])
+  }, [loading, activeGenerationMode])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const connection = (
+      navigator as Navigator & {
+        connection?: { effectiveType?: string; downlink?: number; addEventListener?: (type: string, listener: () => void) => void; removeEventListener?: (type: string, listener: () => void) => void }
+      }
+    ).connection
+
+    if (!connection) return
+
+    const syncNetworkQuality = () => {
+      const type = connection.effectiveType || ''
+      const poor = type === 'slow-2g' || type === '2g' || (typeof connection.downlink === 'number' && connection.downlink < 1)
+      setIsPoorNetwork(poor)
+    }
+
+    syncNetworkQuality()
+    connection.addEventListener?.('change', syncNetworkQuality)
+    return () => connection.removeEventListener?.('change', syncNetworkQuality)
+  }, [])
 
 
   useEffect(() => {
     if (!loading || !pendingGeneration) {
-      setLoadingProgress(8)
+      setLoadingProgress(18)
       return
     }
 
-    const ttlMs = pendingGeneration.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+    const ttlMs = pendingGeneration.mode === 'video' ? 12 * 60_000 : 3 * 60_000
 
     const syncProgress = () => {
       const elapsed = Date.now() - new Date(pendingGeneration.startedAt).getTime()
       const normalized = Math.max(0, Math.min(1, elapsed / ttlMs))
-      const progress = Math.min(96, Math.max(8, Math.round(normalized * 100)))
+      const progress = pendingGeneration.mode === 'video'
+        ? Math.min(96, Math.max(24, Math.round(24 + (1 - Math.exp(-normalized * 5.6)) * 72)))
+        : Math.min(96, Math.max(24, Math.round(24 + (1 - Math.exp(-normalized * 4.8)) * 72)))
       setLoadingProgress(progress)
     }
 
@@ -602,13 +634,17 @@ export function Studio() {
       const res = await fetch('/api/improve-prompt', {
         method: 'POST',
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ prompt: currentPrompt.trim(), mode }),
+        body: JSON.stringify({ prompt: currentPrompt.trim(), mode, force: true }),
       })
       if (!res.ok) throw new Error('Failed')
-      const { improved } = await res.json()
+      const { improved, changed } = await res.json()
       if (improved) {
         setCurrentPrompt(improved)
-        toast.success('Prompt improved')
+        if (changed) {
+          toast.success('Prompt improved')
+        } else {
+          toast.info('Your prompt is already strong')
+        }
       }
     } catch {
       toast.error('Could not improve prompt')
@@ -662,7 +698,7 @@ export function Studio() {
       const raw = window.localStorage.getItem(PENDING_GENERATION_KEY)
       if (!raw) return null
       const parsed = JSON.parse(raw) as PendingGeneration
-      if (!parsed?.mode || !parsed?.prompt || !parsed?.startedAt) return null
+      if (!parsed?.requestId || !parsed?.mode || !parsed?.prompt || !parsed?.startedAt) return null
       return parsed
     } catch {
       return null
@@ -724,15 +760,17 @@ export function Studio() {
   }, [buildAuthHeaders])
 
   const findResolvedGeneration = useCallback((saved: GeneratedMedia[], pending: PendingGeneration) => {
+    const byRequestId = saved.find((item) => item.requestId && item.requestId === pending.requestId)
+    if (byRequestId) return byRequestId
+
     const pendingStartedAt = new Date(pending.startedAt).getTime()
     const targetKind = pending.mode === 'video' ? 'video' : 'image'
 
-    // Find the newest item with matching kind that's within a reasonable time window
     return saved.find((item) => {
       const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
       const createdAt = new Date(item.createdAt).getTime()
-      // Match if: same kind AND created after startedAt (with some buffer)
-      return kind === targetKind && createdAt >= pendingStartedAt
+      const similarPrompt = item.prompt.trim().toLowerCase() === pending.prompt.trim().toLowerCase()
+      return kind === targetKind && createdAt >= pendingStartedAt && similarPrompt
     })
   }, [])
 
@@ -745,7 +783,7 @@ export function Studio() {
     
     try {
       const parsed = JSON.parse(rawPending) as PendingGeneration
-      if (parsed?.mode && parsed?.prompt && parsed?.startedAt) {
+      if (parsed?.requestId && parsed?.mode && parsed?.prompt && parsed?.startedAt) {
         // Set pending generation first - this will trigger the polling effect
         setPendingGeneration(parsed)
         setLoading(true)
@@ -800,18 +838,14 @@ export function Studio() {
               setImages(sorted)
               
               // Check if there's a matching result
-              const targetKind = parsed.mode === 'video' ? 'video' : 'image'
-              const startedAt = new Date(parsed.startedAt).getTime()
-              const resolved = sorted.find((item: GeneratedMedia) => {
-                const kind = item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')
-                const createdAt = new Date(item.createdAt).getTime()
-                return kind === targetKind && createdAt >= startedAt
-              })
+              const resolved = findResolvedGeneration(sorted, parsed)
               
               if (resolved) {
-                if (targetKind === 'video') {
+                const resolvedKind = resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')
+                if (resolvedKind === 'video') {
                   setGeneratedVideoUrl(resolved.url)
                 }
+                await completeLoadingAndSettle()
                 setLoading(false)
                 setActiveGenerationMode(null)
                 setLoadingPrompt('')
@@ -824,7 +858,7 @@ export function Studio() {
                 }
                 window.localStorage.removeItem(PENDING_GENERATION_KEY)
                 setPendingGeneration(null)
-                if (targetKind === 'video') {
+                if (resolvedKind === 'video') {
                   void fetchVideoRateLimit()
                 } else {
                   void fetchRateLimit()
@@ -840,7 +874,7 @@ export function Studio() {
     } catch {
       window.localStorage.removeItem(PENDING_GENERATION_KEY)
     }
-  }, [fetchRateLimit, fetchVideoRateLimit])
+  }, [fetchRateLimit, fetchVideoRateLimit, findResolvedGeneration, completeLoadingAndSettle])
 
   useEffect(() => {
     setMounted(true)
@@ -888,6 +922,7 @@ export function Studio() {
             if ((resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')) === 'video') {
               setGeneratedVideoUrl(resolved.url)
             }
+            await completeLoadingAndSettle()
             setLoading(false)
             setActiveGenerationMode(null)
             setLoadingPrompt('')
@@ -911,7 +946,7 @@ export function Studio() {
         }
 
         const startedAt = new Date(pendingGeneration.startedAt).getTime()
-        const ttlMs = pendingGeneration.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+        const ttlMs = pendingGeneration.mode === 'video' ? 12 * 60_000 : 3 * 60_000
         if (!cancelled && Date.now() - startedAt > ttlMs) {
           setLoading(false)
           setActiveGenerationMode(null)
@@ -927,14 +962,14 @@ export function Studio() {
 
     // Check immediately on mount
     checkStatus()
-    // Then poll every 4.5 seconds
-    const interval = setInterval(checkStatus, 4500)
+    // Then poll every 3 seconds for faster completion detection
+    const interval = setInterval(checkStatus, 3000)
 
     return () => {
       cancelled = true
       clearInterval(interval)
     }
-  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration, fetchRateLimit, fetchVideoRateLimit])
+  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration, fetchRateLimit, fetchVideoRateLimit, completeLoadingAndSettle])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -959,13 +994,18 @@ export function Studio() {
     if (file.size > 10 * 1024 * 1024) { toast.error('Image must be under 10MB.'); return }
     setUploadedFile(file)
     setUploadPreview(URL.createObjectURL(file))
-    setMode('image')
+    if (mode !== 'video') {
+      setMode('image')
+    }
   }
 
   const handleGenerate = async () => {
     const modeAtSubmit = mode
     const promptAtSubmit = currentPrompt.trim()
     const generationStartedAt = new Date().toISOString()
+    const requestId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `gen-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
     if (!promptAtSubmit) return
 
@@ -1001,10 +1041,36 @@ export function Studio() {
     setLoading(true)
     setActiveGenerationMode(modeAtSubmit)
     setLoadingPrompt(promptAtSubmit)
-    persistPendingGeneration({ mode: modeAtSubmit, prompt: promptAtSubmit, startedAt: generationStartedAt })
     setShowExhausted(false)
 
     try {
+      let finalPrompt = promptAtSubmit
+
+      // Auto-improve prompt before generation (silent fallback on failure)
+      try {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 6000)
+        const improveRes = await fetch('/api/improve-prompt', {
+          method: 'POST',
+          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ prompt: promptAtSubmit, mode: modeAtSubmit }),
+          signal: controller.signal,
+        })
+        clearTimeout(timeout)
+
+        if (improveRes.ok) {
+          const improvedData = await improveRes.json()
+          if (improvedData?.changed && typeof improvedData?.improved === 'string' && improvedData.improved.trim()) {
+            finalPrompt = improvedData.improved.trim()
+          }
+        }
+      } catch {
+        // Do not block generation if prompt enhancement fails
+      }
+
+      setLoadingPrompt(finalPrompt)
+      persistPendingGeneration({ requestId, mode: modeAtSubmit, prompt: finalPrompt, startedAt: generationStartedAt })
+
       let res: Response
 
       if (modeAtSubmit === 'text') {
@@ -1012,13 +1078,18 @@ export function Studio() {
           method: 'POST',
           credentials: 'include',
           headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
+          body: JSON.stringify({ requestId, prompt: finalPrompt, model: selectedModel }),
         })
       } else if (modeAtSubmit === 'image') {
         const form = new FormData()
-        form.append('prompt', promptAtSubmit)
-        form.append('imageUrl', uploadPreview || '')
+        form.append('prompt', finalPrompt)
+        if (uploadedFile) {
+          form.append('image', uploadedFile)
+        } else if (uploadPreview && !uploadPreview.startsWith('blob:')) {
+          form.append('imageUrl', uploadPreview)
+        }
         form.append('model', selectedModel)
+        form.append('requestId', requestId)
 
         res = await fetch('/api/generate/image-to-image', {
           method: 'POST',
@@ -1027,12 +1098,26 @@ export function Studio() {
           body: form,
         })
       } else {
-        res = await fetch('/api/generate/video', {
-          method: 'POST',
-          credentials: 'include',
-          headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ prompt: promptAtSubmit, model: selectedModel }),
-        })
+        if (uploadedFile) {
+          const form = new FormData()
+          form.append('prompt', finalPrompt)
+          form.append('model', selectedModel)
+          form.append('requestId', requestId)
+          form.append('image', uploadedFile)
+          res = await fetch('/api/generate/video', {
+            method: 'POST',
+            credentials: 'include',
+            headers: buildAuthHeaders(),
+            body: form,
+          })
+        } else {
+          res = await fetch('/api/generate/video', {
+            method: 'POST',
+            credentials: 'include',
+            headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ requestId, prompt: finalPrompt, model: selectedModel, imageUrl: uploadPreview || undefined }),
+          })
+        }
       }
 
       const data = await res.json()
@@ -1043,10 +1128,12 @@ export function Studio() {
           console.log('[Client] Setting rate limit from error:', data.rateLimitInfo)
           setRateLimit(data.rateLimitInfo)
         }
-        throw new Error(data.error || 'Failed to generate')
+        const details = typeof data.details === 'string' ? ` (${data.details})` : ''
+        throw new Error((data.error || 'Failed to generate') + details)
       }
 
       if (modeAtSubmit === 'video') {
+        await completeLoadingAndSettle()
         setGeneratedVideoUrl(data.url)
         const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
         setImages((prev) => dedupeMedia([videoItem, ...prev]))
@@ -1055,6 +1142,7 @@ export function Studio() {
         toast.success('Video generated!')
 
       } else {
+        await completeLoadingAndSettle()
         const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
         setImages((prev) => dedupeMedia([imageItem, ...prev]))
         
@@ -1085,6 +1173,7 @@ export function Studio() {
       // Display the error message from the API if available
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
       toast.error(errorMessage)
+      clearPendingGeneration()
       // Keep the prompt in the input so user can retry
     } finally {
       setLoading(false)
@@ -1183,9 +1272,10 @@ export function Studio() {
   const imageItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'image')
   const videoItems = images.filter((item) => (item.mediaKind ?? (item.type === 'text-to-video' ? 'video' : 'image')) === 'video')
   const hasResults = mode === 'video' ? videoItems.length > 0 : imageItems.length > 0
+  const hasUnlimited = currentLimitInfo.limit >= UNLIMITED_THRESHOLD
   const creditsUsed = currentLimitInfo.used
   const creditsTotal = currentLimitInfo.limit
-  const creditsFraction = creditsTotal > 0 ? creditsUsed / creditsTotal : 0
+  const creditsFraction = hasUnlimited ? 0 : (creditsTotal > 0 ? creditsUsed / creditsTotal : 0)
 
   if (!mounted) return null
 
@@ -1288,8 +1378,17 @@ export function Studio() {
                 />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-foreground">{currentLimitInfo.remaining}</span>
-            <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>
+            {hasUnlimited ? (
+              <>
+                <span className="hidden text-[10px] font-semibold text-primary sm:inline">Unlimited</span>
+                <span className="text-[10px] text-muted-foreground">∞</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xs font-semibold text-foreground">{currentLimitInfo.remaining}</span>
+                <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>
+              </>
+            )}
           </div>
 
           {/* Gallery button */}
@@ -1374,9 +1473,11 @@ export function Studio() {
               <p className="mt-2 max-w-xs sm:max-w-md text-sm leading-relaxed text-muted-foreground">
                 {mode === 'video'
                   ? 'Describe your scene and PicturaGen will create an amazing cinematic video for you.'
-                  : 'Type a description below and Pictura will generate an image for you.'}
+                  : 'Describe your image. Pictura will generate it.'}
                 <span className="block mt-1.5">
-                  You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
+                  {hasUnlimited
+                    ? <><strong className="text-foreground">Unlimited image generations</strong> are available today.</>
+                    : <>You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.</>}
                 </span>
               </p>
 
@@ -1394,7 +1495,7 @@ export function Studio() {
                     ))}
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground/80">
-                    Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
+                    Video duration is currently set to <strong className="text-foreground">15 seconds</strong> by default.
                   </p>
                 </div>
               ) : (
@@ -1425,7 +1526,7 @@ export function Studio() {
                   className="mb-6 overflow-hidden"
                 >
                   <div className="rounded-2xl border border-border/40 bg-card p-5">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                       <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center">
                         {/* Mini spinning ring */}
                         <svg className="absolute inset-0 h-full w-full animate-spin" style={{ animationDuration: '3s' }} viewBox="0 0 56 56" aria-hidden="true">
@@ -1440,14 +1541,24 @@ export function Studio() {
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">
                           {loadingPrompt || (activeGenerationMode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : activeGenerationMode === 'image' ? 'Transforming your image' : 'Processing your request')}
                         </p>
-                        <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
-                          <motion.div
-                            className="h-full rounded-full bg-primary"
-                            initial={{ width: '0%' }}
-                            animate={{ width: '90%' }}
-                            transition={{ duration: 15, ease: 'easeOut' }}
-                          />
+                        {activeGenerationMode === 'image' && uploadPreview && (
+                          <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-2.5 py-1.5">
+                            <div className="relative h-7 w-7 overflow-hidden rounded-lg ring-1 ring-primary/20">
+                              <Image src={uploadPreview} alt="Reference image" fill className="object-cover" sizes="28px" />
+                            </div>
+                            <span className="max-w-[220px] truncate text-[11px] text-foreground/80">Using uploaded image as reference</span>
+                          </div>
+                        )}
+                        {isPoorNetwork && (
+                          <div className="mt-2 inline-flex max-w-full items-start gap-1.5 rounded-lg border border-amber-300/40 bg-amber-50/70 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+                            <Info className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                            <span>Network is slow. Your generation is safe in queue and will continue.</span>
+                          </div>
+                        )}
+                        <div className="mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
+                          <div className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out" style={{ width: `${loadingProgress}%` }} />
                         </div>
+                        <p className="mt-1 text-[10px] text-muted-foreground/80">{loadingProgress}% complete</p>
                       </div>
                     </div>
                   </div>
@@ -1466,8 +1577,11 @@ export function Studio() {
                     transition={{ duration: 0.35, delay: i * 0.04 }}
                     className="overflow-hidden rounded-2xl border border-border/30 bg-card"
                   >
-                    <div className="aspect-video bg-muted/30">
+                    <div className="relative aspect-video bg-muted/30">
                       <video src={video.url} controls className="h-full w-full" />
+                      <div className="pointer-events-none absolute right-2 top-2 rounded-lg bg-black/35 p-1.5 backdrop-blur-sm">
+                        <PicturaIcon size={14} />
+                      </div>
                     </div>
                     <div className="px-4 pb-4 pt-3">
                       <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground">{video.prompt}</p>
@@ -1638,7 +1752,7 @@ export function Studio() {
         <div className="mx-auto max-w-3xl">
           {/* Upload preview */}
           <AnimatePresence>
-            {uploadPreview && (
+            {uploadPreview && !(loading && (activeGenerationMode === 'image' || activeGenerationMode === 'video')) && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
@@ -1651,10 +1765,13 @@ export function Studio() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="truncate text-xs font-medium text-foreground">{uploadedFile?.name}</p>
-                    <p className="text-[11px] text-muted-foreground">Reference for transformation</p>
+                    <p className="text-[11px] text-muted-foreground">{mode === 'video' ? 'Reference image for image-to-video' : 'Reference for transformation'}</p>
                   </div>
                   <button
-                    onClick={() => { handleFileChange(null); setMode('text') }}
+                    onClick={() => {
+                      handleFileChange(null)
+                      if (mode !== 'video') setMode('text')
+                    }}
                     className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     aria-label="Remove image"
                   >
@@ -1670,11 +1787,7 @@ export function Studio() {
             <div className="flex items-center gap-1 pb-0.5">
               <button
                 onClick={() => {
-                  if (mode === 'video') {
-                    toast.info('Image reference for video is coming soon.')
-                    return
-                  }
-                  if (mode === 'text') {
+                  if (mode === 'text' || mode === 'video') {
                     fileInputRef.current?.click()
                     return
                   }
@@ -1685,11 +1798,11 @@ export function Studio() {
                   mode === 'image'
                     ? 'bg-primary/10 text-primary'
                     : mode === 'video'
-                      ? 'text-muted-foreground/40'
+                      ? 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
-                title={mode === 'video' ? 'Image reference for video coming soon' : mode === 'text' ? 'Upload reference image' : 'Remove reference'}
-                aria-label={mode === 'video' ? 'Image reference for video coming soon' : 'Toggle image mode'}
+                title={mode === 'video' ? 'Upload reference image for video' : mode === 'text' ? 'Upload reference image' : 'Remove reference'}
+                aria-label={mode === 'video' ? 'Upload image reference for video' : 'Toggle image mode'}
               >
                 {mode === 'image' ? <ImageIcon className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
               </button>
@@ -1812,12 +1925,12 @@ export function Studio() {
             )}
 
             <div className="flex items-center gap-3">
-              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 2 && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) > 0 && (
+              {!hasUnlimited && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 2 && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) > 0 && (
                 <span className="text-[11px] font-medium text-accent-foreground">
                   {mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining} left today
                 </span>
               )}
-              {(mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 0 && (
+              {!hasUnlimited && (mode === 'video' ? videoRateLimit.remaining : rateLimit.remaining) <= 0 && (
                 <span className="text-[11px] font-medium text-destructive">
                   Limit reached
                 </span>
@@ -1874,7 +1987,9 @@ export function Studio() {
                 {"Oops! You've used all your credits"}
               </h3>
               <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                {`You've exhausted your ${currentLimitInfo.limit} free ${mode === 'video' ? 'video' : 'image'} generation${currentLimitInfo.limit !== 1 ? 's' : ''} for today. We're working hard to increase limits as Pictura grows.`}
+                {mode === 'video'
+                  ? `You've exhausted your ${currentLimitInfo.limit} free video generation${currentLimitInfo.limit !== 1 ? 's' : ''} for today. We're working hard to increase limits as Pictura grows.`
+                  : 'Image generation is unlimited during beta. If you are seeing this message, please refresh and try again.'}
               </p>
 
               <div className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-secondary/50 px-4 py-2.5">
@@ -1966,7 +2081,12 @@ export function Studio() {
                         className="group relative aspect-square overflow-hidden rounded-xl border border-border/30 bg-card"
                       >
                         {isVideo ? (
-                          <video src={img.url} className="h-full w-full object-cover" muted />
+                          <>
+                            <video src={img.url} className="h-full w-full object-cover" muted />
+                            <div className="pointer-events-none absolute right-1.5 top-1.5 rounded-md bg-black/35 p-1 backdrop-blur-sm">
+                              <PicturaIcon size={10} />
+                            </div>
+                          </>
                         ) : (
                           <img
                             src={img.url}
