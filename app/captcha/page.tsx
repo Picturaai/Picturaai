@@ -660,7 +660,7 @@ export default function CaptchaPage() {
                 <pre className="p-3 sm:p-4 text-xs sm:text-sm overflow-x-auto bg-background">
                   <code className="text-foreground font-mono leading-relaxed whitespace-pre">
 {`<!-- 1. Add the script -->
-<script src="https://captcha.picturaai.sbs/api.js" async defer></script>
+<script src="https://picturaai.sbs/api/captcha/widget.js" async defer></script>
 
 <!-- 2. Add the CAPTCHA container -->
 <div id="pictura-captcha" data-sitekey="YOUR_SITE_KEY"></div>
@@ -668,7 +668,7 @@ export default function CaptchaPage() {
 <!-- 3. Handle verification -->
 <script>
   function onCaptchaVerify(token) {
-    fetch('/api/verify', {
+    fetch('https://picturaai.sbs/api/captcha/verify', {
       method: 'POST',
       body: JSON.stringify({ token })
     })
@@ -694,7 +694,7 @@ export default function CaptchaPage() {
           >
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Ready to protect your website?</h2>
             <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
-              Get started in minutes with our free CAPTCHA service. No credit card required.
+              Get started in minutes with our free CAPTCHA service and npm package support.
             </p>
             <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3">
               <Link

@@ -293,7 +293,7 @@ export default function ModelsPage() {
                     Use pi-1.5-turbo directly in our web studio with an intuitive interface.
                   </p>
                   <p className="text-2xl font-bold text-foreground mb-1">Free</p>
-                  <p className="text-xs text-muted-foreground mb-4">5 generations/day during beta</p>
+                  <p className="text-xs text-muted-foreground mb-4">Unlimited image generations during beta</p>
                   <Link
                     href="/studio"
                     className="inline-flex items-center justify-center w-full gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
