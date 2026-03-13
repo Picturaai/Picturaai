@@ -473,12 +473,11 @@ export function Landing() {
       </section>
 
 
-      {/* Video Generation - Cinematic Showcase */}
-      <section className="py-24 md:py-32 relative overflow-hidden">
-        {/* Dramatic background */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/30 to-background" />
-          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[600px] bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,var(--primary)/0.08,transparent_70%)]" />
+      {/* Video Generation */}
+      <section className="border-t border-border/40 py-20 md:py-28 relative overflow-hidden">
+        {/* Background - same as hero */}
+        <div className="absolute inset-0 -z-10 bg-background">
+          <div className="absolute inset-x-0 top-0 h-[500px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,var(--primary)/0.12,transparent_70%)]" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
@@ -489,147 +488,111 @@ export function Landing() {
             viewport={{ once: true, margin: '-50px' }}
             custom={0}
             variants={fadeUp}
-            className="mx-auto max-w-3xl text-center mb-14 md:mb-20"
+            className="mx-auto max-w-3xl text-center mb-12 sm:mb-16"
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary mb-6">
               <Clapperboard className="h-3.5 w-3.5" />
               Text to Video
             </span>
-            <h2 className="text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-6xl text-balance">
+            <h2 className="text-3xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-5xl">
               Cinematic AI videos
             </h2>
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-              Transform your ideas into stunning videos with smooth motion, professional lighting, and share-ready quality.
+            <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">
+              Transform your ideas into stunning videos with smooth motion and professional quality.
             </p>
           </motion.div>
 
-          {/* Immersive Video Display */}
+          {/* Video Display - Clean frame matching hero */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="relative max-w-5xl mx-auto"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="-mx-6 px-3 sm:px-4"
           >
-            {/* Outer glow frame */}
-            <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-b from-primary/20 via-primary/5 to-transparent blur-sm" />
-            
-            {/* Video Container */}
-            <div className="relative rounded-3xl overflow-hidden border border-border/50 bg-card shadow-2xl shadow-primary/10">
-              {/* Video Frame with golden ratio aspect */}
-              <div className="relative aspect-[16/9]">
-                <video
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  src="/videos/ai-video-demo.mp4"
-                />
-                
-                {/* Gradient overlays for polish */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 pointer-events-none" />
-                
-                {/* Top badges */}
-                <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1.5 rounded-full bg-primary text-[11px] font-semibold text-primary-foreground flex items-center gap-1.5 shadow-lg shadow-primary/30">
-                      <Clapperboard className="h-3.5 w-3.5" />
-                      AI Generated
+            {/* App Window Frame - same as hero */}
+            <div className="relative rounded-xl sm:rounded-2xl border border-border/40 bg-card overflow-hidden max-w-5xl mx-auto">
+              {/* Window Chrome - same as hero */}
+              <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border/40 bg-secondary/30">
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-md bg-primary/15 flex items-center justify-center">
+                    <Clapperboard className="h-3 w-3 text-primary" />
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-medium text-foreground hidden sm:inline">Pictura Video</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-background/60 border border-border/30">
+                  <svg className="h-3 w-3 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">picturaai.sbs/studio</span>
+                </div>
+                <div className="w-12 sm:w-16" />
+              </div>
+
+              {/* Video Content */}
+              <div className="p-3 sm:p-4">
+                {/* Video Player */}
+                <div className="relative aspect-video rounded-lg overflow-hidden bg-secondary/30">
+                  <video
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    src="/videos/ai-video-demo.mp4"
+                  />
+                  
+                  {/* Simple badge */}
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2.5 py-1 rounded-md bg-primary/90 text-[10px] font-medium text-primary-foreground flex items-center gap-1.5">
+                      <Clapperboard className="h-3 w-3" />
+                      AI Video
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md text-[11px] font-semibold text-foreground shadow-lg">
-                      1080p HD
-                    </span>
+
+                  {/* Pictura watermark */}
+                  <div className="absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-card/80 backdrop-blur-sm border border-border/30">
+                    <PicturaIcon size={12} className="text-primary" />
+                    <span className="text-[10px] font-medium text-foreground">Pictura</span>
                   </div>
                 </div>
 
-                {/* Center play indicator (subtle) */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                  <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-                    <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
+                {/* Bottom bar */}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
+                  <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted-foreground">
+                    <span><span className="font-medium text-foreground">Model:</span> pi-video-1.0</span>
+                    <span className="hidden sm:inline"><span className="font-medium text-foreground">Duration:</span> 6s</span>
+                    <span className="hidden md:inline"><span className="font-medium text-foreground">Quality:</span> 1080p</span>
                   </div>
-                </div>
-
-                {/* Bottom control bar */}
-                <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                  <div className="flex items-center gap-4">
-                    {/* Progress bar */}
-                    <div className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-primary rounded-full"
-                        initial={{ width: '0%' }}
-                        animate={{ width: '100%' }}
-                        transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
-                      />
-                    </div>
-                    
-                    {/* Time */}
-                    <span className="text-xs font-medium text-white/80 tabular-nums">0:06</span>
-                    
-                    {/* Actions */}
-                    <div className="flex items-center gap-1.5">
-                      <button className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-colors border border-white/10">
-                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                      </button>
-                      <button className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-colors border border-white/10">
-                        <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                      </button>
-                    </div>
+                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-primary">
+                    <PicturaIcon size={10} className="text-primary" />
+                    <span className="font-medium">Pictura AI</span>
                   </div>
-                </div>
-
-                {/* Pictura branding */}
-                <div className="absolute bottom-16 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
-                  <PicturaIcon size={14} className="text-white" />
-                  <span className="text-xs font-semibold text-white">Pictura</span>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Features & CTA */}
+          {/* CTA */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
             custom={1}
             variants={fadeUp}
-            className="mt-14 md:mt-20"
+            className="mt-12 sm:mt-16 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
-            {/* Feature pills */}
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
-              {[
-                { icon: Zap, label: 'Fast Generation' },
-                { icon: Layers, label: 'Cinematic Quality' },
-                { icon: Globe, label: 'Multiple Formats' },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2 px-4 py-2 rounded-full border border-border/50 bg-card/50 text-sm text-muted-foreground">
-                  <item.icon className="h-4 w-4 text-primary" />
-                  <span>{item.label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link
-                href="/studio"
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] sm:w-auto"
-              >
-                Start Creating
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex w-full items-center justify-center rounded-full border border-border px-8 py-4 text-sm font-semibold text-foreground transition-all hover:bg-secondary sm:w-auto"
-              >
-                Learn More
-              </Link>
-            </div>
+            <Link
+              href="/studio"
+              className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] sm:w-auto"
+            >
+              Try Text to Video
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href="/about"
+              className="inline-flex w-full items-center justify-center rounded-full border border-border px-7 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary sm:w-auto"
+            >
+              Learn More
+            </Link>
           </motion.div>
         </div>
       </section>
