@@ -51,7 +51,7 @@ async function generateWithAlibabaVideo(prompt: string, imageUrl?: string | null
   if (!apiKey) throw new Error('Alibaba API not configured')
 
   const candidateModels = [
-    preferredModel,
+    preferredModel && !preferredModel.toLowerCase().startsWith('pictura') ? preferredModel : undefined,
     process.env.ALIBABA_VIDEO_MODEL,
     imageUrl ? process.env.ALIBABA_VIDEO_I2V_MODEL : undefined,
     imageUrl ? 'wan2.6-i2v-flash' : undefined,

@@ -1,9 +1,9 @@
 import { neon } from '@neondatabase/serverless'
 import type { AdminRole } from '@/lib/admin-auth'
 
-const DAILY_LIMIT = 5
+const DAILY_LIMIT = 999999
 const DAILY_VIDEO_LIMIT = 2
-const STAFF_LIMIT = 20
+const STAFF_LIMIT = 999999
 const ADMIN_UNLIMITED = 999999
 
 type SessionContext = {

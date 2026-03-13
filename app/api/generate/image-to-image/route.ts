@@ -15,10 +15,89 @@ async function pollQwenTask(apiKey: string, taskId: string): Promise<string | nu
     if (!response.ok) continue
     const data = await response.json()
     const out = data.output || {}
-    const url = out.results?.[0]?.url || out.images?.[0]?.url || out.image_url || out.url
+    const url = extractAlibabaImageUrl(out)
     if (url) return url
     if (out.task_status === 'FAILED' || out.task_status === 'CANCELED') return null
   }
+  return null
+}
+
+function extractAlibabaImageUrl(out: Record<string, unknown> | null | undefined): string | null {
+  if (!out) return null
+  const direct = (out as { results?: Array<{ url?: string }>; images?: Array<{ url?: string }>; image_url?: string; url?: string })
+  if (direct.results?.[0]?.url) return direct.results[0].url
+  if (direct.images?.[0]?.url) return direct.images[0].url
+  if (typeof direct.image_url === 'string') return direct.image_url
+  if (typeof direct.url === 'string') return direct.url
+
+  const choices = (out as { choices?: Array<{ message?: { content?: Array<{ image?: string; image_url?: string; url?: string }> } }> }).choices
+  const content = choices?.[0]?.message?.content || []
+  for (const item of content) {
+    if (item?.image) return item.image
+    if (item?.image_url) return item.image_url
+    if (item?.url) return item.url
+  }
+
+  return null
+}
+
+async function generateWithQwenImageGenEdit(prompt: string, sourceImageUrl: string): Promise<string | null> {
+  const apiKey = process.env.ALIBABA_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.ALIBABA_DASHSCOPE_API_KEY
+  if (!apiKey) return null
+
+  const candidateModels = [
+    process.env.ALIBABA_IMAGE_MODEL,
+    'qwen-image-2.0-pro',
+    'wan2.6-image',
+  ].filter((m): m is string => Boolean(m))
+
+  for (const model of candidateModels) {
+    const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/image-generation/generation', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-DashScope-Async': 'enable',
+      },
+      body: JSON.stringify({
+        model,
+        input: {
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { image: sourceImageUrl },
+                { text: prompt.trim() },
+              ],
+            },
+          ],
+        },
+        parameters: {
+          n: 1,
+          size: '1280*1280',
+          enable_interleave: true,
+        },
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      console.log(`[img2img:qwen-image] model=${model} failed`, response.status, errorText.slice(0, 300))
+      continue
+    }
+
+    const data = await response.json()
+    const taskId = data.output?.task_id
+    if (taskId) {
+      const polled = await pollQwenTask(apiKey, taskId)
+      if (polled) return polled
+      continue
+    }
+
+    const direct = extractAlibabaImageUrl(data.output)
+    if (direct) return direct
+  }
+
   return null
 }
 
@@ -123,7 +202,7 @@ export async function POST(request: Request) {
     const shouldTryAlibabaFirst = true
 
     if (shouldTryAlibabaFirst) {
-      const qwenImage = await generateWithQwenEdit(prompt, sourceImageUrl)
+      const qwenImage = await generateWithQwenImageGenEdit(prompt, sourceImageUrl) || await generateWithQwenEdit(prompt, sourceImageUrl)
       if (qwenImage) {
         const imageResponse = await fetch(qwenImage)
         if (imageResponse.ok) {
@@ -185,36 +264,9 @@ export async function POST(request: Request) {
       console.log('[v0] img2img GET failed:', response.status, await response.text().catch(() => ''))
     }
 
-    // Fallback: use text-to-image endpoint with enhanced prompt that references the source
-    if (!generatedImageUrl) {
-      console.log('[v0] img2img falling back to text-to-image')
-      const enhancedPrompt = `${prompt.trim()}. High quality, detailed, 4K resolution.`
-      const fallbackParams = new URLSearchParams({
-        prompt: enhancedPrompt,
-        width: '1024',
-        height: '1024',
-      })
-      const fallbackUrl = `https://zylalabs.com/api/10640/ai+image+generator+nano+banana+api/20188/text+to+image?${fallbackParams.toString()}`
-
-      if (apiKey) {
-        const fallbackRes = await fetch(fallbackUrl, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${apiKey}` },
-        })
-
-        if (fallbackRes.ok) {
-          data = await fallbackRes.json()
-          console.log('[v0] img2img fallback response:', JSON.stringify(data).slice(0, 500))
-          generatedImageUrl = extractImageUrl(data!)
-        }
-      }
-    }
-
     if (!generatedImageUrl && !shouldTryAlibabaFirst) {
-      const qwenFallback = await generateWithQwenEdit(prompt, sourceImageUrl)
-      if (qwenFallback) {
-        generatedImageUrl = qwenFallback
-      }
+      const qwenFallback = await generateWithQwenImageGenEdit(prompt, sourceImageUrl) || await generateWithQwenEdit(prompt, sourceImageUrl)
+      if (qwenFallback) generatedImageUrl = qwenFallback
     }
 
     if (!generatedImageUrl) {
@@ -222,7 +274,7 @@ export async function POST(request: Request) {
         ? 'No provider key found. Add ZYLABS_API_KEY or ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
         : undefined
       return NextResponse.json(
-        { error: 'Image transformation failed. Please try again.', details: configHint },
+        { error: 'Image transformation failed. Please try a different prompt or image.', details: configHint },
         { status: 500 }
       )
     }

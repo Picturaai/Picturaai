@@ -50,7 +50,7 @@ const TOUR_STEPS = [
   },
   {
     title: 'Your Daily Credits',
-    description: 'You get 5 free generations per day. This shows how many you have left.',
+    description: 'Image generation is unlimited. This shows your active generation availability.',
     target: 'credits',
   },
   {
@@ -407,7 +407,7 @@ export function Studio() {
   const [loadingPrompt, setLoadingPrompt] = useState('')
   const [pendingGeneration, setPendingGeneration] = useState<PendingGeneration | null>(null)
   const [images, setImages] = useState<GeneratedMedia[]>([])
-  const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 5, remaining: 5, used: 0, resetAt: '' })
+  const [rateLimit, setRateLimit] = useState<RateLimitInfo>({ limit: 999999, remaining: 999999, used: 0, resetAt: '' })
   const [videoRateLimit, setVideoRateLimit] = useState<RateLimitInfo>({ limit: 2, remaining: 2, used: 0, resetAt: '' })
   const [lightbox, setLightbox] = useState<GeneratedMedia | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -546,7 +546,9 @@ export function Studio() {
     const syncProgress = () => {
       const elapsed = Date.now() - new Date(pendingGeneration.startedAt).getTime()
       const normalized = Math.max(0, Math.min(1, elapsed / ttlMs))
-      const progress = Math.min(96, Math.max(8, Math.round(normalized * 100)))
+      const progress = pendingGeneration.mode === 'video'
+        ? Math.min(96, Math.max(8, Math.round(8 + (1 - Math.exp(-normalized * 5.2)) * 88)))
+        : Math.min(96, Math.max(8, Math.round(8 + (1 - Math.exp(-normalized * 4.3)) * 88)))
       setLoadingProgress(progress)
     }
 
@@ -1423,7 +1425,9 @@ export function Studio() {
                   ? 'Describe your scene and PicturaGen will create an amazing cinematic video for you.'
                   : 'Type a description below and Pictura will generate an image for you.'}
                 <span className="block mt-1.5">
-                  You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.
+                  {hasUnlimited
+                    ? <><strong className="text-foreground">Unlimited image generations</strong> are available today.</>
+                    : <>You have <strong className="text-foreground">{currentLimitInfo.remaining} generation{currentLimitInfo.remaining !== 1 ? 's' : ''}</strong> remaining today.</>}
                 </span>
               </p>
 
@@ -1441,7 +1445,7 @@ export function Studio() {
                     ))}
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground/80">
-                    Video duration is currently limited to <strong className="text-foreground">5 seconds</strong>. We&apos;re working hard to increase this as the model improves.
+                    Video duration is currently set to <strong className="text-foreground">15 seconds</strong> by default.
                   </p>
                 </div>
               ) : (
@@ -1933,7 +1937,9 @@ export function Studio() {
                 {"Oops! You've used all your credits"}
               </h3>
               <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                {`You've exhausted your ${currentLimitInfo.limit} free ${mode === 'video' ? 'video' : 'image'} generation${currentLimitInfo.limit !== 1 ? 's' : ''} for today. We're working hard to increase limits as Pictura grows.`}
+                {mode === 'video'
+                  ? `You've exhausted your ${currentLimitInfo.limit} free video generation${currentLimitInfo.limit !== 1 ? 's' : ''} for today. We're working hard to increase limits as Pictura grows.`
+                  : 'Image generation is unlimited during beta. If you are seeing this message, please refresh and try again.'}
               </p>
 
               <div className="mx-auto mt-5 flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-secondary/50 px-4 py-2.5">
