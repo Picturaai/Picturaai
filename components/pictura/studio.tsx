@@ -8,13 +8,14 @@ import {
   ImageIcon, X, Download, ZoomIn,
   Upload, Loader2, ArrowRight, Info,
   Grid3X3, ChevronLeft,
-  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard, ThumbsUp, ThumbsDown, Copy, Play, Pause, Volume2, VolumeX, Maximize2,
+  ChevronDown, Check, Wand2, RefreshCw, Pencil, Clapperboard, ThumbsUp, ThumbsDown, Copy,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PicturaIcon, PicturaLogo } from './pictura-logo'
 import { DownloadModal } from './download-modal'
 import { VideoDownloadModal } from './video-download-modal'
 import { AIImageEditor } from './ai-image-editor'
+import { BrandedVideoPlayer } from './branded-video-player'
 import { playSuccessSound, playLimitSound } from '@/lib/sounds'
 import type { GeneratedMedia, RateLimitInfo } from '@/lib/types'
 
@@ -105,88 +106,6 @@ function SendIcon({ className = '' }: { className?: string }) {
 
 function VideoSendIcon({ className = '' }: { className?: string }) {
   return <Clapperboard className={className} />
-}
-
-function BrandedVideoPlayer({ src }: { src: string }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(true)
-
-  const togglePlay = () => {
-    const el = videoRef.current
-    if (!el) return
-    if (el.paused) {
-      void el.play()
-    } else {
-      el.pause()
-    }
-  }
-
-  const toggleMute = () => {
-    const el = videoRef.current
-    if (!el) return
-    el.muted = !el.muted
-    setIsMuted(el.muted)
-  }
-
-  const openFullscreen = () => {
-    const el = videoRef.current
-    if (!el) return
-    if (document.fullscreenElement) {
-      void document.exitFullscreen()
-      return
-    }
-    void el.requestFullscreen?.()
-  }
-
-  return (
-    <div className="group relative h-full w-full">
-      <video
-        ref={videoRef}
-        src={src}
-        className="h-full w-full object-cover"
-        muted
-        playsInline
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onVolumeChange={(e) => setIsMuted((e.target as HTMLVideoElement).muted)}
-      />
-
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/55 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent" />
-
-      <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-black/50 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
-        <PicturaIcon size={11} />
-        Pictura Player
-      </div>
-
-      <div className="absolute inset-0 flex items-end justify-between p-3 opacity-95 transition-opacity group-hover:opacity-100">
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={togglePlay}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-sm transition hover:bg-black/70"
-            aria-label={isPlaying ? 'Pause video' : 'Play video'}
-          >
-            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
-          </button>
-          <button
-            onClick={toggleMute}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-sm transition hover:bg-black/70"
-            aria-label={isMuted ? 'Unmute video' : 'Mute video'}
-          >
-            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-          </button>
-        </div>
-        <button
-          onClick={openFullscreen}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white backdrop-blur-sm transition hover:bg-black/70"
-          aria-label="Toggle fullscreen"
-        >
-          <Maximize2 className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  )
 }
 
 /* ---- Tour Overlay: highlights real elements with positioned tooltip ---- */
