@@ -1472,7 +1472,7 @@ export function Studio() {
                   className="mb-6 overflow-hidden"
                 >
                   <div className="rounded-2xl border border-border/40 bg-card p-5">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                       <div className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center">
                         {/* Mini spinning ring */}
                         <svg className="absolute inset-0 h-full w-full animate-spin" style={{ animationDuration: '3s' }} viewBox="0 0 56 56" aria-hidden="true">
@@ -1484,23 +1484,27 @@ export function Studio() {
                         <p className="text-sm font-semibold text-foreground">
                           {activeGenerationMode === 'video' ? 'Generating your video with PicturaGen...' : activeGenerationMode === 'image' ? 'Transforming image...' : 'Generating image...'}
                         </p>
-                        {activeGenerationMode === 'image' && uploadPreview && (
-                          <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-border/50 bg-background px-2 py-1">
-                            <div className="relative h-6 w-6 overflow-hidden rounded-md">
-                              <Image src={uploadPreview} alt="Reference image" fill className="object-cover" sizes="24px" />
-                            </div>
-                            <span className="max-w-[180px] truncate text-[11px] text-muted-foreground">Transforming your uploaded image</span>
-                          </div>
-                        )}
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">
                           {loadingPrompt || (activeGenerationMode === 'video' ? VIDEO_LOADING_HINTS[videoLoadingHintIndex] : activeGenerationMode === 'image' ? 'Transforming your image' : 'Processing your request')}
                         </p>
-                        {isPoorNetwork && (
-                          <p className="mt-1 text-[11px] text-amber-600">Poor network detected. We are keeping this generation in progress safely.</p>
+                        {activeGenerationMode === 'image' && uploadPreview && (
+                          <div className="mt-2 inline-flex max-w-full items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-2.5 py-1.5">
+                            <div className="relative h-7 w-7 overflow-hidden rounded-lg ring-1 ring-primary/20">
+                              <Image src={uploadPreview} alt="Reference image" fill className="object-cover" sizes="28px" />
+                            </div>
+                            <span className="max-w-[220px] truncate text-[11px] text-foreground/80">Using uploaded image as reference</span>
+                          </div>
                         )}
-                        <div className="mt-2.5 h-1 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
+                        {isPoorNetwork && (
+                          <div className="mt-2 inline-flex max-w-full items-start gap-1.5 rounded-lg border border-amber-300/40 bg-amber-50/70 px-2 py-1 text-[11px] text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+                            <Info className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                            <span>Network is slow. Your generation is safe in queue and will continue.</span>
+                          </div>
+                        )}
+                        <div className="mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-secondary">
                           <div className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out" style={{ width: `${loadingProgress}%` }} />
                         </div>
+                        <p className="mt-1 text-[10px] text-muted-foreground/80">{loadingProgress}% complete</p>
                       </div>
                     </div>
                   </div>
@@ -1694,7 +1698,7 @@ export function Studio() {
         <div className="mx-auto max-w-3xl">
           {/* Upload preview */}
           <AnimatePresence>
-            {uploadPreview && (
+            {uploadPreview && !(loading && (activeGenerationMode === 'image' || activeGenerationMode === 'video')) && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
