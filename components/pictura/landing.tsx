@@ -473,56 +473,81 @@ export function Landing() {
       </section>
 
 
-      {/* Video Generation - Stunning Showcase */}
-      <section className="border-t border-border/40 py-24 md:py-32 relative overflow-hidden">
-        {/* Beautiful background elements */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[150px]" />
+      {/* Video Generation - Premium Showcase */}
+      <section className="border-t border-border/40 py-20 md:py-28 relative overflow-hidden">
+        {/* Background glow - matching hero */}
+        <div className="absolute inset-0 -z-10 bg-background">
+          <div className="absolute inset-x-0 top-0 h-[500px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,var(--primary)/0.12,transparent_70%)]" />
+          <div className="absolute -left-40 top-20 h-80 w-80 rounded-full bg-primary/10 blur-[100px]" />
+          <div className="absolute -right-40 bottom-20 h-80 w-80 rounded-full bg-primary/10 blur-[100px]" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
-          {/* Section Header - Centered & Impactful */}
+          {/* Section Header */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
             custom={0}
             variants={fadeUp}
-            className="text-center mb-16 md:mb-20"
+            className="mx-auto max-w-3xl text-center mb-12 sm:mb-16"
           >
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-5 py-2 text-xs font-semibold text-primary mb-6">
-              <Clapperboard className="h-4 w-4" />
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary mb-6">
+              <Clapperboard className="h-3.5 w-3.5" />
               Text to Video
             </span>
-            <h2 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl text-balance leading-[1.1]">
+            <h2 className="text-3xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-5xl">
               Turn prompts into
               <span className="block text-primary">cinematic videos</span>
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+            <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">
               Create stunning AI videos from a simple text prompt. Smooth motion, stylized scenes, and share-ready results.
             </p>
           </motion.div>
 
-          {/* Main Video Showcase */}
+          {/* Video App Window - Matching Hero Frame */}
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
-            custom={1}
-            variants={fadeUp}
-            className="max-w-4xl mx-auto"
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="-mx-6 px-3 sm:px-4"
           >
-            {/* Video Player Card - Premium Design */}
-            <div className="relative rounded-3xl border border-border/60 bg-card overflow-hidden shadow-2xl shadow-primary/10">
-              {/* Glowing border effect */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-accent/20 opacity-50 pointer-events-none" />
-              
-              {/* Video Container */}
-              <div className="relative">
-                {/* Custom Video Player */}
-                <div className="relative aspect-video bg-gradient-to-br from-secondary via-card to-secondary overflow-hidden">
+            {/* App Window Frame */}
+            <div className="relative rounded-xl sm:rounded-2xl border border-border/40 bg-card overflow-hidden max-w-5xl mx-auto">
+              {/* Window Chrome - Matching Hero */}
+              <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border/40 bg-secondary/30">
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-md bg-primary/15 flex items-center justify-center">
+                    <Clapperboard className="h-3 w-3 text-primary" />
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-medium text-foreground hidden sm:inline">Pictura Video</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-background/60 border border-border/30">
+                  <svg className="h-3 w-3 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">picturaai.sbs/studio</span>
+                </div>
+                <div className="w-12 sm:w-16" />
+              </div>
+
+              {/* App Content */}
+              <div className="p-3 sm:p-4">
+                {/* Prompt Input - Matching Hero Style */}
+                <div className="flex gap-2 mb-3">
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border/50 bg-background min-w-0">
+                    <svg className="h-4 w-4 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    <span className="flex-1 text-xs sm:text-sm text-foreground truncate">
+                      Create a dynamic turntable animation of a sleek sneaker in studio lighting, 360-degree rotation...
+                    </span>
+                  </div>
+                  <button className="px-3 sm:px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 flex-shrink-0">
+                    <ArrowRight className="h-3.5 w-3.5" />
+                    <span className="hidden xs:inline sm:inline">Generate</span>
+                  </button>
+                </div>
+
+                {/* Main Video Output */}
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-secondary/30">
                   <video
                     className="w-full h-full object-cover"
                     autoPlay
@@ -532,112 +557,124 @@ export function Landing() {
                     src="/videos/ai-video-demo.mp4"
                   />
                   
-                  {/* Overlay Controls */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-foreground/20 opacity-0 hover:opacity-100 transition-opacity duration-300">
-                    {/* Top Bar */}
-                    <div className="absolute top-0 inset-x-0 p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/90 backdrop-blur-md border border-border/50">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-xs font-medium text-foreground">AI Generated</span>
-                      </div>
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/90 backdrop-blur-md border border-border/50">
-                        <span className="text-xs font-semibold text-primary">HD</span>
-                        <span className="text-xs text-muted-foreground">1080p</span>
-                      </div>
-                    </div>
-                    
-                    {/* Center Play Button */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center shadow-xl shadow-primary/40 cursor-pointer hover:scale-110 transition-transform">
-                        <svg className="w-6 h-6 text-primary-foreground ml-1" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 5v14l11-7z"/>
-                        </svg>
-                      </div>
-                    </div>
-                    
-                    {/* Bottom Bar */}
-                    <div className="absolute bottom-0 inset-x-0 p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 h-1 rounded-full bg-primary-foreground/30 overflow-hidden">
-                          <div className="h-full w-2/3 bg-primary rounded-full" />
-                        </div>
-                        <span className="text-xs font-medium text-primary-foreground">0:04 / 0:06</span>
-                      </div>
-                    </div>
+                  {/* Badge */}
+                  <div className="absolute top-2.5 left-2.5">
+                    <span className="px-2.5 py-1 rounded-lg bg-primary/90 backdrop-blur-sm text-[10px] font-medium text-primary-foreground flex items-center gap-1.5">
+                      <Clapperboard className="h-3 w-3" />
+                      AI Video
+                    </span>
                   </div>
-                  
-                  {/* Pictura Watermark */}
-                  <div className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur-md border border-border/30">
-                    <PicturaIcon size={14} className="text-primary" />
-                    <span className="text-xs font-semibold text-foreground">Pictura</span>
+
+                  {/* Quality Badge */}
+                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                    <span className="px-2 py-1 rounded-lg bg-card/80 backdrop-blur-sm text-[10px] font-semibold text-primary border border-border/30">
+                      HD 1080p
+                    </span>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="absolute bottom-2.5 right-2.5 flex gap-1.5">
+                    <button className="h-7 w-7 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center hover:bg-primary transition-colors">
+                      <svg className="h-3.5 w-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    </button>
+                    <button className="h-7 w-7 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center hover:bg-primary transition-colors">
+                      <svg className="h-3.5 w-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
+                    </button>
+                  </div>
+
+                  {/* Logo watermark */}
+                  <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-sm">
+                    <PicturaIcon size={12} className="text-white" />
+                    <span className="text-[10px] font-medium text-white/90">Pictura</span>
+                  </div>
+
+                  {/* Progress bar at bottom */}
+                  <div className="absolute bottom-0 inset-x-0 h-1 bg-background/20">
+                    <div className="h-full w-2/3 bg-primary rounded-r-full" />
                   </div>
                 </div>
-              </div>
 
-              {/* Prompt Display - Elegant Design */}
-              <div className="p-5 md:p-6 bg-gradient-to-r from-secondary/50 via-card to-secondary/50 border-t border-border/50">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
+                {/* Settings Bar - Matching Hero */}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
+                  <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted-foreground">
+                    <span><span className="font-medium text-foreground">Model:</span> pi-video-1.0</span>
+                    <span className="hidden sm:inline"><span className="font-medium text-foreground">Duration:</span> 6 seconds</span>
+                    <span className="hidden md:inline"><span className="font-medium text-foreground">Resolution:</span> 1080p</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-2">Prompt</p>
-                    <p className="text-sm md:text-base text-foreground leading-relaxed">
-                      Serene autumn lake with falling maple leaves, soft golden light, gentle ripples on water surface, cinematic drone shot, 6 seconds
-                    </p>
+                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-primary">
+                    <PicturaIcon size={10} className="text-primary" />
+                    <span className="font-medium">Pictura AI</span>
                   </div>
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Features Grid - Below Video */}
+          {/* Full Prompt Display */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={1}
+            variants={fadeUp}
+            className="max-w-3xl mx-auto mt-8"
+          >
+            <div className="p-4 sm:p-5 rounded-xl border border-border/40 bg-card/50">
+              <div className="flex items-start gap-3">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold text-primary uppercase tracking-wider mb-1.5">Full Prompt</p>
+                  <p className="text-xs sm:text-sm text-foreground leading-relaxed">
+                    Create a dynamic turntable animation of a sleek, modern sneaker in a professional studio setting, with a 360-degree rotation showcasing every angle. The sneaker should be the focal point, illuminated by a soft, diffused key light from the left, a subtle fill light from the right, and a dramatic rim light from the back to highlight its contours. The background should be a gradient of deep, rich blacks and cool grays, with a cinematic, high-contrast, and ultra-detailed photorealistic style, evoking a sense of luxury and sophistication.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Features & CTA */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
             custom={2}
             variants={fadeUp}
-            className="mt-16 md:mt-20"
+            className="mt-12 sm:mt-16"
           >
-            <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
-              {[
-                {
-                  icon: Zap,
-                  title: 'Lightning Fast',
-                  description: 'Generate stunning videos in seconds with our optimized AI pipeline.'
-                },
-                {
-                  icon: Layers,
-                  title: 'Cinematic Quality',
-                  description: 'Professional-grade output with smooth motion and stylized scenes.'
-                },
-                {
-                  icon: Globe,
-                  title: 'Multiple Formats',
-                  description: 'Download in MP4, WebM, or GIF ready for any platform.'
-                }
-              ].map((feature) => (
-                <div key={feature.title} className="text-center p-6 rounded-2xl border border-border/40 bg-card/60 hover:bg-card hover:border-primary/30 transition-all group">
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/15 transition-colors">
-                    <feature.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
-                </div>
-              ))}
+            {/* Features - Inline list */}
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-muted-foreground mb-10">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span>Lightning fast generation</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" />
+                <span>Cinematic quality</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-primary" />
+                <span>MP4, WebM, GIF exports</span>
+              </div>
             </div>
 
-            {/* CTA Button */}
-            <div className="text-center mt-10">
+            {/* CTA Button - Matching Hero */}
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/studio"
-                className="group inline-flex items-center gap-2.5 rounded-full bg-primary px-8 py-4 text-base font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-primary/25"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] sm:w-auto"
               >
                 Create Your First Video
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+              <Link
+                href="/about"
+                className="inline-flex w-full items-center justify-center rounded-full border border-border px-7 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary sm:w-auto"
+              >
+                Learn More
               </Link>
             </div>
           </motion.div>
