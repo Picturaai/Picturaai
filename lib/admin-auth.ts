@@ -102,3 +102,37 @@ export function isAdminAuthConfigured() {
   const creds = getCredentials()
   return Boolean(secret && creds.admin.email && creds.admin.password)
 }
+
+export function getAdminSessionFromRequest(request: Request): { role: AdminRole; email: string } | null {
+  const secret = getSecret()
+  if (!secret) return null
+
+  const cookieHeader = request.headers.get('cookie') || ''
+  const rawCookie = cookieHeader
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${ADMIN_COOKIE_NAME}=`))
+
+  if (!rawCookie) return null
+
+  const rawValue = decodeURIComponent(rawCookie.slice(`${ADMIN_COOKIE_NAME}=`.length))
+  const parts = rawValue.split('|')
+  if (parts.length !== 5) return null
+
+  const [role, email, issuedAt, expiresAt, sig] = parts
+  if (role !== 'admin' && role !== 'staff') return null
+
+  const payload = `${role}|${email}|${issuedAt}|${expiresAt}`
+  const expectedSig = sign(payload)
+
+  try {
+    const a = Buffer.from(sig)
+    const b = Buffer.from(expectedSig)
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null
+  } catch {
+    return null
+  }
+
+  if (Number(expiresAt) < Date.now()) return null
+  return { role, email }
+}

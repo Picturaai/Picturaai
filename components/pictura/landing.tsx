@@ -771,7 +771,7 @@ export function Landing() {
                     { feature: 'API Access', pictura: true, dalle: true, midjourney: false, stable: true, nano: true },
                     { feature: 'Safety Filter', pictura: true, dalle: true, midjourney: true, stable: 'Optional', nano: true },
                     { feature: 'Open Source', pictura: 'Planned', dalle: false, midjourney: false, stable: true, nano: false },
-                    { feature: 'Daily Free Tier', pictura: '5 images', dalle: 'None', midjourney: 'None', stable: 'Unlimited*', nano: 'Limited' },
+                    { feature: 'Daily Free Tier', pictura: 'Unlimited', dalle: 'None', midjourney: 'None', stable: 'Unlimited*', nano: 'Limited' },
                     { feature: 'Speed', pictura: 'Fast', dalle: 'Medium', midjourney: 'Slow', stable: 'Varies', nano: 'Fast' },
                   ].map((row, i) => (
                     <div
@@ -1193,7 +1193,7 @@ export function Landing() {
                 research lab. We believe powerful creative AI should be free and accessible to everyone.
               </p>
               <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                During beta, every user gets 5 free generations per day. We are actively improving
+                During beta, every user gets unlimited image generations. We are actively improving
                 the model and working toward releasing a public API.
               </p>
 
@@ -1202,8 +1202,8 @@ export function Landing() {
                 {[
                   {
                     icon: ImageIcon,
-                    value: '5',
-                    label: 'Daily Limit',
+                    value: '∞',
+                    label: 'Daily Image Limit',
                     sub: 'Free generations',
                   },
                   {

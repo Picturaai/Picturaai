@@ -41,6 +41,32 @@ export const FORMAT_OPTIONS: FormatOption[] = [
   },
 ]
 
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = src
+  })
+}
+
+async function loadImageWithProxyFallback(imageUrl: string): Promise<{ img: HTMLImageElement; cleanup?: () => void }> {
+  try {
+    const img = await loadImage(imageUrl)
+    return { img }
+  } catch {
+    const proxyUrl = `/api/download-image?url=${encodeURIComponent(imageUrl)}`
+    const response = await fetch(proxyUrl, { cache: 'no-store' })
+    if (!response.ok) throw new Error('Failed to fetch image via proxy')
+
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    const img = await loadImage(objectUrl)
+    return { img, cleanup: () => URL.revokeObjectURL(objectUrl) }
+  }
+}
+
 /**
  * Convert image to different formats
  */
@@ -49,37 +75,31 @@ export async function convertImageFormat(
   format: string,
   quality: number = 90
 ): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
+  const { img, cleanup } = await loadImageWithProxyFallback(imageUrl)
 
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas')
-        canvas.width = img.width
-        canvas.height = img.height
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = img.width
+    canvas.height = img.height
 
-        const ctx = canvas.getContext('2d')
-        if (!ctx) throw new Error('Failed to get canvas context')
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Failed to get canvas context')
 
-        ctx.drawImage(img, 0, 0)
+    ctx.drawImage(img, 0, 0)
 
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) reject(new Error('Failed to convert image'))
-            else resolve(blob)
-          },
-          `image/${format}`,
-          quality / 100
-        )
-      } catch (err) {
-        reject(err)
-      }
-    }
-
-    img.onerror = () => reject(new Error('Failed to load image'))
-    img.src = imageUrl
-  })
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) reject(new Error('Failed to convert image'))
+          else resolve(blob)
+        },
+        `image/${format}`,
+        quality / 100
+      )
+    })
+  } finally {
+    cleanup?.()
+  }
 }
 
 /**
