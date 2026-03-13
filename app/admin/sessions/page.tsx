@@ -13,6 +13,12 @@ type SessionRow = {
   video_used: number
   video_reset_at: string | null
   tour_completed: boolean
+  last_ip: string | null
+  last_country: string | null
+  last_region: string | null
+  last_city: string | null
+  last_device: string | null
+  last_seen_at: string | null
   created_at: string
 }
 
@@ -31,6 +37,17 @@ export default function AdminSessionsPage() {
   const [videoRemaining, setVideoRemaining] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  const formatRelativeDate = (value: string | null) => {
+    if (!value) return '—'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return '—'
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+  }
+
+  const formatLocation = (row: SessionRow) => {
+    return [row.last_city, row.last_region, row.last_country].filter(Boolean).join(', ') || 'Unknown location'
+  }
 
   const selected = useMemo(
     () => rows.find((row) => row.session_id === selectedSession) || null,
@@ -65,10 +82,14 @@ export default function AdminSessionsPage() {
         return
       }
 
-      setRows(data.sessions || [])
+      const uniqueSessions = (data.sessions || []).filter((row: SessionRow, idx: number, all: SessionRow[]) => (
+        all.findIndex((candidate) => candidate.session_id === row.session_id) === idx
+      ))
+
+      setRows(uniqueSessions)
       setLimits(data.limits || { image: 5, video: 2 })
-      if (!selectedSession && data.sessions?.[0]?.session_id) {
-        setSelectedSession(data.sessions[0].session_id)
+      if (!selectedSession && uniqueSessions[0]?.session_id) {
+        setSelectedSession(uniqueSessions[0].session_id)
       }
     } catch {
       setMessage('Network error while loading sessions')
@@ -127,7 +148,7 @@ export default function AdminSessionsPage() {
               </Link>
               <div>
                 <h1 className="text-base font-semibold leading-tight sm:text-lg">Anonymous User Sessions</h1>
-                <p className="text-xs text-muted-foreground">Manage image/video credits by session ID.</p>
+                <p className="text-xs text-muted-foreground">Manage real anonymous session usage, location, and device activity.</p>
               </div>
             </div>
             <nav className="flex flex-wrap items-center gap-2 text-xs sm:justify-end">
@@ -146,7 +167,7 @@ export default function AdminSessionsPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search session id prefix"
+                placeholder="Search by session id prefix"
                 className="h-10 w-full rounded-lg border border-border/60 bg-background pl-9 pr-3 text-sm outline-none focus:border-primary"
               />
             </div>
@@ -162,10 +183,12 @@ export default function AdminSessionsPage() {
 
           <div className="mt-4 overflow-hidden rounded-xl border border-border/60">
             <div className="hidden max-h-[420px] overflow-auto sm:block">
-              <table className="w-full min-w-[420px] text-left text-xs">
+              <table className="w-full min-w-[620px] text-left text-xs">
                 <thead className="sticky top-0 bg-secondary/60">
                   <tr>
                     <th className="px-3 py-2 font-semibold">Session</th>
+                    <th className="px-3 py-2 font-semibold">Last seen</th>
+                    <th className="px-3 py-2 font-semibold">Location</th>
                     <th className="px-3 py-2 font-semibold">Image left</th>
                     <th className="px-3 py-2 font-semibold">Video left</th>
                   </tr>
@@ -182,11 +205,18 @@ export default function AdminSessionsPage() {
                         onClick={() => setSelectedSession(row.session_id)}
                       >
                         <td className="px-3 py-2 font-mono text-[11px]">{row.session_id}</td>
+                        <td className="px-3 py-2">{formatRelativeDate(row.last_seen_at || row.created_at)}</td>
+                        <td className="px-3 py-2">{formatLocation(row)}</td>
                         <td className="px-3 py-2">{imageLeft}</td>
                         <td className="px-3 py-2">{videoLeft}</td>
                       </tr>
                     )
                   })}
+                  {!rows.length ? (
+                    <tr>
+                      <td className="px-3 py-6 text-center text-muted-foreground" colSpan={5}>No matching sessions found.</td>
+                    </tr>
+                  ) : null}
                 </tbody>
               </table>
             </div>
@@ -203,10 +233,13 @@ export default function AdminSessionsPage() {
                     className={`w-full rounded-lg border p-2 text-left ${active ? 'border-primary/40 bg-primary/10' : 'border-border/40 bg-background'}`}
                   >
                     <p className="truncate font-mono text-[11px]">{row.session_id}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Seen: {formatRelativeDate(row.last_seen_at || row.created_at)}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{formatLocation(row)}</p>
                     <p className="mt-1 text-xs text-muted-foreground">Image left: {imageLeft} • Video left: {videoLeft}</p>
                   </button>
                 )
               })}
+              {!rows.length ? <p className="px-2 py-6 text-center text-xs text-muted-foreground">No matching sessions found.</p> : null}
             </div>
           </div>
         </section>
@@ -224,6 +257,13 @@ export default function AdminSessionsPage() {
               <p className="text-muted-foreground">Video remaining</p>
               <p className="text-base font-semibold">{videoRemainingValue}</p>
             </div>
+          </div>
+
+          <div className="mt-3 rounded-lg border border-border/60 bg-background p-2 text-xs">
+            <p><span className="text-muted-foreground">Last seen:</span> {formatRelativeDate(selected?.last_seen_at || selected?.created_at || null)}</p>
+            <p className="mt-1"><span className="text-muted-foreground">Location:</span> {selected ? formatLocation(selected) : '—'}</p>
+            <p className="mt-1"><span className="text-muted-foreground">IP:</span> {selected?.last_ip || '—'}</p>
+            <p className="mt-1"><span className="text-muted-foreground">Device:</span> {selected?.last_device || '—'}</p>
           </div>
 
           <div className="mt-4 grid gap-2">

@@ -634,13 +634,17 @@ export function Studio() {
       const res = await fetch('/api/improve-prompt', {
         method: 'POST',
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ prompt: currentPrompt.trim(), mode }),
+        body: JSON.stringify({ prompt: currentPrompt.trim(), mode, force: true }),
       })
       if (!res.ok) throw new Error('Failed')
-      const { improved } = await res.json()
+      const { improved, changed } = await res.json()
       if (improved) {
         setCurrentPrompt(improved)
-        toast.success('Prompt improved')
+        if (changed) {
+          toast.success('Prompt improved')
+        } else {
+          toast.info('Your prompt is already strong')
+        }
       }
     } catch {
       toast.error('Could not improve prompt')
@@ -1056,7 +1060,7 @@ export function Studio() {
 
         if (improveRes.ok) {
           const improvedData = await improveRes.json()
-          if (typeof improvedData?.improved === 'string' && improvedData.improved.trim()) {
+          if (improvedData?.changed && typeof improvedData?.improved === 'string' && improvedData.improved.trim()) {
             finalPrompt = improvedData.improved.trim()
           }
         }
