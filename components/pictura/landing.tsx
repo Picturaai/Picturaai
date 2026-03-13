@@ -186,7 +186,7 @@ export function Landing() {
           <div className="absolute inset-x-0 top-0 h-[500px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,var(--primary)/0.15,transparent_70%)]" />
           {/* Side accents */}
           <div className="absolute -left-40 top-20 h-80 w-80 rounded-full bg-primary/10 blur-[100px]" />
-          <div className="absolute -right-40 top-40 h-80 w-80 rounded-full bg-primary/8 blur-[100px]" />
+          <div className="absolute -right-40 top-40 h-80 w-80 rounded-full bg-primary/10 blur-[100px]" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
@@ -477,9 +477,9 @@ export function Landing() {
       <section className="border-t border-border/40 py-24 md:py-32 relative overflow-hidden">
         {/* Beautiful background elements */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-primary/8 blur-[120px]" />
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-accent/6 blur-[100px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/3 blur-[150px]" />
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[150px]" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
@@ -529,10 +529,8 @@ export function Landing() {
                     muted
                     loop
                     playsInline
-                    poster="/images/video-poster.jpg"
-                  >
-                    <source src="/videos/ai-video-demo.mp4" type="video/mp4" />
-                  </video>
+                    src="/videos/ai-video-demo.mp4"
+                  />
                   
                   {/* Overlay Controls */}
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-foreground/20 opacity-0 hover:opacity-100 transition-opacity duration-300">
@@ -1344,7 +1342,7 @@ export function Landing() {
                     key={stat.label}
                     className="group rounded-xl border border-border/50 bg-card p-4 transition-colors hover:border-primary/20"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/8 transition-colors group-hover:bg-primary/15">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/15">
                       <stat.icon className="h-4 w-4 text-primary" />
                     </div>
                     <div className="mt-3 text-xl font-bold tracking-tight text-foreground sm:text-2xl">

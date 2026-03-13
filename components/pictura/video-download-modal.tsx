@@ -93,8 +93,6 @@ export function VideoDownloadModal({
     }
   }
 
-  if (!open) return null
-
   return (
     <AnimatePresence>
       {open && (
@@ -165,7 +163,7 @@ export function VideoDownloadModal({
                         <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-2 ${
                           isSelected ? 'bg-primary/15 text-primary' : 'bg-secondary text-muted-foreground'
                         }`}>
-                          <Icon className="h-4.5 w-4.5" />
+                          <Icon className="h-5 w-5" />
                         </div>
                         
                         <div className="flex items-center gap-2">
@@ -198,12 +196,12 @@ export function VideoDownloadModal({
               >
                 {downloading ? (
                   <>
-                    <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                    <Loader2 className="h-5 w-5 animate-spin" />
                     Preparing Download...
                   </>
                 ) : (
                   <>
-                    <Download className="h-4.5 w-4.5" />
+                    <Download className="h-5 w-5" />
                     Download {DOWNLOAD_FORMATS.find(f => f.id === selectedFormat)?.label}
                   </>
                 )}
