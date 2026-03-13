@@ -1379,7 +1379,7 @@ export function Studio() {
             </div>
             {hasUnlimited ? (
               <>
-                <span className="hidden text-[10px] font-semibold uppercase tracking-wide text-primary sm:inline">Unlimited</span>
+                <span className="hidden text-[10px] font-semibold text-primary sm:inline">Unlimited</span>
                 <span className="text-[10px] text-muted-foreground">∞</span>
               </>
             ) : (

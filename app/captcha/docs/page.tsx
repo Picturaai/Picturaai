@@ -63,7 +63,7 @@ export default function CaptchaDocsPage() {
   const [activeSection, setActiveSection] = useState('getting-started')
 
   // Use window.location.origin for the correct domain
-  const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://yourdomain.com'
+  const BASE_URL = 'https://picturaai.sbs'
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -415,6 +415,73 @@ export async function POST(req: Request) {
   // Process form...
   return NextResponse.json({ success: true });
 }`}
+                />
+
+
+                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">Vue / Nuxt (Client)</h3>
+                <CodeBlock 
+                  filename="CaptchaForm.vue"
+                  code={`<template>
+  <form @submit.prevent="submitForm">
+    <input v-model="email" type="email" required />
+    <div id="pictura-captcha" data-sitekey="YOUR_SITE_KEY" data-callback="onCaptchaVerify"></div>
+    <button type="submit">Submit</button>
+  </form>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+
+const email = ref('')
+const captchaToken = ref('')
+
+onMounted(() => {
+  window.onCaptchaVerify = (token) => {
+    captchaToken.value = token
+  }
+})
+
+const submitForm = async () => {
+  await fetch('/api/contact', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.value, captchaToken: captchaToken.value })
+  })
+}
+</script>
+
+<!-- Include once in app head -->
+<!-- <script src="${BASE_URL}/api/captcha/widget.js" async defer></script> -->`}
+                />
+
+                <h3 className="text-sm font-medium text-foreground mb-2 mt-6">Backend verification (Node, Python, PHP)</h3>
+                <CodeBlock 
+                  filename="verify-examples.txt"
+                  code={`// Node.js (Express)
+const verify = await fetch('${BASE_URL}/api/captcha/verify', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ secret: process.env.PICTURA_CAPTCHA_SECRET, token: captchaToken })
+}).then(r => r.json())
+
+# Python (FastAPI / Flask style)
+import requests
+verify = requests.post('${BASE_URL}/api/captcha/verify', json={
+  'secret': os.getenv('PICTURA_CAPTCHA_SECRET'),
+  'token': captcha_token,
+}).json()
+
+// PHP
+$verify = json_decode(file_get_contents('${BASE_URL}/api/captcha/verify', false, stream_context_create([
+  'http' => [
+    'method' => 'POST',
+    'header' => "Content-Type: application/json\r\n",
+    'content' => json_encode([
+      'secret' => getenv('PICTURA_CAPTCHA_SECRET'),
+      'token' => $captchaToken,
+    ]),
+  ]
+])) , true);`}
                 />
               </section>
               
