@@ -366,13 +366,13 @@ export default function DeveloperDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0D0D0D]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="w-12 h-12 rounded-full border-2 border-[#C87941]/20 border-t-[#C87941] animate-spin" />
-            <PicturaIcon size={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <div className="w-12 h-12 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+            <PicturaIcon size={24} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary" />
           </div>
-          <p className="text-[#6B6B6B] text-sm">Loading dashboard...</p>
+          <p className="text-muted-foreground text-sm">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -399,35 +399,35 @@ export default function DeveloperDashboard() {
     : 0
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-[#FAFAFA] overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4 bg-[#0D0D0D]/95 backdrop-blur-md border-b border-[#1F1F1F]">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4 bg-background/95 backdrop-blur-md border-b border-border">
         <button 
           onClick={() => setSidebarOpen(true)} 
-          className="w-9 h-9 rounded-lg border border-[#2A2A2A] bg-[#1A1A1A] hover:bg-[#222] flex items-center justify-center transition-colors"
+          className="w-9 h-9 rounded-lg border border-border bg-card hover:bg-secondary flex items-center justify-center transition-colors"
         >
-          <Menu className="h-4 w-4 text-[#999]" />
+          <Menu className="h-4 w-4 text-muted-foreground" />
         </button>
         <Link href="/" className="transition-opacity hover:opacity-80">
           <PicturaIcon size={28} />
         </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C87941] to-[#8B4D26] flex items-center justify-center text-white text-sm font-medium">
+            <button className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground text-sm font-medium">
               {profileInitial}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-[#1A1A1A] border-[#2A2A2A] text-[#FAFAFA]">
-            <div className="px-3 py-2 border-b border-[#2A2A2A]">
+          <DropdownMenuContent align="end" className="w-56 bg-card border-border text-foreground">
+            <div className="px-3 py-2 border-b border-border">
               <p className="text-sm font-medium truncate">{developer.name}</p>
-              <p className="text-xs text-[#888] truncate">{developer.email}</p>
+              <p className="text-xs text-muted-foreground truncate">{developer.email}</p>
             </div>
-            <DropdownMenuItem onClick={() => setActiveTab('settings')} className="text-[#CCC] hover:text-white hover:bg-[#2A2A2A]">
+            <DropdownMenuItem onClick={() => setActiveTab('settings')} className="text-foreground hover:bg-secondary">
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-[#2A2A2A]" />
-            <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-[#2A2A2A]">
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive hover:bg-destructive/10">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </DropdownMenuItem>
@@ -441,21 +441,21 @@ export default function DeveloperDashboard() {
           sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
         <div 
-          className={`fixed inset-y-0 left-0 w-72 bg-[#0D0D0D] border-r border-[#1F1F1F] transform transition-transform duration-300 ease-out flex flex-col ${
+          className={`fixed inset-y-0 left-0 w-72 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-out flex flex-col ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <div className="flex items-center justify-between h-14 px-4 border-b border-[#1F1F1F]">
+          <div className="flex items-center justify-between h-14 px-4 border-b border-sidebar-border">
             <Link href="/" onClick={() => setSidebarOpen(false)}>
               <PicturaLogo size="sm" />
             </Link>
             <button 
               onClick={() => setSidebarOpen(false)} 
-              className="w-8 h-8 rounded-lg bg-[#1A1A1A] hover:bg-[#222] flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-lg bg-sidebar-accent hover:bg-sidebar-accent/80 flex items-center justify-center transition-colors"
             >
-              <X className="h-4 w-4 text-[#999]" />
+              <X className="h-4 w-4 text-sidebar-foreground" />
             </button>
           </div>
 
@@ -473,25 +473,25 @@ export default function DeveloperDashboard() {
                 }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   activeTab === item.id
-                    ? 'bg-[#1F1F1F] text-white font-medium'
-                    : 'text-[#888] hover:text-[#CCC] hover:bg-[#1A1A1A]'
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent'
                 } ${item.comingSoon ? 'opacity-60' : ''}`}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
                 {item.comingSoon && (
-                  <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[#2A2A2A] text-[#888]">Soon</span>
+                  <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-sidebar-accent text-sidebar-foreground">Soon</span>
                 )}
               </button>
             ))}
           </nav>
 
-          <div className="p-3 border-t border-[#1F1F1F]">
+          <div className="p-3 border-t border-sidebar-border">
             <Link
               href="/api-docs"
               target="_blank"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#888] hover:text-[#CCC] hover:bg-[#1A1A1A] transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
             >
               <Book className="h-4 w-4" />
               Documentation
@@ -499,10 +499,10 @@ export default function DeveloperDashboard() {
             </Link>
           </div>
 
-          <div className="p-3 border-t border-[#1F1F1F]">
+          <div className="p-3 border-t border-sidebar-border">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Sign Out
@@ -513,8 +513,8 @@ export default function DeveloperDashboard() {
 
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-[#0D0D0D] border-r border-[#1F1F1F] fixed left-0 top-0 bottom-0">
-          <div className="h-14 flex items-center px-5 border-b border-[#1F1F1F]">
+        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-sidebar border-r border-sidebar-border fixed left-0 top-0 bottom-0">
+          <div className="h-14 flex items-center px-5 border-b border-sidebar-border">
             <Link href="/" className="transition-opacity hover:opacity-80">
               <PicturaLogo size="sm" />
             </Link>
@@ -533,24 +533,24 @@ export default function DeveloperDashboard() {
                 }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
                   activeTab === item.id
-                    ? 'bg-[#1F1F1F] text-white font-medium'
-                    : 'text-[#888] hover:text-[#CCC] hover:bg-[#1A1A1A]'
+                    ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent'
                 } ${item.comingSoon ? 'opacity-60' : ''}`}
               >
                 <item.icon className="h-4 w-4" />
                 {item.label}
                 {item.comingSoon && (
-                  <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[#2A2A2A] text-[#888]">Soon</span>
+                  <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-sidebar-accent text-sidebar-foreground">Soon</span>
                 )}
               </button>
             ))}
           </nav>
 
-          <div className="p-3 border-t border-[#1F1F1F]">
+          <div className="p-3 border-t border-sidebar-border">
             <Link
               href="/api-docs"
               target="_blank"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[#888] hover:text-[#CCC] hover:bg-[#1A1A1A] transition-colors"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
             >
               <Book className="h-4 w-4" />
               Documentation
@@ -558,36 +558,36 @@ export default function DeveloperDashboard() {
             </Link>
           </div>
 
-          <div className="p-3 border-t border-[#1F1F1F]">
+          <div className="p-3 border-t border-sidebar-border">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#1A1A1A] transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C87941] to-[#8B4D26] flex items-center justify-center text-white text-sm font-medium shrink-0">
+                <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-sidebar-accent transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground text-sm font-medium shrink-0">
                     {profileInitial}
                   </div>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{developer.name}</p>
-                    <p className="text-xs text-[#666] truncate">{developer.email}</p>
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">{developer.name}</p>
+                    <p className="text-xs text-sidebar-foreground/60 truncate">{developer.email}</p>
                   </div>
-                  <ChevronDown className="h-4 w-4 text-[#666] shrink-0" />
+                  <ChevronDown className="h-4 w-4 text-sidebar-foreground/60 shrink-0" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-[#1A1A1A] border-[#2A2A2A] text-[#FAFAFA]">
-                <DropdownMenuItem onClick={() => setActiveTab('settings')} className="text-[#CCC] hover:text-white hover:bg-[#2A2A2A]">
+              <DropdownMenuContent align="end" className="w-56 bg-card border-border text-foreground">
+                <DropdownMenuItem onClick={() => setActiveTab('settings')} className="text-foreground hover:bg-secondary">
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveTab('billing')} className="text-[#CCC] hover:text-white hover:bg-[#2A2A2A]">
+                <DropdownMenuItem onClick={() => setActiveTab('billing')} className="text-foreground hover:bg-secondary">
                   <DollarSign className="h-4 w-4 mr-2" />
                   Billing
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-[#2A2A2A]" />
+                <DropdownMenuSeparator className="bg-border" />
                 <div className="px-2 py-1.5 flex items-center justify-between">
-                  <span className="text-sm text-[#888]">Credits</span>
-                  <span className="text-sm font-medium text-[#C87941]">{formatCurrency(developer.creditsBalance)}</span>
+                  <span className="text-sm text-muted-foreground">Credits</span>
+                  <span className="text-sm font-medium text-primary">{formatCurrency(developer.creditsBalance)}</span>
                 </div>
-                <DropdownMenuSeparator className="bg-[#2A2A2A]" />
-                <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:text-red-300 hover:bg-[#2A2A2A]">
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive hover:bg-destructive/10">
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
                 </DropdownMenuItem>
@@ -599,18 +599,18 @@ export default function DeveloperDashboard() {
         {/* Main Content */}
         <main className="flex-1 lg:ml-64 min-h-screen pt-14 lg:pt-0">
           {/* Top Bar */}
-          <div className="hidden lg:flex items-center justify-between h-14 px-6 border-b border-[#1F1F1F] bg-[#0D0D0D] sticky top-0 z-30">
+          <div className="hidden lg:flex items-center justify-between h-14 px-6 border-b border-border bg-background sticky top-0 z-30">
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-[#666]">Dashboard</span>
-              <ChevronRight className="h-4 w-4 text-[#444]" />
-              <span className="text-white capitalize">{activeTab.replace('-', ' ')}</span>
+              <span className="text-muted-foreground">Dashboard</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+              <span className="text-foreground capitalize">{activeTab.replace('-', ' ')}</span>
             </div>
             <div className="flex items-center gap-3">
               <Button 
                 onClick={() => setShowPricingModal(true)}
                 variant="outline" 
                 size="sm" 
-                className="h-8 border-[#2A2A2A] bg-transparent text-[#C87941] hover:bg-[#C87941]/10 hover:text-[#C87941] hover:border-[#C87941]/50"
+                className="h-8 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/50"
               >
                 <Zap className="h-3.5 w-3.5 mr-1.5" />
                 {formatCurrency(developer.creditsBalance)}
@@ -624,25 +624,25 @@ export default function DeveloperDashboard() {
               <div className="space-y-6">
                 {/* Welcome Header */}
                 <div>
-                  <h1 className="text-2xl font-semibold text-white">Welcome back, {developer.name?.split(' ')[0]}</h1>
-                  <p className="text-[#888] text-sm mt-1">Here's an overview of your API usage and account status.</p>
+                  <h1 className="text-2xl font-semibold text-foreground">Welcome back, {developer.name?.split(' ')[0]}</h1>
+                  <p className="text-muted-foreground text-sm mt-1">Here's an overview of your API usage and account status.</p>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {/* Credits Card */}
-                  <div className="sm:col-span-2 lg:col-span-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-[#C87941] to-[#8B4D26] p-5">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="sm:col-span-2 lg:col-span-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-primary/70 p-5">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary-foreground/5 rounded-full -translate-y-1/2 translate-x-1/2" />
                     <div className="relative">
-                      <div className="flex items-center gap-2 text-white/70 text-xs font-medium mb-2">
+                      <div className="flex items-center gap-2 text-primary-foreground/70 text-xs font-medium mb-2">
                         <Wallet className="h-3.5 w-3.5" />
                         AVAILABLE CREDITS
                       </div>
-                      <div className="text-3xl font-bold text-white tracking-tight">
+                      <div className="text-3xl font-bold text-primary-foreground tracking-tight">
                         {formatCurrency(developer.creditsBalance)}
                       </div>
                       <div className="mt-3 flex items-center gap-2">
-                        <Badge className="bg-white/20 text-white border-0 text-[10px] font-medium">
+                        <Badge className="bg-primary-foreground/20 text-primary-foreground border-0 text-[10px] font-medium">
                           {developer.tier?.toUpperCase() || 'FREE'} TIER
                         </Badge>
                       </div>
@@ -650,16 +650,16 @@ export default function DeveloperDashboard() {
                   </div>
 
                   {/* This Month */}
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-5">
-                    <div className="flex items-center gap-2 text-[#888] text-xs font-medium mb-2">
+                  <div className="rounded-xl bg-card border border-border p-5">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-2">
                       <Activity className="h-3.5 w-3.5" />
                       THIS MONTH
                     </div>
-                    <div className="text-2xl font-semibold text-white">
+                    <div className="text-2xl font-semibold text-foreground">
                       {developer.usage.thisMonth.toLocaleString()}
                     </div>
                     {developer.usage.lastMonth > 0 && (
-                      <div className={`flex items-center gap-1 mt-2 text-xs ${usagePercentChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <div className={`flex items-center gap-1 mt-2 text-xs ${usagePercentChange >= 0 ? 'text-emerald-600' : 'text-destructive'}`}>
                         <TrendingUp className="h-3 w-3" />
                         <span>{usagePercentChange >= 0 ? '+' : ''}{usagePercentChange}% vs last month</span>
                       </div>
@@ -667,27 +667,27 @@ export default function DeveloperDashboard() {
                   </div>
 
                   {/* Total Requests */}
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-5">
-                    <div className="flex items-center gap-2 text-[#888] text-xs font-medium mb-2">
+                  <div className="rounded-xl bg-card border border-border p-5">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-2">
                       <BarChart3 className="h-3.5 w-3.5" />
                       TOTAL REQUESTS
                     </div>
-                    <div className="text-2xl font-semibold text-white">
+                    <div className="text-2xl font-semibold text-foreground">
                       {developer.usage.totalRequests.toLocaleString()}
                     </div>
-                    <div className="text-xs text-[#666] mt-2">All time</div>
+                    <div className="text-xs text-muted-foreground mt-2">All time</div>
                   </div>
 
                   {/* API Keys */}
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-5">
-                    <div className="flex items-center gap-2 text-[#888] text-xs font-medium mb-2">
+                  <div className="rounded-xl bg-card border border-border p-5">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-2">
                       <Key className="h-3.5 w-3.5" />
                       API KEYS
                     </div>
-                    <div className="text-2xl font-semibold text-white">
+                    <div className="text-2xl font-semibold text-foreground">
                       {developer.apiKeys.filter(k => k.isActive).length}
                     </div>
-                    <div className="text-xs text-[#666] mt-2">{developer.apiKeys.length} total</div>
+                    <div className="text-xs text-muted-foreground mt-2">{developer.apiKeys.length} total</div>
                   </div>
                 </div>
 
@@ -695,58 +695,58 @@ export default function DeveloperDashboard() {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <button 
                     onClick={() => setActiveTab('api-keys')}
-                    className="group flex items-center gap-4 p-4 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] hover:border-[#3A3A3A] hover:bg-[#1F1F1F] transition-all text-left"
+                    className="group flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-secondary/50 transition-all text-left"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#333] transition-colors">
-                      <Key className="h-5 w-5 text-[#C87941]" />
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                      <Key className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-white">Manage API Keys</h3>
-                      <p className="text-xs text-[#666] truncate">Create and manage your keys</p>
+                      <h3 className="text-sm font-medium text-foreground">Manage API Keys</h3>
+                      <p className="text-xs text-muted-foreground truncate">Create and manage your keys</p>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-[#444] group-hover:text-[#666] transition-colors" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                   </button>
 
                   <button 
                     onClick={() => window.open('/api-docs', '_blank')}
-                    className="group flex items-center gap-4 p-4 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] hover:border-[#3A3A3A] hover:bg-[#1F1F1F] transition-all text-left"
+                    className="group flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-secondary/50 transition-all text-left"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#333] transition-colors">
-                      <FileCode className="h-5 w-5 text-[#C87941]" />
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                      <FileCode className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-white">API Documentation</h3>
-                      <p className="text-xs text-[#666] truncate">Reference and guides</p>
+                      <h3 className="text-sm font-medium text-foreground">API Documentation</h3>
+                      <p className="text-xs text-muted-foreground truncate">Reference and guides</p>
                     </div>
-                    <ExternalLink className="h-4 w-4 text-[#444] group-hover:text-[#666] transition-colors" />
+                    <ExternalLink className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                   </button>
 
                   <button 
                     onClick={() => setShowPricingModal(true)}
-                    className="group flex items-center gap-4 p-4 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] hover:border-[#3A3A3A] hover:bg-[#1F1F1F] transition-all text-left"
+                    className="group flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/30 hover:bg-secondary/50 transition-all text-left"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-[#2A2A2A] flex items-center justify-center group-hover:bg-[#333] transition-colors">
-                      <Zap className="h-5 w-5 text-[#C87941]" />
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                      <Zap className="h-5 w-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-white">Buy Credits</h3>
-                      <p className="text-xs text-[#666] truncate">Top up your balance</p>
+                      <h3 className="text-sm font-medium text-foreground">Buy Credits</h3>
+                      <p className="text-xs text-muted-foreground truncate">Top up your balance</p>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-[#444] group-hover:text-[#666] transition-colors" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                   </button>
                 </div>
 
                 {/* Code Example */}
-                <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-[#2A2A2A]">
-                    <div className="flex items-center gap-2 text-sm font-medium text-white">
-                      <Terminal className="h-4 w-4 text-[#C87941]" />
+                <div className="rounded-xl bg-card border border-border overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <Terminal className="h-4 w-4 text-primary" />
                       Quick Start
                     </div>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-7 text-xs text-[#888] hover:text-white hover:bg-[#2A2A2A]"
+                      className="h-7 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary"
                       onClick={() => copyToClipboard(`curl -X POST https://api.pictura.ai/v1/generate \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -756,7 +756,7 @@ export default function DeveloperDashboard() {
                       Copy
                     </Button>
                   </div>
-                  <div className="p-4 font-mono text-sm text-[#AAA] overflow-x-auto">
+                  <div className="p-4 font-mono text-sm text-muted-foreground overflow-x-auto bg-secondary/30">
                     <pre className="whitespace-pre-wrap break-all">{`curl -X POST https://api.pictura.ai/v1/generate \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
@@ -766,27 +766,27 @@ export default function DeveloperDashboard() {
 
                 {/* Recent Activity */}
                 {developer.transactions && developer.transactions.length > 0 && (
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] overflow-hidden">
-                    <div className="px-4 py-3 border-b border-[#2A2A2A]">
-                      <h3 className="text-sm font-medium text-white">Recent Activity</h3>
+                  <div className="rounded-xl bg-card border border-border overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border">
+                      <h3 className="text-sm font-medium text-foreground">Recent Activity</h3>
                     </div>
-                    <div className="divide-y divide-[#2A2A2A]">
+                    <div className="divide-y divide-border">
                       {developer.transactions.slice(0, 5).map((tx) => (
                         <div key={tx.id} className="flex items-center justify-between px-4 py-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.amount > 0 ? 'bg-[#C87941]/10' : 'bg-[#2A2A2A]'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.amount > 0 ? 'bg-primary/10' : 'bg-secondary'}`}>
                               {tx.type === 'signup_bonus' || tx.type === 'promo' ? (
-                                <Gift className={`h-4 w-4 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-[#666]'}`} />
+                                <Gift className={`h-4 w-4 ${tx.amount > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
                               ) : (
-                                <DollarSign className={`h-4 w-4 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-[#666]'}`} />
+                                <DollarSign className={`h-4 w-4 ${tx.amount > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-white truncate">{tx.description}</p>
-                              <p className="text-xs text-[#666]">{formatDate(tx.createdAt)}</p>
+                              <p className="text-sm font-medium text-foreground truncate">{tx.description}</p>
+                              <p className="text-xs text-muted-foreground">{formatDate(tx.createdAt)}</p>
                             </div>
                           </div>
-                          <div className={`text-sm font-medium ${tx.amount > 0 ? 'text-emerald-400' : 'text-[#888]'}`}>
+                          <div className={`text-sm font-medium ${tx.amount > 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
                             {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
                           </div>
                         </div>
@@ -802,68 +802,68 @@ export default function DeveloperDashboard() {
               <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h1 className="text-2xl font-semibold text-white">API Keys</h1>
-                    <p className="text-[#888] text-sm mt-1">Manage your API keys for Pictura API access.</p>
+                    <h1 className="text-2xl font-semibold text-foreground">API Keys</h1>
+                    <p className="text-muted-foreground text-sm mt-1">Manage your API keys for Pictura API access.</p>
                   </div>
                   <Button 
                     onClick={() => { setShowCreateKey(true); setNewKeyName(''); setNewlyCreatedKey(null) }} 
-                    className="bg-[#C87941] hover:bg-[#B86D35] text-white h-9"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground h-9"
                   >
                     <Plus className="h-4 w-4 mr-1.5" />
                     Create new key
                   </Button>
                 </div>
 
-                <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] overflow-hidden">
+                <div className="rounded-xl bg-card border border-border overflow-hidden">
                   {developer.apiKeys.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 px-4">
-                      <div className="w-16 h-16 rounded-full bg-[#2A2A2A] flex items-center justify-center mb-4">
-                        <Key className="h-8 w-8 text-[#666]" />
+                      <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mb-4">
+                        <Key className="h-8 w-8 text-muted-foreground" />
                       </div>
-                      <h3 className="font-medium text-white mb-1">No API keys yet</h3>
-                      <p className="text-sm text-[#666] text-center mb-4">Create your first API key to start using the Pictura API</p>
+                      <h3 className="font-medium text-foreground mb-1">No API keys yet</h3>
+                      <p className="text-sm text-muted-foreground text-center mb-4">Create your first API key to start using the Pictura API</p>
                       <Button 
                         onClick={() => { setShowCreateKey(true); setNewKeyName(''); setNewlyCreatedKey(null) }} 
                         variant="outline"
-                        className="border-[#3A3A3A] bg-transparent text-white hover:bg-[#2A2A2A]"
+                        className="border-border bg-transparent text-foreground hover:bg-secondary"
                       >
                         Create new key
                       </Button>
                     </div>
                   ) : (
-                    <div className="divide-y divide-[#2A2A2A]">
+                    <div className="divide-y divide-border">
                       {/* Header */}
-                      <div className="hidden sm:grid grid-cols-[1fr,auto,auto] gap-4 px-4 py-2 text-xs text-[#666] uppercase tracking-wider font-medium">
+                      <div className="hidden sm:grid grid-cols-[1fr,auto,auto] gap-4 px-4 py-2 text-xs text-muted-foreground uppercase tracking-wider font-medium bg-secondary/30">
                         <div>Name</div>
                         <div className="w-24 text-center">Requests</div>
                         <div className="w-32 text-right">Actions</div>
                       </div>
                       {developer.apiKeys.map((key) => (
-                        <div key={key.id} className="flex flex-col sm:grid sm:grid-cols-[1fr,auto,auto] gap-2 sm:gap-4 items-start sm:items-center p-4 hover:bg-[#1F1F1F] transition-colors">
+                        <div key={key.id} className="flex flex-col sm:grid sm:grid-cols-[1fr,auto,auto] gap-2 sm:gap-4 items-start sm:items-center p-4 hover:bg-secondary/30 transition-colors">
                           <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${key.isActive ? 'bg-[#C87941]/10' : 'bg-[#2A2A2A]'}`}>
-                              <Key className={`h-4 w-4 ${key.isActive ? 'text-[#C87941]' : 'text-[#666]'}`} />
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${key.isActive ? 'bg-primary/10' : 'bg-secondary'}`}>
+                              <Key className={`h-4 w-4 ${key.isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">
-                                <p className="font-medium text-sm text-white truncate">{key.name}</p>
-                                {!key.isActive && <Badge variant="secondary" className="bg-[#2A2A2A] text-[#888] border-0 text-[10px]">Inactive</Badge>}
+                                <p className="font-medium text-sm text-foreground truncate">{key.name}</p>
+                                {!key.isActive && <Badge variant="secondary" className="bg-secondary text-muted-foreground border-0 text-[10px]">Inactive</Badge>}
                               </div>
-                              <code className="text-xs text-[#666] font-mono block truncate">
+                              <code className="text-xs text-muted-foreground font-mono block truncate">
                                 {showSecretFor === key.id && key.secret_key ? key.secret_key : key.keyPreview}
                               </code>
                             </div>
                           </div>
                           <div className="w-24 text-center hidden sm:block">
-                            <span className="text-sm text-[#888]">{key.requestsCount.toLocaleString()}</span>
+                            <span className="text-sm text-muted-foreground">{key.requestsCount.toLocaleString()}</span>
                           </div>
                           <div className="flex items-center gap-1 justify-end w-full sm:w-32 pl-12 sm:pl-0">
-                            <span className="text-xs text-[#666] mr-2 sm:hidden">{key.requestsCount.toLocaleString()} requests</span>
+                            <span className="text-xs text-muted-foreground mr-2 sm:hidden">{key.requestsCount.toLocaleString()} requests</span>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => setShowSecretFor(showSecretFor === key.id ? null : key.id)}
-                              className="h-8 w-8 p-0 text-[#666] hover:text-white hover:bg-[#2A2A2A]"
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary"
                               title={showSecretFor === key.id ? 'Hide key' : 'Reveal key'}
                             >
                               {showSecretFor === key.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -872,7 +872,7 @@ export default function DeveloperDashboard() {
                               variant="ghost"
                               size="sm"
                               onClick={() => copyToClipboard(key.secret_key || key.keyPreview)}
-                              className="h-8 w-8 p-0 text-[#666] hover:text-white hover:bg-[#2A2A2A]"
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-secondary"
                             >
                               <Copy className="h-4 w-4" />
                             </Button>
@@ -880,7 +880,7 @@ export default function DeveloperDashboard() {
                               variant="ghost"
                               size="sm"
                               onClick={() => setKeyToDelete(key)}
-                              className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -892,17 +892,17 @@ export default function DeveloperDashboard() {
                 </div>
 
                 {/* Security Notice */}
-                <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] overflow-hidden">
-                  <div className="flex items-start gap-3 p-4 border-b border-[#2A2A2A]">
-                    <div className="w-9 h-9 rounded-lg bg-[#C87941]/10 flex items-center justify-center shrink-0">
-                      <Shield className="h-4 w-4 text-[#C87941]" />
+                <div className="rounded-xl bg-card border border-border overflow-hidden">
+                  <div className="flex items-start gap-3 p-4 border-b border-border">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Shield className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white">Keep your API keys secure</p>
-                      <p className="text-xs text-[#888] mt-0.5">Treat your API key like a password. Rotate keys regularly and keep them private.</p>
+                      <p className="text-sm font-medium text-foreground">Keep your API keys secure</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Treat your API key like a password. Rotate keys regularly and keep them private.</p>
                     </div>
                   </div>
-                  <div className="px-4 py-3 space-y-1.5 text-sm text-[#888]">
+                  <div className="px-4 py-3 space-y-1.5 text-sm text-muted-foreground bg-secondary/20">
                     <p>Never expose keys in frontend code or public repositories.</p>
                     <p>Use separate keys for production and staging environments.</p>
                     <p>Delete compromised keys immediately and issue a new one.</p>
@@ -915,65 +915,65 @@ export default function DeveloperDashboard() {
             {activeTab === 'usage' && (
               <div className="space-y-6">
                 <div>
-                  <h1 className="text-2xl font-semibold text-white">Usage</h1>
-                  <p className="text-[#888] text-sm mt-1">Monitor your API usage and requests</p>
+                  <h1 className="text-2xl font-semibold text-foreground">Usage</h1>
+                  <p className="text-muted-foreground text-sm mt-1">Monitor your API usage and requests</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-5">
-                    <div className="flex items-center gap-2 text-[#888] text-xs font-medium mb-2">
+                  <div className="rounded-xl bg-card border border-border p-5">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-2">
                       <Activity className="h-3.5 w-3.5" />
                       THIS MONTH
                     </div>
-                    <div className="text-2xl font-semibold text-white">{developer.usage.thisMonth.toLocaleString()}</div>
-                    <p className="text-xs text-[#666] mt-1">requests</p>
+                    <div className="text-2xl font-semibold text-foreground">{developer.usage.thisMonth.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground mt-1">requests</p>
                   </div>
 
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-5">
-                    <div className="flex items-center gap-2 text-[#888] text-xs font-medium mb-2">
+                  <div className="rounded-xl bg-card border border-border p-5">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-2">
                       <Clock className="h-3.5 w-3.5" />
                       LAST MONTH
                     </div>
-                    <div className="text-2xl font-semibold text-white">{developer.usage.lastMonth.toLocaleString()}</div>
-                    <p className="text-xs text-[#666] mt-1">requests</p>
+                    <div className="text-2xl font-semibold text-foreground">{developer.usage.lastMonth.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground mt-1">requests</p>
                   </div>
 
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-5">
-                    <div className="flex items-center gap-2 text-[#888] text-xs font-medium mb-2">
+                  <div className="rounded-xl bg-card border border-border p-5">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-2">
                       <BarChart3 className="h-3.5 w-3.5" />
                       TOTAL
                     </div>
-                    <div className="text-2xl font-semibold text-white">{developer.usage.totalRequests.toLocaleString()}</div>
-                    <p className="text-xs text-[#666] mt-1">all time</p>
+                    <div className="text-2xl font-semibold text-foreground">{developer.usage.totalRequests.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground mt-1">all time</p>
                   </div>
 
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-5">
-                    <div className="flex items-center gap-2 text-[#888] text-xs font-medium mb-2">
+                  <div className="rounded-xl bg-card border border-border p-5">
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium mb-2">
                       <TrendingUp className="h-3.5 w-3.5" />
                       DAILY AVG
                     </div>
-                    <div className="text-2xl font-semibold text-white">
+                    <div className="text-2xl font-semibold text-foreground">
                       {Math.max(1, Math.round(developer.usage.thisMonth / Math.max(new Date().getDate(), 1))).toLocaleString()}
                     </div>
-                    <p className="text-xs text-[#666] mt-1">this month</p>
+                    <p className="text-xs text-muted-foreground mt-1">this month</p>
                   </div>
                 </div>
 
                 {/* Usage by Key */}
                 {developer.apiKeys.length > 0 && (
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] overflow-hidden">
-                    <div className="px-4 py-3 border-b border-[#2A2A2A]">
-                      <h3 className="text-sm font-medium text-white">Usage by API Key</h3>
+                  <div className="rounded-xl bg-card border border-border overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border">
+                      <h3 className="text-sm font-medium text-foreground">Usage by API Key</h3>
                     </div>
-                    <div className="divide-y divide-[#2A2A2A]">
+                    <div className="divide-y divide-border">
                       {developer.apiKeys.map((key) => (
                         <div key={key.id} className="flex items-center justify-between px-4 py-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <Key className={`h-4 w-4 ${key.isActive ? 'text-[#C87941]' : 'text-[#666]'}`} />
-                            <span className="text-sm text-white truncate">{key.name}</span>
-                            {!key.isActive && <Badge className="bg-[#2A2A2A] text-[#888] border-0 text-[10px]">Inactive</Badge>}
+                            <Key className={`h-4 w-4 ${key.isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                            <span className="text-sm text-foreground truncate">{key.name}</span>
+                            {!key.isActive && <Badge className="bg-secondary text-muted-foreground border-0 text-[10px]">Inactive</Badge>}
                           </div>
-                          <span className="text-sm font-medium text-white">{key.requestsCount.toLocaleString()}</span>
+                          <span className="text-sm font-medium text-foreground">{key.requestsCount.toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
@@ -987,12 +987,12 @@ export default function DeveloperDashboard() {
               <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h1 className="text-2xl font-semibold text-white">Billing</h1>
-                    <p className="text-[#888] text-sm mt-1">Manage your credits and view transaction history</p>
+                    <h1 className="text-2xl font-semibold text-foreground">Billing</h1>
+                    <p className="text-muted-foreground text-sm mt-1">Manage your credits and view transaction history</p>
                   </div>
                   <Button 
                     onClick={() => setShowPricingModal(true)} 
-                    className="bg-[#C87941] hover:bg-[#B86D35] text-white h-9"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground h-9"
                   >
                     <Plus className="h-4 w-4 mr-1.5" />
                     Buy Credits
@@ -1000,49 +1000,49 @@ export default function DeveloperDashboard() {
                 </div>
 
                 {/* Balance Card */}
-                <div className="rounded-xl bg-gradient-to-br from-[#C87941] to-[#8B4D26] p-6 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="rounded-xl bg-gradient-to-br from-primary to-primary/70 p-6 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-primary-foreground/5 rounded-full -translate-y-1/2 translate-x-1/2" />
                   <div className="relative">
-                    <p className="text-white/70 text-sm font-medium mb-1">Current Balance</p>
-                    <div className="text-4xl font-bold text-white tracking-tight mb-4">
+                    <p className="text-primary-foreground/70 text-sm font-medium mb-1">Current Balance</p>
+                    <div className="text-4xl font-bold text-primary-foreground tracking-tight mb-4">
                       {formatCurrency(developer.creditsBalance)}
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge className="bg-white/20 text-white border-0 text-xs font-medium">
+                      <Badge className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs font-medium">
                         {developer.tier?.toUpperCase() || 'FREE'} TIER
                       </Badge>
-                      <span className="text-white/60 text-sm">Credits never expire</span>
+                      <span className="text-primary-foreground/60 text-sm">Credits never expire</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Transaction History */}
                 {developer.transactions && developer.transactions.length > 0 && (
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] overflow-hidden">
-                    <div className="px-4 py-3 border-b border-[#2A2A2A]">
-                      <h3 className="text-sm font-medium text-white">Transaction History</h3>
+                  <div className="rounded-xl bg-card border border-border overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border">
+                      <h3 className="text-sm font-medium text-foreground">Transaction History</h3>
                     </div>
-                    <div className="divide-y divide-[#2A2A2A]">
+                    <div className="divide-y divide-border">
                       {developer.transactions.map((tx) => (
                         <div key={tx.id} className="flex items-center justify-between px-4 py-3">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.amount > 0 ? 'bg-[#C87941]/10' : 'bg-[#2A2A2A]'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.amount > 0 ? 'bg-primary/10' : 'bg-secondary'}`}>
                               {tx.type === 'signup_bonus' || tx.type === 'promo' ? (
-                                <Gift className={`h-4 w-4 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-[#666]'}`} />
+                                <Gift className={`h-4 w-4 ${tx.amount > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
                               ) : (
-                                <DollarSign className={`h-4 w-4 ${tx.amount > 0 ? 'text-[#C87941]' : 'text-[#666]'}`} />
+                                <DollarSign className={`h-4 w-4 ${tx.amount > 0 ? 'text-primary' : 'text-muted-foreground'}`} />
                               )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-white truncate">{tx.description}</p>
-                              <p className="text-xs text-[#666]">{formatDate(tx.createdAt)}</p>
+                              <p className="text-sm font-medium text-foreground truncate">{tx.description}</p>
+                              <p className="text-xs text-muted-foreground">{formatDate(tx.createdAt)}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className={`text-sm font-medium ${tx.amount > 0 ? 'text-emerald-400' : 'text-[#888]'}`}>
+                            <p className={`text-sm font-medium ${tx.amount > 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
                               {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
                             </p>
-                            <p className="text-xs text-[#666]">Bal: {formatCurrency(tx.balanceAfter)}</p>
+                            <p className="text-xs text-muted-foreground">Bal: {formatCurrency(tx.balanceAfter)}</p>
                           </div>
                         </div>
                       ))}
@@ -1055,13 +1055,13 @@ export default function DeveloperDashboard() {
             {/* Playground Tab */}
             {activeTab === 'playground' && (
               <div className="space-y-6">
-                <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-8 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-[#C87941]/10 flex items-center justify-center mx-auto mb-4">
-                    <Sparkles className="h-8 w-8 text-[#C87941]" />
+                <div className="rounded-xl bg-card border border-border p-8 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="h-8 w-8 text-primary" />
                   </div>
-                  <h2 className="text-xl font-semibold text-white mb-2">Playground coming soon</h2>
-                  <p className="text-sm text-[#888] max-w-md mx-auto">We're building an interactive playground to test prompts, inspect responses, and experiment faster.</p>
-                  <Badge className="mt-4 bg-[#2A2A2A] text-[#888] border-0">Coming Soon</Badge>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Playground coming soon</h2>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">We're building an interactive playground to test prompts, inspect responses, and experiment faster.</p>
+                  <Badge className="mt-4 bg-secondary text-muted-foreground border-0">Coming Soon</Badge>
                 </div>
               </div>
             )}
@@ -1070,13 +1070,13 @@ export default function DeveloperDashboard() {
             {activeTab === 'settings' && (
               <div className="space-y-6">
                 <div>
-                  <h1 className="text-2xl font-semibold text-white">Settings</h1>
-                  <p className="text-[#888] text-sm mt-1">Manage your account settings</p>
+                  <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+                  <p className="text-muted-foreground text-sm mt-1">Manage your account settings</p>
                 </div>
 
                 {/* Profile Card */}
-                <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] overflow-hidden">
-                  <div className="h-24 bg-gradient-to-br from-[#C87941] via-[#A65D2E] to-[#8B4D26] relative">
+                <div className="rounded-xl bg-card border border-border overflow-hidden">
+                  <div className="h-24 bg-gradient-to-br from-primary via-primary/80 to-primary/60 relative">
                     <div className="absolute inset-0 opacity-10">
                       <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <defs>
@@ -1090,14 +1090,14 @@ export default function DeveloperDashboard() {
                   </div>
                   <div className="px-6 pb-6">
                     <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#C87941] to-[#8B4D26] flex items-center justify-center text-white text-3xl font-semibold ring-4 ring-[#1A1A1A] shrink-0">
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground text-3xl font-semibold ring-4 ring-card shrink-0">
                         {profileInitial}
                       </div>
                       <div className="flex-1 min-w-0 pb-1">
-                        <h3 className="font-semibold text-lg text-white truncate">{developer.name}</h3>
-                        <p className="text-sm text-[#888] truncate">{developer.email}</p>
+                        <h3 className="font-semibold text-lg text-foreground truncate">{developer.name}</h3>
+                        <p className="text-sm text-muted-foreground truncate">{developer.email}</p>
                       </div>
-                      <Badge className="bg-[#C87941]/10 text-[#C87941] border-0 text-xs self-start sm:self-auto">
+                      <Badge className="bg-primary/10 text-primary border-0 text-xs self-start sm:self-auto">
                         {developer.tier?.toUpperCase() || 'FREE'} TIER
                       </Badge>
                     </div>
@@ -1105,27 +1105,27 @@ export default function DeveloperDashboard() {
                 </div>
 
                 {/* Account Details */}
-                <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] overflow-hidden">
-                  <div className="px-4 py-3 border-b border-[#2A2A2A] flex items-center gap-2">
-                    <User className="h-4 w-4 text-[#C87941]" />
-                    <h3 className="text-sm font-medium text-white">Account Details</h3>
+                <div className="rounded-xl bg-card border border-border overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-medium text-foreground">Account Details</h3>
                   </div>
                   <div className="p-4 space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <Label className="text-xs text-[#888]">Full Name</Label>
+                        <Label className="text-xs text-muted-foreground">Full Name</Label>
                         <Input 
                           value={editableName} 
                           onChange={(e) => setEditableName(e.target.value)} 
-                          className="mt-1 bg-[#0D0D0D] border-[#2A2A2A] text-white text-sm focus:border-[#C87941] focus:ring-[#C87941]/20" 
+                          className="mt-1 bg-background border-border text-foreground text-sm focus:border-primary focus:ring-primary/20" 
                         />
                       </div>
                       <div>
-                        <Label className="text-xs text-[#888]">Email Address</Label>
+                        <Label className="text-xs text-muted-foreground">Email Address</Label>
                         <Input 
                           value={developer.email} 
                           disabled 
-                          className="mt-1 bg-[#0D0D0D] border-[#2A2A2A] text-[#666] text-sm" 
+                          className="mt-1 bg-secondary border-border text-muted-foreground text-sm" 
                         />
                       </div>
                     </div>
@@ -1134,35 +1134,35 @@ export default function DeveloperDashboard() {
                       <Button 
                         onClick={handleUpdateName} 
                         disabled={savingName || !editableName.trim() || editableName.trim() === developer.name} 
-                        className="bg-[#C87941] hover:bg-[#B86D35] text-white h-8 text-xs disabled:opacity-50"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-xs disabled:opacity-50"
                       >
                         {savingName ? 'Saving...' : 'Save Changes'}
                       </Button>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-3 pt-4 border-t border-[#2A2A2A]">
+                    <div className="grid gap-4 sm:grid-cols-3 pt-4 border-t border-border">
                       <div>
-                        <Label className="text-xs text-[#888]">Account Created</Label>
+                        <Label className="text-xs text-muted-foreground">Account Created</Label>
                         <Input 
                           value={formatDate(developer.createdAt)} 
                           disabled 
-                          className="mt-1 bg-[#0D0D0D] border-[#2A2A2A] text-[#666] text-sm" 
+                          className="mt-1 bg-secondary border-border text-muted-foreground text-sm" 
                         />
                       </div>
                       <div>
-                        <Label className="text-xs text-[#888]">Currency</Label>
+                        <Label className="text-xs text-muted-foreground">Currency</Label>
                         <Input 
                           value={developer.currency} 
                           disabled 
-                          className="mt-1 bg-[#0D0D0D] border-[#2A2A2A] text-[#666] text-sm" 
+                          className="mt-1 bg-secondary border-border text-muted-foreground text-sm" 
                         />
                       </div>
                       <div>
-                        <Label className="text-xs text-[#888]">Credits Balance</Label>
+                        <Label className="text-xs text-muted-foreground">Credits Balance</Label>
                         <Input 
                           value={formatCurrency(developer.creditsBalance)} 
                           disabled 
-                          className="mt-1 bg-[#0D0D0D] border-[#2A2A2A] text-[#C87941] text-sm font-medium" 
+                          className="mt-1 bg-secondary border-border text-primary text-sm font-medium" 
                         />
                       </div>
                     </div>
@@ -1171,44 +1171,44 @@ export default function DeveloperDashboard() {
 
                 {/* Quick Stats */}
                 <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-4 text-center">
-                    <Key className="h-5 w-5 mx-auto text-[#C87941] mb-2" />
-                    <p className="text-xl font-semibold text-white">{developer.apiKeys.filter(k => k.isActive).length}</p>
-                    <p className="text-xs text-[#666]">Active Keys</p>
+                  <div className="rounded-xl bg-card border border-border p-4 text-center">
+                    <Key className="h-5 w-5 mx-auto text-primary mb-2" />
+                    <p className="text-xl font-semibold text-foreground">{developer.apiKeys.filter(k => k.isActive).length}</p>
+                    <p className="text-xs text-muted-foreground">Active Keys</p>
                   </div>
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-4 text-center">
-                    <Activity className="h-5 w-5 mx-auto text-[#C87941] mb-2" />
-                    <p className="text-xl font-semibold text-white">{developer.usage.thisMonth.toLocaleString()}</p>
-                    <p className="text-xs text-[#666]">This Month</p>
+                  <div className="rounded-xl bg-card border border-border p-4 text-center">
+                    <Activity className="h-5 w-5 mx-auto text-primary mb-2" />
+                    <p className="text-xl font-semibold text-foreground">{developer.usage.thisMonth.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">This Month</p>
                   </div>
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-4 text-center">
-                    <BarChart3 className="h-5 w-5 mx-auto text-[#C87941] mb-2" />
-                    <p className="text-xl font-semibold text-white">{developer.usage.totalRequests.toLocaleString()}</p>
-                    <p className="text-xs text-[#666]">Total Requests</p>
+                  <div className="rounded-xl bg-card border border-border p-4 text-center">
+                    <BarChart3 className="h-5 w-5 mx-auto text-primary mb-2" />
+                    <p className="text-xl font-semibold text-foreground">{developer.usage.totalRequests.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground">Total Requests</p>
                   </div>
-                  <div className="rounded-xl bg-[#1A1A1A] border border-[#2A2A2A] p-4 text-center">
-                    <CreditCard className="h-5 w-5 mx-auto text-[#C87941] mb-2" />
-                    <p className="text-xl font-semibold text-white">{developer.transactions?.length || 0}</p>
-                    <p className="text-xs text-[#666]">Transactions</p>
+                  <div className="rounded-xl bg-card border border-border p-4 text-center">
+                    <CreditCard className="h-5 w-5 mx-auto text-primary mb-2" />
+                    <p className="text-xl font-semibold text-foreground">{developer.transactions?.length || 0}</p>
+                    <p className="text-xs text-muted-foreground">Transactions</p>
                   </div>
                 </div>
 
                 {/* Danger Zone */}
-                <div className="rounded-xl bg-[#1A1A1A] border border-red-500/20 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-red-500/20 flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-red-400" />
-                    <h3 className="text-sm font-medium text-red-400">Danger Zone</h3>
+                <div className="rounded-xl bg-card border border-destructive/20 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-destructive/20 flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-destructive" />
+                    <h3 className="text-sm font-medium text-destructive">Danger Zone</h3>
                   </div>
                   <div className="p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-red-500/20 bg-red-500/5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border border-destructive/20 bg-destructive/5">
                       <div>
-                        <h4 className="font-medium text-sm text-red-400">Delete Account</h4>
-                        <p className="text-xs text-[#888]">Permanently delete your account and all associated data</p>
+                        <h4 className="font-medium text-sm text-destructive">Delete Account</h4>
+                        <p className="text-xs text-muted-foreground">Permanently delete your account and all associated data</p>
                       </div>
                       <Button 
                         variant="destructive" 
                         size="sm" 
-                        className="text-xs shrink-0 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20" 
+                        className="text-xs shrink-0 bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/20" 
                         onClick={() => setShowDeleteAccountDialog(true)}
                       >
                         Delete Account
@@ -1224,10 +1224,10 @@ export default function DeveloperDashboard() {
 
       {/* Create API Key Dialog */}
       <Dialog open={showCreateKey} onOpenChange={setShowCreateKey}>
-        <DialogContent className="bg-[#1A1A1A] border-[#2A2A2A] text-white sm:max-w-md">
+        <DialogContent className="bg-card border-border text-foreground sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">{newlyCreatedKey ? 'API Key Created' : 'Create new secret key'}</DialogTitle>
-            <DialogDescription className="text-[#888]">
+            <DialogTitle className="text-foreground">{newlyCreatedKey ? 'API Key Created' : 'Create new secret key'}</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               {newlyCreatedKey 
                 ? 'Please save this secret key somewhere safe and accessible. For security reasons, you won\'t be able to view it again.'
                 : 'Give your API key a name to help you identify it later.'
@@ -1237,25 +1237,25 @@ export default function DeveloperDashboard() {
 
           {newlyCreatedKey ? (
             <div className="space-y-4">
-              <div className="p-4 bg-[#0D0D0D] border border-[#2A2A2A] rounded-lg">
+              <div className="p-4 bg-secondary border border-border rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Check className="h-4 w-4 text-emerald-400" />
-                  <span className="text-sm text-[#888]">Your new API key</span>
+                  <Check className="h-4 w-4 text-emerald-600" />
+                  <span className="text-sm text-muted-foreground">Your new API key</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded text-xs font-mono text-white break-all">{newlyCreatedKey}</code>
+                  <code className="flex-1 p-3 bg-background border border-border rounded text-xs font-mono text-foreground break-all">{newlyCreatedKey}</code>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => copyToClipboard(newlyCreatedKey)}
-                    className="shrink-0 border-[#2A2A2A] bg-transparent text-white hover:bg-[#2A2A2A]"
+                    className="shrink-0 border-border bg-transparent text-foreground hover:bg-secondary"
                   >
                     {copiedKey ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={() => { setShowCreateKey(false); setNewlyCreatedKey(null) }} className="w-full bg-[#C87941] hover:bg-[#B86D35] text-white">
+                <Button onClick={() => { setShowCreateKey(false); setNewlyCreatedKey(null) }} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                   Done
                 </Button>
               </DialogFooter>
@@ -1264,23 +1264,23 @@ export default function DeveloperDashboard() {
             <>
               <div className="space-y-4 py-2">
                 <div>
-                  <Label htmlFor="keyName" className="text-[#888]">Name</Label>
+                  <Label htmlFor="keyName" className="text-muted-foreground">Name</Label>
                   <Input
                     id="keyName"
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
                     placeholder="My API Key"
-                    className="mt-1 bg-[#0D0D0D] border-[#2A2A2A] text-white placeholder:text-[#666] focus:border-[#C87941] focus:ring-[#C87941]/20"
+                    className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary/20"
                   />
                 </div>
               </div>
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button variant="outline" onClick={() => setShowCreateKey(false)} className="border-[#2A2A2A] bg-transparent text-white hover:bg-[#2A2A2A]">
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowCreateKey(false)} className="border-border bg-transparent text-foreground hover:bg-secondary">
                   Cancel
                 </Button>
-                <Button onClick={handleCreateKey} disabled={creatingKey} className="bg-[#C87941] hover:bg-[#B86D35] text-white">
+                <Button onClick={handleCreateKey} disabled={creatingKey || !newKeyName.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   {creatingKey ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Create secret key
+                  Create key
                 </Button>
               </DialogFooter>
             </>
@@ -1290,47 +1290,97 @@ export default function DeveloperDashboard() {
 
       {/* Delete Key Confirmation Dialog */}
       <Dialog open={!!keyToDelete} onOpenChange={() => setKeyToDelete(null)}>
-        <DialogContent className="bg-[#1A1A1A] border-[#2A2A2A] text-white sm:max-w-md">
+        <DialogContent className="bg-card border-border text-foreground sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Revoke secret key</DialogTitle>
-            <DialogDescription className="text-[#888]">
-              This API key will immediately be disabled. API requests made using this key will be rejected, which could cause any systems still depending on it to break. Once revoked, you'll no longer be able to view or modify this API key.
+            <DialogTitle className="text-foreground">Delete API Key</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Are you sure you want to delete "{keyToDelete?.name}"? This action cannot be undone and any applications using this key will stop working.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-2">
-            <div className="p-3 bg-[#0D0D0D] border border-[#2A2A2A] rounded-lg">
-              <p className="text-sm text-white font-medium">{keyToDelete?.name}</p>
-              <code className="text-xs text-[#666] font-mono">{keyToDelete?.keyPreview}</code>
-            </div>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setKeyToDelete(null)} className="border-[#2A2A2A] bg-transparent text-white hover:bg-[#2A2A2A]">
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setKeyToDelete(null)} className="border-border bg-transparent text-foreground hover:bg-secondary">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteKey} disabled={deletingKey} className="bg-red-500 hover:bg-red-600">
-              {deletingKey ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Revoke key
+            <Button variant="destructive" onClick={handleDeleteKey} disabled={deletingKey}>
+              {deletingKey ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Account Dialog */}
+      {/* Delete Account Confirmation Dialog */}
       <Dialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
-        <DialogContent className="bg-[#1A1A1A] border-[#2A2A2A] text-white sm:max-w-md">
+        <DialogContent className="bg-card border-border text-foreground sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Delete Account</DialogTitle>
-            <DialogDescription className="text-[#888]">
-              This will permanently disable your API keys, clear active sessions, and anonymize your developer profile. This action cannot be undone.
+            <DialogTitle className="text-destructive">Delete Account</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              This will permanently delete your account, all API keys, and usage data. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setShowDeleteAccountDialog(false)} disabled={deletingAccount} className="border-[#2A2A2A] bg-transparent text-white hover:bg-[#2A2A2A]">
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteAccountDialog(false)} className="border-border bg-transparent text-foreground hover:bg-secondary">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteAccount} disabled={deletingAccount} className="bg-red-500 hover:bg-red-600">
-              {deletingAccount ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            <Button variant="destructive" onClick={handleDeleteAccount} disabled={deletingAccount}>
+              {deletingAccount ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
               Delete Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pricing Modal */}
+      <Dialog open={showPricingModal} onOpenChange={setShowPricingModal}>
+        <DialogContent className="bg-card border-border text-foreground sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Buy Credits</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Choose a credit package to top up your account balance.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-4">
+            {[
+              { name: 'Starter', credits: 100, price: 5 },
+              { name: 'Pro', credits: 500, price: 20 },
+              { name: 'Business', credits: 2000, price: 75 },
+            ].map((plan) => (
+              <button
+                key={plan.name}
+                onClick={() => setSelectedPlan(plan)}
+                className={`flex items-center justify-between p-4 rounded-xl border transition-all text-left ${
+                  selectedPlan?.name === plan.name
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/30 hover:bg-secondary/50'
+                }`}
+              >
+                <div>
+                  <h4 className="font-medium text-foreground">{plan.name}</h4>
+                  <p className="text-sm text-muted-foreground">{plan.credits.toLocaleString()} credits</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">${plan.price}</p>
+                  <p className="text-xs text-muted-foreground">${(plan.price / plan.credits * 100).toFixed(1)}¢/credit</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPricingModal(false)} className="border-border bg-transparent text-foreground hover:bg-secondary">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (selectedPlan) {
+                  toast.info('Payment integration coming soon')
+                  setShowPricingModal(false)
+                }
+              }} 
+              disabled={!selectedPlan || processingPayment}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              {processingPayment ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
+              Purchase
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1338,188 +1388,62 @@ export default function DeveloperDashboard() {
 
       {/* Onboarding Dialog */}
       <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
-        <DialogContent className="bg-[#1A1A1A] border-[#2A2A2A] text-white sm:max-w-lg">
-          {onboardingStep === 0 && (
-            <>
-              <DialogHeader>
-                <div className="flex justify-center mb-4">
-                  <PicturaIcon size={64} />
-                </div>
-                <DialogTitle className="text-center text-xl text-white">Welcome to Pictura Developer Portal!</DialogTitle>
-                <DialogDescription className="text-center text-[#888]">
-                  You're all set to start generating images with our AI-powered API. Let's show you around.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="sm:justify-center">
-                <Button onClick={() => setOnboardingStep(1)} className="bg-[#C87941] hover:bg-[#B86D35] text-white">
-                  Get Started
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-
-          {onboardingStep === 1 && (
-            <>
-              <DialogHeader>
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-[#C87941]/10 flex items-center justify-center">
-                    <Key className="h-8 w-8 text-[#C87941]" />
-                  </div>
-                </div>
-                <DialogTitle className="text-center text-xl text-white">Your API Key is Ready</DialogTitle>
-                <DialogDescription className="text-center text-[#888]">
-                  We've created your first API key automatically. You can manage your keys and create new ones from the API Keys section.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="sm:justify-center gap-2">
-                <Button variant="outline" onClick={() => setOnboardingStep(0)} className="border-[#2A2A2A] bg-transparent text-white hover:bg-[#2A2A2A]">Back</Button>
-                <Button onClick={() => setOnboardingStep(2)} className="bg-[#C87941] hover:bg-[#B86D35] text-white">
-                  Next
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-
-          {onboardingStep === 2 && (
-            <>
-              <DialogHeader>
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-[#C87941]/10 flex items-center justify-center">
-                    <Gift className="h-8 w-8 text-[#C87941]" />
-                  </div>
-                </div>
-                <DialogTitle className="text-center text-xl text-white">Free Credits to Start</DialogTitle>
-                <DialogDescription className="text-center text-[#888]">
-                  You have free credits to start building! Each API call costs a small amount of credits. Check your balance in the Billing section.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="sm:justify-center gap-2">
-                <Button variant="outline" onClick={() => setOnboardingStep(1)} className="border-[#2A2A2A] bg-transparent text-white hover:bg-[#2A2A2A]">Back</Button>
-                <Button onClick={completeOnboarding} className="bg-[#C87941] hover:bg-[#B86D35] text-white">
-                  Start Building
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Pricing Modal */}
-      <Dialog open={showPricingModal} onOpenChange={setShowPricingModal}>
-        <DialogContent className="bg-[#1A1A1A] border-[#2A2A2A] text-white sm:max-w-lg p-0 overflow-hidden">
-          <div className="bg-gradient-to-r from-[#C87941] to-[#8B4D26] px-6 py-4">
-            <DialogTitle className="text-lg font-semibold text-white flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              Buy Credits
+        <DialogContent className="bg-card border-border text-foreground sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Welcome to Pictura
             </DialogTitle>
-            <p className="text-white/70 text-sm mt-0.5">Choose a package. Credits never expire.</p>
-          </div>
-          
-          <div className="p-4 space-y-2 max-h-[50vh] overflow-y-auto">
-            {[
-              { name: 'Starter', credits: 1000, price: 500, popular: false },
-              { name: 'Growth', credits: 5000, price: 2000, popular: true },
-              { name: 'Pro', credits: 15000, price: 5000, popular: false },
-              { name: 'Business', credits: 50000, price: 15000, popular: false },
-              { name: 'Enterprise', credits: 150000, price: 40000, popular: false },
-              { name: 'Custom', credits: 500000, price: 100000, popular: false },
-            ].map((plan) => (
-              <div
-                key={plan.name}
-                onClick={() => setSelectedPlan(plan)}
-                className={`relative flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
-                  selectedPlan?.name === plan.name 
-                    ? 'border-[#C87941] bg-[#C87941]/10' 
-                    : 'border-[#2A2A2A] hover:border-[#3A3A3A] hover:bg-[#222]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                    selectedPlan?.name === plan.name 
-                      ? 'bg-[#C87941] text-white' 
-                      : 'bg-[#2A2A2A] text-[#888]'
-                  }`}>
-                    {plan.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm text-white">{plan.name}</span>
-                      {plan.popular && (
-                        <span className="px-1.5 py-0.5 bg-[#C87941] text-white text-[10px] font-medium rounded">Best</span>
-                      )}
-                    </div>
-                    <span className="text-xs text-[#888]">{plan.credits.toLocaleString()} credits</span>
-                  </div>
+            <DialogDescription className="text-muted-foreground">
+              Let's get you started with the Pictura API in just a few steps.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            {onboardingStep === 0 && (
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                  <Key className="h-10 w-10 text-primary" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-[#C87941]">
-                    {CURRENCY_SYMBOLS[developer.currency] || '₦'}{plan.price.toLocaleString()}
-                  </span>
-                  {selectedPlan?.name === plan.name && (
-                    <Check className="h-4 w-4 text-[#C87941]" />
-                  )}
+                <div>
+                  <h3 className="font-medium text-foreground mb-1">Create your first API key</h3>
+                  <p className="text-sm text-muted-foreground">API keys authenticate your requests to the Pictura API.</p>
                 </div>
               </div>
-            ))}
+            )}
+            {onboardingStep === 1 && (
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                  <FileCode className="h-10 w-10 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground mb-1">Explore the documentation</h3>
+                  <p className="text-sm text-muted-foreground">Learn how to integrate Pictura into your applications.</p>
+                </div>
+              </div>
+            )}
+            {onboardingStep === 2 && (
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                  <Rocket className="h-10 w-10 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground mb-1">You're all set!</h3>
+                  <p className="text-sm text-muted-foreground">Start building amazing things with AI-powered image generation.</p>
+                </div>
+              </div>
+            )}
           </div>
-
-          <div className="p-4 pt-0 space-y-3">
-            <Button 
-              onClick={async () => {
-                if (!selectedPlan || !developer) return
-                setProcessingPayment(true)
-                try {
-                  const res = await fetch('/api/paystack/initialize', {
-                    method: 'POST',
-                    headers: { 
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${localStorage.getItem('pictura_session')}`
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                      amount: selectedPlan.price,
-                      credits: selectedPlan.credits,
-                      planName: selectedPlan.name,
-                      email: developer.email,
-                      name: developer.name,
-                    }),
-                  })
-                  const data = await res.json()
-                  if (data.success && data.authorizationUrl) {
-                    localStorage.setItem('pictura_pending_payment_url', data.authorizationUrl)
-                    setPendingPaymentUrl(data.authorizationUrl)
-                    window.location.href = data.authorizationUrl
-                  } else {
-                    toast.error(data.error || 'Payment initialization failed')
-                  }
-                } catch {
-                  toast.error('An error occurred')
-                } finally {
-                  setProcessingPayment(false)
-                }
-              }}
-              disabled={!selectedPlan || processingPayment}
-              className="w-full h-11 bg-[#C87941] hover:bg-[#B86D35] text-white font-medium"
-            >
-              {processingPayment ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Processing...
-                </>
-              ) : selectedPlan ? (
-                <>
-                  <Lock className="h-4 w-4 mr-2" />
-                  Pay {CURRENCY_SYMBOLS[developer.currency] || '₦'}{selectedPlan.price.toLocaleString()}
-                </>
-              ) : (
-                'Select a Package'
-              )}
-            </Button>
-            <p className="text-[10px] text-center text-[#666] flex items-center justify-center gap-1">
-              <Shield className="h-3 w-3" />
-              Secure payment powered by Paystack
-            </p>
-          </div>
+          <DialogFooter>
+            {onboardingStep < 2 ? (
+              <Button onClick={() => setOnboardingStep(onboardingStep + 1)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                Continue
+              </Button>
+            ) : (
+              <Button onClick={completeOnboarding} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                Get Started
+              </Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
