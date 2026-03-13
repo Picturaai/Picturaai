@@ -473,169 +473,176 @@ export function Landing() {
       </section>
 
 
-      {/* Video Generation - Beautiful Showcase */}
-      <section className="border-t border-border/40 py-20 md:py-28 relative overflow-hidden">
-        {/* Decorative background elements */}
+      {/* Video Generation - Stunning Showcase */}
+      <section className="border-t border-border/40 py-24 md:py-32 relative overflow-hidden">
+        {/* Beautiful background elements */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute top-1/4 -left-20 w-80 h-80 rounded-full bg-primary/5 blur-[100px]" />
-          <div className="absolute bottom-1/4 -right-20 w-80 h-80 rounded-full bg-accent/5 blur-[100px]" />
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-primary/8 blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-accent/6 blur-[100px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/3 blur-[150px]" />
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
-          {/* Section Header */}
+          {/* Section Header - Centered & Impactful */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
             custom={0}
             variants={fadeUp}
-            className="text-center mb-14"
+            className="text-center mb-16 md:mb-20"
           >
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary">
-              <Clapperboard className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-5 py-2 text-xs font-semibold text-primary mb-6">
+              <Clapperboard className="h-4 w-4" />
               Text to Video
             </span>
-            <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground md:text-4xl lg:text-5xl text-balance">
-              Turn prompts into cinematic videos
+            <h2 className="text-4xl font-bold tracking-tight text-foreground md:text-5xl lg:text-6xl text-balance leading-[1.1]">
+              Turn prompts into
+              <span className="block text-primary">cinematic videos</span>
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl">
               Create stunning AI videos from a simple text prompt. Smooth motion, stylized scenes, and share-ready results.
             </p>
           </motion.div>
 
-          {/* Main Content Grid */}
-          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
-            {/* Video Preview Card */}
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              custom={1}
-              variants={fadeUp}
-              className="order-2 lg:order-1"
-            >
-              <div className="relative rounded-2xl border border-border/50 bg-card overflow-hidden shadow-xl shadow-primary/5">
-                {/* Video Player Mock */}
-                <div className="relative aspect-video bg-gradient-to-br from-primary/5 via-background to-accent/5">
-                  {/* Animated gradient background */}
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--primary)/0.15,transparent_70%)]" />
+          {/* Main Video Showcase */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={1}
+            variants={fadeUp}
+            className="max-w-4xl mx-auto"
+          >
+            {/* Video Player Card - Premium Design */}
+            <div className="relative rounded-3xl border border-border/60 bg-card overflow-hidden shadow-2xl shadow-primary/10">
+              {/* Glowing border effect */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/20 via-transparent to-accent/20 opacity-50 pointer-events-none" />
+              
+              {/* Video Container */}
+              <div className="relative">
+                {/* Custom Video Player */}
+                <div className="relative aspect-video bg-gradient-to-br from-secondary via-card to-secondary overflow-hidden">
+                  <video
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    poster="/images/video-poster.jpg"
+                  >
+                    <source src="/videos/ai-video-demo.mp4" type="video/mp4" />
+                  </video>
                   
-                  {/* Video preview content */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="relative">
-                      {/* Play button */}
-                      <div className="w-20 h-20 rounded-full bg-primary/90 flex items-center justify-center shadow-lg shadow-primary/30 cursor-pointer hover:bg-primary transition-colors group">
-                        <svg className="w-8 h-8 text-primary-foreground ml-1 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                  {/* Overlay Controls */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-foreground/20 opacity-0 hover:opacity-100 transition-opacity duration-300">
+                    {/* Top Bar */}
+                    <div className="absolute top-0 inset-x-0 p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/90 backdrop-blur-md border border-border/50">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-xs font-medium text-foreground">AI Generated</span>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/90 backdrop-blur-md border border-border/50">
+                        <span className="text-xs font-semibold text-primary">HD</span>
+                        <span className="text-xs text-muted-foreground">1080p</span>
+                      </div>
+                    </div>
+                    
+                    {/* Center Play Button */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center shadow-xl shadow-primary/40 cursor-pointer hover:scale-110 transition-transform">
+                        <svg className="w-6 h-6 text-primary-foreground ml-1" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M8 5v14l11-7z"/>
                         </svg>
                       </div>
-                      {/* Pulse animation */}
-                      <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
                     </div>
-                  </div>
-
-                  {/* Video metadata overlay */}
-                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-foreground/80 to-transparent p-4 pt-12">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-primary/20 backdrop-blur-sm flex items-center justify-center">
-                          <Clapperboard className="h-4 w-4 text-primary-foreground" />
+                    
+                    {/* Bottom Bar */}
+                    <div className="absolute bottom-0 inset-x-0 p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-1 rounded-full bg-primary-foreground/30 overflow-hidden">
+                          <div className="h-full w-2/3 bg-primary rounded-full" />
                         </div>
-                        <div>
-                          <p className="text-xs font-medium text-primary-foreground/90">AI Generated</p>
-                          <p className="text-[10px] text-primary-foreground/60">6 seconds</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 text-primary-foreground/70">
-                        <span className="text-xs">1920 x 1080</span>
-                        <span className="text-xs">HD</span>
+                        <span className="text-xs font-medium text-primary-foreground">0:04 / 0:06</span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Corner decoration */}
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/80 backdrop-blur-sm border border-border/50">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-[10px] font-medium text-foreground">PREVIEW</span>
+                  
+                  {/* Pictura Watermark */}
+                  <div className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur-md border border-border/30">
+                    <PicturaIcon size={14} className="text-primary" />
+                    <span className="text-xs font-semibold text-foreground">Pictura</span>
                   </div>
-                </div>
-
-                {/* Prompt Input Area */}
-                <div className="p-4 border-t border-border/50 bg-secondary/20">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Prompt</p>
-                      <p className="text-sm text-foreground leading-relaxed">
-                        Cinematic drone shot over a neon-lit cyberpunk city at sunset, smooth camera motion, dramatic lighting, 6 seconds
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div className="h-1 bg-secondary">
-                  <div className="h-full w-3/4 bg-gradient-to-r from-primary to-accent rounded-full" />
                 </div>
               </div>
-            </motion.div>
 
-            {/* Features List */}
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              custom={2}
-              variants={fadeUp}
-              className="order-1 lg:order-2"
-            >
-              <div className="space-y-6">
-                {/* Feature Items */}
-                {[
-                  {
-                    icon: Zap,
-                    title: 'Instant Generation',
-                    description: 'Transform text prompts into stunning videos in seconds with our advanced AI pipeline.'
-                  },
-                  {
-                    icon: Layers,
-                    title: 'Cinematic Quality',
-                    description: 'Professional-grade output with smooth motion, proper lighting, and stylized scenes.'
-                  },
-                  {
-                    icon: Globe,
-                    title: 'Share Anywhere',
-                    description: 'Download in multiple formats ready for social media, presentations, or your projects.'
-                  }
-                ].map((feature, i) => (
-                  <div key={feature.title} className="flex items-start gap-4 p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card hover:border-primary/20 transition-colors">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <feature.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{feature.title}</h3>
-                      <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
-                    </div>
+              {/* Prompt Display - Elegant Design */}
+              <div className="p-5 md:p-6 bg-gradient-to-r from-secondary/50 via-card to-secondary/50 border-t border-border/50">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
                   </div>
-                ))}
-
-                {/* CTA Button */}
-                <div className="pt-4">
-                  <Link
-                    href="/studio"
-                    className="group inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
-                  >
-                    Try Text to Video
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-2">Prompt</p>
+                    <p className="text-sm md:text-base text-foreground leading-relaxed">
+                      Serene autumn lake with falling maple leaves, soft golden light, gentle ripples on water surface, cinematic drone shot, 6 seconds
+                    </p>
+                  </div>
                 </div>
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
+
+          {/* Features Grid - Below Video */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={2}
+            variants={fadeUp}
+            className="mt-16 md:mt-20"
+          >
+            <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+              {[
+                {
+                  icon: Zap,
+                  title: 'Lightning Fast',
+                  description: 'Generate stunning videos in seconds with our optimized AI pipeline.'
+                },
+                {
+                  icon: Layers,
+                  title: 'Cinematic Quality',
+                  description: 'Professional-grade output with smooth motion and stylized scenes.'
+                },
+                {
+                  icon: Globe,
+                  title: 'Multiple Formats',
+                  description: 'Download in MP4, WebM, or GIF ready for any platform.'
+                }
+              ].map((feature) => (
+                <div key={feature.title} className="text-center p-6 rounded-2xl border border-border/40 bg-card/60 hover:bg-card hover:border-primary/30 transition-all group">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/15 transition-colors">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA Button */}
+            <div className="text-center mt-10">
+              <Link
+                href="/studio"
+                className="group inline-flex items-center gap-2.5 rounded-full bg-primary px-8 py-4 text-base font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] shadow-lg shadow-primary/25"
+              >
+                Create Your First Video
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </section>
 
