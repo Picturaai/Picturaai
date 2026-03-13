@@ -203,37 +203,44 @@ export async function POST(request: Request) {
     const shouldTryAlibabaFirst = true
 
     if (shouldTryAlibabaFirst) {
-      const qwenImage = await generateWithQwenImageGenEdit(prompt, sourceImageUrl) || await generateWithQwenEdit(prompt, sourceImageUrl)
-      if (qwenImage) {
-        const imageResponse = await fetch(qwenImage)
-        if (imageResponse.ok) {
-          const imageBuffer = await imageResponse.arrayBuffer()
-          const timestamp = Date.now()
-          const filename = `pictura/image-to-image/${timestamp}-qwen-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
-          const blob = await uploadObject(filename, imageBuffer, 'image/png')
-          const createdAt = new Date().toISOString()
-          await appendMediaToGallery(sessionId, {
-            url: blob.url,
-            prompt: prompt.trim(),
-            type: 'image-to-image',
-            mediaKind: 'image',
-            sourceImageUrl,
-            requestId: requestId || undefined,
-            createdAt,
-          })
-          await incrementUsage(sessionId, { role: adminSession?.role, ...requestContext })
-          const updatedRateLimitInfo = await getRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
-          return NextResponse.json({
-            url: blob.url,
-            prompt: prompt.trim(),
-            model,
-            type: 'image-to-image',
-            sourceImageUrl,
-            requestId: requestId || undefined,
-            createdAt,
-            rateLimitInfo: updatedRateLimitInfo,
-          })
+      const alibabaResults = [
+        await generateWithQwenImageGenEdit(prompt, sourceImageUrl),
+        await generateWithQwenEdit(prompt, sourceImageUrl),
+      ].filter((url): url is string => Boolean(url))
+
+      for (const transformedUrl of alibabaResults) {
+        const imageResponse = await fetch(transformedUrl)
+        if (!imageResponse.ok) {
+          console.log('[v0] img2img transformed image fetch failed:', imageResponse.status, transformedUrl)
+          continue
         }
+
+        const imageBuffer = await imageResponse.arrayBuffer()
+        const timestamp = Date.now()
+        const filename = `pictura/image-to-image/${timestamp}-qwen-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
+        const blob = await uploadObject(filename, imageBuffer, 'image/png')
+        const createdAt = new Date().toISOString()
+        await appendMediaToGallery(sessionId, {
+          url: blob.url,
+          prompt: prompt.trim(),
+          type: 'image-to-image',
+          mediaKind: 'image',
+          sourceImageUrl,
+          requestId: requestId || undefined,
+          createdAt,
+        })
+        await incrementUsage(sessionId, { role: adminSession?.role, ...requestContext })
+        const updatedRateLimitInfo = await getRateLimitInfo(sessionId, { role: adminSession?.role, ...requestContext })
+        return NextResponse.json({
+          url: blob.url,
+          prompt: prompt.trim(),
+          model,
+          type: 'image-to-image',
+          sourceImageUrl,
+          requestId: requestId || undefined,
+          createdAt,
+          rateLimitInfo: updatedRateLimitInfo,
+        })
       }
     }
 
