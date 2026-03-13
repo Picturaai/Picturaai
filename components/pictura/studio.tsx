@@ -476,6 +476,11 @@ export function Studio() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLDivElement>(null)
 
+  const completeLoadingAndSettle = useCallback(async () => {
+    setLoadingProgress(100)
+    await new Promise((resolve) => setTimeout(resolve, 350))
+  }, [])
+
   const clientFingerprint = useMemo(() => {
     if (typeof window === 'undefined') return ''
 
@@ -537,7 +542,7 @@ export function Studio() {
 
   useEffect(() => {
     if (!loading || !pendingGeneration) {
-      setLoadingProgress(8)
+      setLoadingProgress(18)
       return
     }
 
@@ -547,8 +552,8 @@ export function Studio() {
       const elapsed = Date.now() - new Date(pendingGeneration.startedAt).getTime()
       const normalized = Math.max(0, Math.min(1, elapsed / ttlMs))
       const progress = pendingGeneration.mode === 'video'
-        ? Math.min(96, Math.max(8, Math.round(8 + (1 - Math.exp(-normalized * 5.2)) * 88)))
-        : Math.min(96, Math.max(8, Math.round(8 + (1 - Math.exp(-normalized * 4.3)) * 88)))
+        ? Math.min(96, Math.max(18, Math.round(18 + (1 - Math.exp(-normalized * 5.2)) * 78)))
+        : Math.min(96, Math.max(18, Math.round(18 + (1 - Math.exp(-normalized * 4.3)) * 78)))
       setLoadingProgress(progress)
     }
 
@@ -836,6 +841,7 @@ export function Studio() {
                 if (resolvedKind === 'video') {
                   setGeneratedVideoUrl(resolved.url)
                 }
+                await completeLoadingAndSettle()
                 setLoading(false)
                 setActiveGenerationMode(null)
                 setLoadingPrompt('')
@@ -864,7 +870,7 @@ export function Studio() {
     } catch {
       window.localStorage.removeItem(PENDING_GENERATION_KEY)
     }
-  }, [fetchRateLimit, fetchVideoRateLimit, findResolvedGeneration])
+  }, [fetchRateLimit, fetchVideoRateLimit, findResolvedGeneration, completeLoadingAndSettle])
 
   useEffect(() => {
     setMounted(true)
@@ -912,6 +918,7 @@ export function Studio() {
             if ((resolved.mediaKind ?? (resolved.type === 'text-to-video' ? 'video' : 'image')) === 'video') {
               setGeneratedVideoUrl(resolved.url)
             }
+            await completeLoadingAndSettle()
             setLoading(false)
             setActiveGenerationMode(null)
             setLoadingPrompt('')
@@ -958,7 +965,7 @@ export function Studio() {
       cancelled = true
       clearInterval(interval)
     }
-  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration, fetchRateLimit, fetchVideoRateLimit])
+  }, [pendingGeneration, buildAuthHeaders, clearPendingGeneration, findResolvedGeneration, fetchRateLimit, fetchVideoRateLimit, completeLoadingAndSettle])
 
   // Close model dropdown when clicking outside
   useEffect(() => {
@@ -1095,6 +1102,7 @@ export function Studio() {
       }
 
       if (modeAtSubmit === 'video') {
+        await completeLoadingAndSettle()
         setGeneratedVideoUrl(data.url)
         const videoItem: GeneratedMedia = { ...data, mediaKind: 'video' }
         setImages((prev) => dedupeMedia([videoItem, ...prev]))
@@ -1103,6 +1111,7 @@ export function Studio() {
         toast.success('Video generated!')
 
       } else {
+        await completeLoadingAndSettle()
         const imageItem: GeneratedMedia = { ...data, mediaKind: 'image' }
         setImages((prev) => dedupeMedia([imageItem, ...prev]))
         
@@ -1337,8 +1346,12 @@ export function Studio() {
                 />
               </svg>
             </div>
-            <span className="text-xs font-semibold text-foreground">{hasUnlimited ? 'Unlimited' : currentLimitInfo.remaining}</span>
-            <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>
+            {!hasUnlimited && (
+              <>
+                <span className="text-xs font-semibold text-foreground">{currentLimitInfo.remaining}</span>
+                <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>
+              </>
+            )}
           </div>
 
           {/* Gallery button */}
