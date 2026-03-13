@@ -49,7 +49,7 @@ const features = [
   {
     icon: Check,
     title: 'Same Free Tier',
-    description: 'Still free during beta with 5 generations per day. No credit card required.',
+    description: 'Still free during beta with unlimited image generations. No credit card required.',
   },
 ]
 
