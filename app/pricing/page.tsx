@@ -20,7 +20,7 @@ const included = [
   { icon: Download, label: 'Full resolution downloads' },
   { icon: Globe, label: 'No sign-up required' },
   { icon: Shield, label: 'Safe and moderated content' },
-  { icon: Clock, label: '5 generations per day' },
+  { icon: Clock, label: 'Unlimited image generations' },
 ]
 
 const faq = [
@@ -34,7 +34,7 @@ const faq = [
   },
   {
     q: 'Why is there a daily limit?',
-    a: 'During beta, we limit usage to 5 images per day per user to ensure fair access for everyone while we scale our infrastructure. This limit will increase over time.',
+    a: 'Image generation is currently unlimited during beta. Video generation still has fair-use limits while we scale infrastructure.',
   },
   {
     q: 'When will the API be available?',

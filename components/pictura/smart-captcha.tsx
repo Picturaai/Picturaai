@@ -249,6 +249,9 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   const holdStartRef = useRef<number>(0)
   const holdIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const pulseIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const verifyTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const analyzingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const wrongAnswerTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   // Behavior tracking
   const interactionsRef = useRef(0)
@@ -267,6 +270,15 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     }
   }, [])
   
+
+  useEffect(() => {
+    return () => {
+      if (verifyTimeoutRef.current) clearTimeout(verifyTimeoutRef.current)
+      if (analyzingTimeoutRef.current) clearTimeout(analyzingTimeoutRef.current)
+      if (wrongAnswerTimeoutRef.current) clearTimeout(wrongAnswerTimeoutRef.current)
+    }
+  }, [])
+
   // Cooldown timer
   useEffect(() => {
     if (cooldownTime > 0) {
@@ -322,7 +334,8 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
       (window as unknown as { __picturaLoadTime: number }).__picturaLoadTime = Date.now()
     }
 
-    setTimeout(() => {
+    if (analyzingTimeoutRef.current) clearTimeout(analyzingTimeoutRef.current)
+    analyzingTimeoutRef.current = setTimeout(() => {
       const stepsNeeded = analyzeRisk()
       setRequiredSteps(stepsNeeded)
       setCurrentStep(1)
@@ -349,7 +362,8 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     setAttempts(newAttempts)
     
     // Show correct answer for 2 seconds, then give new challenge
-    setTimeout(() => {
+    if (wrongAnswerTimeoutRef.current) clearTimeout(wrongAnswerTimeoutRef.current)
+    wrongAnswerTimeoutRef.current = setTimeout(() => {
       if (newAttempts >= 3) {
         setStatus('cooldown')
         setCooldownTime(60)
@@ -361,31 +375,42 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
   }, [attempts, resetChallenge, challenge])
   
   const handleCorrect = useCallback(() => {
+    if (verifyTimeoutRef.current) clearTimeout(verifyTimeoutRef.current)
+
+    const encodeToken = (payload: Record<string, unknown>) => {
+      try {
+        return window.btoa(JSON.stringify(payload))
+      } catch {
+        return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+      }
+    }
+
     if (currentStep < requiredSteps) {
       setStatus('verifying')
-      setTimeout(() => {
+      verifyTimeoutRef.current = setTimeout(() => {
         setCurrentStep(prev => prev + 1)
         resetChallenge()
         setStatus('challenge')
       }, 600)
-    } else {
-      setStatus('verifying')
-      setTimeout(() => { 
-        isVerifiedRef.current = true
-        setStatus('verified')
-        // Generate a base64-encoded token with full verification data
-        const tokenData = {
-          t: Date.now(),
-          s: siteKey,
-          i: interactionsRef.current,
-          v: true,
-          steps: requiredSteps,
-          r: Math.random().toString(36).substr(2, 9)
-        }
-        const token = Buffer.from(JSON.stringify(tokenData)).toString('base64')
-        onVerify?.(token) 
-      }, 800)
+      return
     }
+
+    setStatus('verifying')
+    verifyTimeoutRef.current = setTimeout(() => {
+      isVerifiedRef.current = true
+      setStatus('verified')
+
+      const tokenData = {
+        t: Date.now(),
+        s: siteKey,
+        i: interactionsRef.current,
+        v: true,
+        steps: requiredSteps,
+        r: Math.random().toString(36).slice(2, 11),
+      }
+      const token = encodeToken(tokenData)
+      onVerify?.(token)
+    }, 800)
   }, [onVerify, siteKey, currentStep, requiredSteps, resetChallenge])
   
   const checkAnswer = useCallback((answer?: string) => {
