@@ -546,14 +546,14 @@ export function Studio() {
       return
     }
 
-    const ttlMs = pendingGeneration.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+    const ttlMs = pendingGeneration.mode === 'video' ? 12 * 60_000 : 3 * 60_000
 
     const syncProgress = () => {
       const elapsed = Date.now() - new Date(pendingGeneration.startedAt).getTime()
       const normalized = Math.max(0, Math.min(1, elapsed / ttlMs))
       const progress = pendingGeneration.mode === 'video'
-        ? Math.min(96, Math.max(18, Math.round(18 + (1 - Math.exp(-normalized * 5.2)) * 78)))
-        : Math.min(96, Math.max(18, Math.round(18 + (1 - Math.exp(-normalized * 4.3)) * 78)))
+        ? Math.min(96, Math.max(24, Math.round(24 + (1 - Math.exp(-normalized * 5.6)) * 72)))
+        : Math.min(96, Math.max(24, Math.round(24 + (1 - Math.exp(-normalized * 4.8)) * 72)))
       setLoadingProgress(progress)
     }
 
@@ -946,7 +946,7 @@ export function Studio() {
         }
 
         const startedAt = new Date(pendingGeneration.startedAt).getTime()
-        const ttlMs = pendingGeneration.mode === 'video' ? 15 * 60_000 : 5 * 60_000
+        const ttlMs = pendingGeneration.mode === 'video' ? 12 * 60_000 : 3 * 60_000
         if (!cancelled && Date.now() - startedAt > ttlMs) {
           setLoading(false)
           setActiveGenerationMode(null)
@@ -962,8 +962,8 @@ export function Studio() {
 
     // Check immediately on mount
     checkStatus()
-    // Then poll every 4.5 seconds
-    const interval = setInterval(checkStatus, 4500)
+    // Then poll every 3 seconds for faster completion detection
+    const interval = setInterval(checkStatus, 3000)
 
     return () => {
       cancelled = true
@@ -1377,7 +1377,12 @@ export function Studio() {
                 />
               </svg>
             </div>
-            {!hasUnlimited && (
+            {hasUnlimited ? (
+              <>
+                <span className="hidden text-[10px] font-semibold uppercase tracking-wide text-primary sm:inline">Unlimited</span>
+                <span className="text-[10px] text-muted-foreground">∞</span>
+              </>
+            ) : (
               <>
                 <span className="text-xs font-semibold text-foreground">{currentLimitInfo.remaining}</span>
                 <span className="hidden text-[10px] text-muted-foreground sm:inline">left</span>

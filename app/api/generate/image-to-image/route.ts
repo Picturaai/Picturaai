@@ -11,8 +11,8 @@ function getAlibabaKey(): string | null {
 }
 
 async function pollQwenTask(apiKey: string, taskId: string): Promise<string | null> {
-  for (let i = 0; i < 30; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+  for (let i = 0; i < 40; i++) {
+    if (i > 0) await new Promise((resolve) => setTimeout(resolve, 1500))
     const response = await fetch(`https://dashscope-intl.aliyuncs.com/api/v1/tasks/${taskId}`, {
       headers: { Authorization: `Bearer ${apiKey}` },
     })
@@ -24,6 +24,22 @@ async function pollQwenTask(apiKey: string, taskId: string): Promise<string | nu
     if (out.task_status === 'FAILED' || out.task_status === 'CANCELED') return null
   }
   return null
+}
+
+async function generateViaInternalEditRoute(request: Request, prompt: string, sourceImageUrl: string): Promise<string | null> {
+  try {
+    const endpoint = new URL('/api/edit-image', request.url)
+    const response = await fetch(endpoint.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageUrl: sourceImageUrl, instruction: prompt.trim() }),
+    })
+    if (!response.ok) return null
+    const data = await response.json()
+    return typeof data?.url === 'string' ? data.url : null
+  } catch {
+    return null
+  }
 }
 
 function extractAlibabaImageUrl(out: Record<string, unknown> | null | undefined): string | null {
@@ -253,10 +269,11 @@ export async function POST(request: Request) {
     const shouldTryAlibabaFirst = true
 
     if (shouldTryAlibabaFirst) {
-      const alibabaResults = [
-        await generateWithQwenImageGenEdit(prompt, sourceCandidates),
-        await generateWithQwenEdit(prompt, sourceCandidates),
-      ].filter((url): url is string => Boolean(url))
+      const [imageGenResult, imageEditResult] = await Promise.all([
+        generateWithQwenImageGenEdit(prompt, sourceCandidates),
+        generateWithQwenEdit(prompt, sourceCandidates),
+      ])
+      const alibabaResults = [imageGenResult, imageEditResult].filter((url): url is string => Boolean(url))
 
       for (const transformedUrl of alibabaResults) {
         const imageBuffer = await resolveGeneratedImageBuffer(transformedUrl)
@@ -331,9 +348,16 @@ export async function POST(request: Request) {
     }
 
     if (!generatedImageUrl) {
+      const internalEditFallback = await generateViaInternalEditRoute(request, prompt, sourceImageUrl)
+      if (internalEditFallback) {
+        generatedImageUrl = internalEditFallback
+      }
+    }
+
+    if (!generatedImageUrl) {
       const configHint = !apiKey && !hasAlibabaKey
         ? 'No provider key found. Add ZYLABS_API_KEY or ALIBABA_API_KEY/DASHSCOPE_API_KEY.'
-        : 'Providers returned no usable image output. Please retry with a clearer prompt and a high-quality image.'
+        : 'Providers returned no usable image output. Please retry with a clearer prompt and a high-quality image. Edit-route fallback also returned no result.'
       return NextResponse.json(
         { error: 'Image transformation failed. Please try a different prompt or image.', details: configHint, fallbackUsed: allowLegacyFallback },
         { status: 500 }
