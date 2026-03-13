@@ -29,20 +29,37 @@ export function DownloadModal({
       if (!format) throw new Error('Format not found')
 
       if (formatId === 'svg') {
-        const img = new window.Image()
-        img.crossOrigin = 'anonymous'
-        img.onload = () => {
+        const blob = await convertImageFormat(imageUrl, 'png', 100)
+        const objectUrl = URL.createObjectURL(blob)
+
+        try {
+          const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+            const img = new window.Image()
+            img.onload = () => resolve({ width: img.width, height: img.height })
+            img.onerror = () => reject(new Error('Failed to load image for SVG export'))
+            img.src = objectUrl
+          })
+
+          const dataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '')
+            reader.onerror = () => reject(new Error('Failed to prepare SVG export'))
+            reader.readAsDataURL(blob)
+          })
+
           const svg = `
-            <svg width="${img.width}" height="${img.height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-              <image width="${img.width}" height="${img.height}" xlink:href="${imageUrl}" />
+            <svg width="${dimensions.width}" height="${dimensions.height}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <image width="${dimensions.width}" height="${dimensions.height}" xlink:href="${dataUrl}" />
             </svg>
           `.trim()
-          const blob = new Blob([svg], { type: 'image/svg+xml' })
-          downloadFile(blob, `${imageName}.${format.ext}`)
+
+          const svgBlob = new Blob([svg], { type: 'image/svg+xml' })
+          downloadFile(svgBlob, `${imageName}.${format.ext}`)
           setDownloadedFormats((prev) => new Set(prev).add(formatId))
           toast.success(`Downloaded as ${format.label}`)
+        } finally {
+          URL.revokeObjectURL(objectUrl)
         }
-        img.src = imageUrl
       } else {
         const quality = format.quality || 90
         const blob = await convertImageFormat(imageUrl, formatId, quality)
