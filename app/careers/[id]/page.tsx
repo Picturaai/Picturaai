@@ -343,30 +343,46 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
             </ul>
           </motion.section>
 
-          {/* Apply CTA */}
+          {/* Apply CTA - no card, clean */}
           <motion.section 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
             custom={5} 
             variants={fadeUp}
-            className="pt-4"
+            className="pt-6 border-t border-border/50"
           >
-            <div className="rounded-2xl border border-border/50 bg-card p-6 sm:p-8">
-              <h2 className="text-lg font-semibold text-foreground mb-2">
-                Interested in this role?
-              </h2>
-              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                We&apos;d love to hear from you. Submit your application and we&apos;ll review it carefully. Expect to hear back within 5-7 business days.
-              </p>
-              <Link
-                href={`/careers/${job.id}/apply`}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-              >
-                Apply now
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+            <h2 className="text-lg font-semibold text-foreground mb-2">
+              Interested in this{' '}
+              <span className="relative inline-block">
+                <span className="text-primary">role</span>
+                <svg
+                  className="absolute -bottom-0.5 left-0 w-full"
+                  viewBox="0 0 40 5"
+                  preserveAspectRatio="none"
+                  fill="none"
+                >
+                  <path
+                    d="M0 4 Q10 0 20 2.5 T40 1"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    className="text-primary/50"
+                  />
+                </svg>
+              </span>
+              ?
+            </h2>
+            <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
+              We&apos;d love to hear from you. Submit your application and we&apos;ll review it carefully.
+            </p>
+            <Link
+              href={`/careers/${job.id}/apply`}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              Apply now
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </motion.section>
         </div>
       </main>

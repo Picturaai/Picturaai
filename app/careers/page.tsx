@@ -149,7 +149,7 @@ export default function CareersPage() {
             >
               {[
                 { value: '10K+', label: 'Images' },
-                { value: '500+', label: 'Creators' },
+                { value: '3K+', label: 'Creators' },
                 { value: '100%', label: 'Remote' },
                 { value: String(jobs.length), label: 'Roles' },
               ].map((stat, i) => (
@@ -163,14 +163,14 @@ export default function CareersPage() {
         </section>
 
         <div className="mx-auto max-w-2xl px-6">
-          {/* Why Join - with icons, no cards */}
+          {/* Why Join - centered, clean */}
           <motion.section 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
             custom={1} 
             variants={fadeUp} 
-            className="py-14"
+            className="py-14 text-center"
           >
             <h2 className="text-lg font-semibold text-foreground">
               Why join{' '}
@@ -192,37 +192,35 @@ export default function CareersPage() {
                 </svg>
               </span>
             </h2>
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {perks.map((perk, i) => (
                 <motion.div 
                   key={perk.title}
                   custom={i + 1}
                   variants={fadeUp}
-                  className="flex items-start gap-3"
+                  className="flex flex-col items-center text-center"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                     <perk.icon className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
-                    <h3 className="relative inline-block text-sm font-semibold text-foreground">
-                      {perk.title}
-                      <svg
-                        className="absolute -bottom-0.5 left-0 w-full"
-                        viewBox="0 0 60 4"
-                        preserveAspectRatio="none"
-                        fill="none"
-                      >
-                        <path
-                          d="M0 3 Q15 0 30 2 T60 1"
-                          stroke="currentColor"
-                          strokeWidth="1"
-                          strokeLinecap="round"
-                          className="text-primary/30"
-                        />
-                      </svg>
-                    </h3>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{perk.desc}</p>
-                  </div>
+                  <h3 className="relative mt-3 inline-block text-sm font-semibold text-foreground">
+                    {perk.title}
+                    <svg
+                      className="absolute -bottom-0.5 left-0 w-full"
+                      viewBox="0 0 60 4"
+                      preserveAspectRatio="none"
+                      fill="none"
+                    >
+                      <path
+                        d="M0 3 Q15 0 30 2 T60 1"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                        strokeLinecap="round"
+                        className="text-primary/30"
+                      />
+                    </svg>
+                  </h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{perk.desc}</p>
                 </motion.div>
               ))}
             </div>
