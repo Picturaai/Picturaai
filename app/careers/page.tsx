@@ -172,7 +172,26 @@ export default function CareersPage() {
             variants={fadeUp} 
             className="py-14"
           >
-            <h2 className="text-lg font-semibold text-foreground">Why join us</h2>
+            <h2 className="text-lg font-semibold text-foreground">
+              Why join{' '}
+              <span className="relative inline-block">
+                <span className="text-primary">us</span>
+                <svg
+                  className="absolute -bottom-0.5 left-0 w-full"
+                  viewBox="0 0 40 6"
+                  preserveAspectRatio="none"
+                  fill="none"
+                >
+                  <path
+                    d="M0 5 Q10 0 20 3 T40 1"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    className="text-primary/50"
+                  />
+                </svg>
+              </span>
+            </h2>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
               {perks.map((perk, i) => (
                 <motion.div 
@@ -185,8 +204,24 @@ export default function CareersPage() {
                     <perk.icon className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-foreground">{perk.title}</h3>
-                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{perk.desc}</p>
+                    <h3 className="relative inline-block text-sm font-semibold text-foreground">
+                      {perk.title}
+                      <svg
+                        className="absolute -bottom-0.5 left-0 w-full"
+                        viewBox="0 0 60 4"
+                        preserveAspectRatio="none"
+                        fill="none"
+                      >
+                        <path
+                          d="M0 3 Q15 0 30 2 T60 1"
+                          stroke="currentColor"
+                          strokeWidth="1"
+                          strokeLinecap="round"
+                          className="text-primary/30"
+                        />
+                      </svg>
+                    </h3>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{perk.desc}</p>
                   </div>
                 </motion.div>
               ))}
@@ -291,7 +326,7 @@ export default function CareersPage() {
             </p>
             <Link
               href="mailto:careers@picturaai.sbs"
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary px-5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary/80"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Get in touch
               <ArrowRight className="h-3.5 w-3.5" />
