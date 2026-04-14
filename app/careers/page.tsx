@@ -134,30 +134,34 @@ export default function CareersPage() {
           </div>
         </section>
 
-        {/* Stats */}
-        <section className="py-12 sm:py-14 border-y border-border/50 bg-muted/30">
-          <div className="mx-auto max-w-3xl px-6">
+        {/* Stats - Clean Infographic */}
+        <section className="py-16 sm:py-20">
+          <div className="mx-auto max-w-4xl px-6">
             <motion.div 
               initial="hidden" 
               whileInView="visible" 
               viewport={{ once: true }}
-              className="grid grid-cols-2 gap-8 sm:grid-cols-4"
+              className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-4"
             >
               {[
-                { icon: Image, value: '10K+', label: 'Images Generated' },
-                { icon: Users, value: '3K+', label: 'Creators' },
-                { icon: Globe, value: '100%', label: 'Remote' },
-                { icon: Briefcase, value: String(jobs.length), label: 'Open Roles' },
+                { icon: Image, value: '10K+', label: 'Images Generated', color: 'from-primary/20 to-primary/5' },
+                { icon: Users, value: '3K+', label: 'Active Creators', color: 'from-primary/20 to-primary/5' },
+                { icon: Globe, value: '100%', label: 'Remote Team', color: 'from-primary/20 to-primary/5' },
+                { icon: Briefcase, value: String(jobs.length), label: 'Open Roles', color: 'from-primary/20 to-primary/5' },
               ].map((stat, i) => (
                 <motion.div 
                   key={stat.label} 
                   custom={i} 
                   variants={fadeUp} 
-                  className="text-center"
+                  className="relative group"
                 >
-                  <stat.icon className="h-5 w-5 text-primary mx-auto mb-2" />
-                  <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">{stat.value}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
+                  <div className={`rounded-2xl bg-gradient-to-br ${stat.color} p-6 text-center transition-all hover:shadow-md`}>
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 mb-3">
+                      <stat.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{stat.value}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
@@ -172,29 +176,29 @@ export default function CareersPage() {
             viewport={{ once: true }} 
             custom={1} 
             variants={fadeUp} 
-            className="py-14 sm:py-16 text-center"
+            className="py-16 sm:py-20 text-center"
           >
-            <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
+            <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
               Why join{' '}
               <span className="relative inline-block">
                 <span className="text-primary">us</span>
                 <svg
-                  className="absolute -bottom-0.5 left-0 w-full"
-                  viewBox="0 0 30 5"
+                  className="absolute -bottom-1 left-0 w-full"
+                  viewBox="0 0 30 6"
                   preserveAspectRatio="none"
                   fill="none"
                 >
                   <path
-                    d="M0 4 Q7 0 15 2.5 T30 1"
+                    d="M0 5 Q7 0 15 3 T30 1"
                     stroke="currentColor"
-                    strokeWidth="1.5"
+                    strokeWidth="2"
                     strokeLinecap="round"
                     className="text-primary/50"
                   />
                 </svg>
               </span>
             </h2>
-            <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
               {perks.map((perk, i) => (
                 <motion.div 
                   key={perk.title}
@@ -202,13 +206,13 @@ export default function CareersPage() {
                   variants={fadeUp}
                   className="flex flex-col items-center text-center"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <perk.icon className="h-5 w-5 text-primary" />
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                    <perk.icon className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="mt-4 text-base font-semibold text-foreground">
+                  <h3 className="mt-5 text-lg font-semibold text-foreground">
                     {perk.title}
                   </h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{perk.desc}</p>
+                  <p className="mt-2 text-base text-muted-foreground">{perk.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -294,7 +298,7 @@ export default function CareersPage() {
                             {job.location}
                           </div>
                         </div>
-                        <ArrowRight className="h-5 w-5 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                        <ArrowRight className="h-5 w-5 text-primary/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
                       </div>
                     </article>
                   </Link>
