@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, MapPin, Globe, Users, Heart, Briefcase, Coffee, Shield } from 'lucide-react'
+import { ArrowRight, MapPin } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
@@ -69,15 +69,6 @@ const jobs = [
   },
 ]
 
-const perks = [
-  { icon: Globe, label: 'Remote First', description: 'Work from anywhere in the world' },
-  { icon: Briefcase, label: 'Equity', description: 'Own a piece of what you build' },
-  { icon: Heart, label: 'Health', description: 'Comprehensive health coverage' },
-  { icon: Coffee, label: 'Flexible Hours', description: 'Work on your own schedule' },
-  { icon: Shield, label: 'Unlimited PTO', description: 'Take the time you need' },
-  { icon: Users, label: 'Great Team', description: 'Work with talented people' },
-]
-
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   visible: (i: number) => ({
@@ -103,16 +94,16 @@ export default function CareersPage() {
           <div className="absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,var(--primary)/0.12,transparent_70%)]" />
         </div>
         
-        <div className="mx-auto max-w-2xl px-6 pt-32 pb-14 sm:pt-40 sm:pb-16">
+        <div className="mx-auto max-w-2xl px-6 pt-32 pb-12 sm:pt-36 sm:pb-14">
           <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp} className="text-center">
-            <PicturaIcon size={44} className="mx-auto mb-6" />
-            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6">
+            <PicturaIcon size={40} className="mx-auto mb-5" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-5">
               We&apos;re hiring
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-5">
-              Join Pictura
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl mb-4">
+              Join <span className="text-primary">Pictura</span>
             </h1>
-            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto text-balance">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
               Help us build the future of AI-powered creativity. We&apos;re a small, remote team based in Nigeria with big ambitions.
             </p>
           </motion.div>
@@ -121,16 +112,16 @@ export default function CareersPage() {
 
       {/* Stats */}
       <section className="border-b border-border/40">
-        <div className="mx-auto max-w-3xl px-6 py-14 sm:py-16">
+        <div className="mx-auto max-w-2xl px-6 py-12 sm:py-14">
           <motion.div 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
-            className="grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-10"
+            className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8"
           >
             {[
-              { value: '10M+', label: 'Images Generated' },
-              { value: '500K+', label: 'Creators' },
+              { value: '10K+', label: 'Images Generated' },
+              { value: '500+', label: 'Creators' },
               { value: '100%', label: 'Remote Team' },
               { value: String(jobs.length), label: 'Open Roles' },
             ].map((stat, i) => (
@@ -140,51 +131,57 @@ export default function CareersPage() {
                 variants={fadeUp}
                 className="text-center"
               >
-                <p className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">{stat.value}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1.5">{stat.label}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs text-muted-foreground mt-1">{stat.label}</p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Perks */}
+      {/* Why Join - Clean horizontal layout */}
       <section className="border-b border-border/40">
-        <div className="mx-auto max-w-3xl px-6 py-14 sm:py-16">
+        <div className="mx-auto max-w-3xl px-6 py-12 sm:py-14">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>
             <h2 className="text-lg font-semibold text-foreground text-center mb-8">Why join us</h2>
           </motion.div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6">
-            {perks.map((perk, i) => (
+          <motion.div 
+            initial="hidden" 
+            whileInView="visible" 
+            viewport={{ once: true }}
+            className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3"
+          >
+            {[
+              { title: 'Remote First', desc: 'Work from anywhere' },
+              { title: 'Equity', desc: 'Own what you build' },
+              { title: 'Health Coverage', desc: 'Comprehensive benefits' },
+              { title: 'Flexible Hours', desc: 'Your schedule, your way' },
+              { title: 'Unlimited PTO', desc: 'Rest when you need' },
+              { title: 'Great Team', desc: 'Talented colleagues' },
+            ].map((perk, i) => (
               <motion.div
-                key={perk.label}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
+                key={perk.title}
                 custom={i + 1}
                 variants={fadeUp}
-                className="rounded-xl border border-border/50 bg-card p-4 sm:p-5 transition-colors hover:border-primary/20"
+                className="text-center sm:text-left"
               >
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                  <perk.icon className="h-4 w-4 text-primary" />
-                </div>
-                <h3 className="text-sm font-semibold text-foreground mb-1">{perk.label}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{perk.description}</p>
+                <h3 className="text-sm font-medium text-foreground">{perk.title}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{perk.desc}</p>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Department Filter */}
       <div className="sticky top-0 z-30 border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="mx-auto max-w-2xl px-6">
-          <div className="flex items-center justify-center gap-1 sm:gap-2 py-3 overflow-x-auto scrollbar-hide -mx-6 px-6">
+          <div className="flex items-center justify-center gap-1 py-3 overflow-x-auto scrollbar-hide -mx-6 px-6">
             {DEPARTMENTS.map((dept) => (
               <button
                 key={dept}
                 onClick={() => setActiveDepartment(dept)}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                   activeDepartment === dept
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
@@ -198,8 +195,8 @@ export default function CareersPage() {
       </div>
 
       {/* Job Listings */}
-      <main className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
-        <div className="flex items-center justify-between mb-6">
+      <main className="mx-auto max-w-2xl px-6 py-10 sm:py-14">
+        <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold text-foreground">
             {activeDepartment === 'All' ? 'Open positions' : activeDepartment}
           </h2>
@@ -217,30 +214,28 @@ export default function CareersPage() {
               transition={{ delay: 0.05 + i * 0.03 }}
             >
               <Link href={`/careers/${job.id}`}>
-                <article className="group rounded-xl border border-border/50 bg-card p-5 sm:p-6 transition-all hover:border-primary/30 hover:shadow-sm">
+                <article className="group rounded-xl border border-border/50 bg-card p-5 transition-all hover:border-primary/20 hover:shadow-sm">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] sm:text-xs font-semibold text-primary uppercase tracking-wider">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[10px] font-medium text-primary uppercase tracking-wider">
                           {job.department}
                         </span>
-                        <span className="hidden sm:inline h-1 w-1 rounded-full bg-border" />
-                        <span className="hidden sm:inline text-xs text-muted-foreground">{job.type}</span>
+                        <span className="h-1 w-1 rounded-full bg-border" />
+                        <span className="text-[10px] text-muted-foreground">{job.type}</span>
                       </div>
-                      <h3 className="text-sm sm:text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      <h3 className="text-sm font-semibold text-foreground mb-1.5 group-hover:text-primary transition-colors">
                         {job.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
                         {job.description}
                       </p>
-                      <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-1 mt-2.5 text-[11px] text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
                         {job.location}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 pt-1">
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
                   </div>
                 </article>
               </Link>
@@ -249,7 +244,7 @@ export default function CareersPage() {
         </div>
 
         {filteredJobs.length === 0 && (
-          <div className="text-center py-16 rounded-xl border border-border/50 bg-card">
+          <div className="text-center py-14 rounded-xl border border-border/50 bg-card">
             <p className="text-sm text-muted-foreground">
               No open positions in {activeDepartment} right now.
             </p>
@@ -258,25 +253,24 @@ export default function CareersPage() {
       </main>
 
       {/* CTA */}
-      <section className="border-t border-border/40 bg-secondary/30">
-        <div className="mx-auto max-w-2xl px-6 py-16 sm:py-20">
+      <section className="border-t border-border/40">
+        <div className="mx-auto max-w-2xl px-6 py-14 sm:py-16 text-center">
           <motion.div 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
             custom={0} 
             variants={fadeUp}
-            className="text-center"
           >
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
+            <h2 className="text-lg font-semibold text-foreground mb-2">
               Don&apos;t see your role?
             </h2>
-            <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto leading-relaxed">
               We&apos;re always looking for talented people. Send us your resume and we&apos;ll keep you in mind for future opportunities.
             </p>
             <Link
               href="mailto:careers@picturaai.sbs"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-secondary hover:bg-secondary/80 text-foreground text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary text-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
             >
               Get in touch
               <ArrowRight className="h-4 w-4" />
