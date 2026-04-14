@@ -33,9 +33,12 @@ const UNLIMITED_THRESHOLD = 900000
 
 
 const VIDEO_LOADING_HINTS = [
-  'Adding audio layers and cinematic timing...',
-  'Enhancing motion and scene continuity...',
-  'Almost ready — final rendering in progress...',
+  'Analyzing your prompt and setting the scene...',
+  'Generating initial frames and establishing motion...',
+  'Adding cinematic motion and camera movement...',
+  'Enhancing visual quality and color grading...',
+  'Refining details and scene continuity...',
+  'Final rendering in progress — almost there...',
 ]
 const TOUR_STEPS = [
   {
@@ -1483,20 +1486,55 @@ export function Studio() {
 
               {mode === 'video' ? (
                 <div className="mt-5 sm:mt-7 w-full" data-tour="suggestions">
+                  {/* Video Feature Highlights */}
+                  <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
+                    <div className="flex flex-col items-center gap-1.5 rounded-xl border border-border/30 bg-background/50 p-2.5 sm:p-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                        <Clapperboard className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-center text-[10px] sm:text-xs font-medium text-foreground">HD Quality</span>
+                      <span className="text-[9px] sm:text-[10px] text-muted-foreground/70">1280x720</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1.5 rounded-xl border border-border/30 bg-background/50 p-2.5 sm:p-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                        <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+                      </div>
+                      <span className="text-center text-[10px] sm:text-xs font-medium text-foreground">15 Seconds</span>
+                      <span className="text-[9px] sm:text-[10px] text-muted-foreground/70">Duration</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1.5 rounded-xl border border-border/30 bg-background/50 p-2.5 sm:p-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                        <Wand2 className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-center text-[10px] sm:text-xs font-medium text-foreground">AI Motion</span>
+                      <span className="text-[9px] sm:text-[10px] text-muted-foreground/70">Smart movement</span>
+                    </div>
+                  </div>
+
+                  {/* Prompt Suggestions */}
+                  <p className="mb-2.5 text-[10px] sm:text-xs font-medium uppercase tracking-wider text-muted-foreground/60">Try these prompts</p>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {visibleVideoExamples.map((suggestion) => (
+                    {visibleVideoExamples.map((suggestion, idx) => (
                       <button
                         key={suggestion}
                         onClick={() => handleSetPrompt(suggestion)}
-                        className="rounded-xl sm:rounded-2xl border border-border/50 bg-background px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-sm leading-relaxed text-muted-foreground transition-all hover:border-primary/30 hover:bg-card hover:text-foreground"
+                        className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-border/50 bg-background px-3 py-2.5 sm:px-4 sm:py-3 text-left text-xs sm:text-sm leading-relaxed text-muted-foreground transition-all hover:border-primary/30 hover:bg-card hover:text-foreground"
                       >
-                        {suggestion}
+                        <span className="absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary opacity-60 group-hover:opacity-100 transition-opacity">{idx + 1}</span>
+                        <span className="pl-6">{suggestion}</span>
                       </button>
                     ))}
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground/80">
-                    Video duration is currently set to <strong className="text-foreground">15 seconds</strong> by default.
-                  </p>
+                  
+                  {/* Tips */}
+                  <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 sm:px-4 sm:py-3">
+                    <p className="flex items-start gap-2 text-[11px] sm:text-xs text-muted-foreground">
+                      <Info className="h-3.5 w-3.5 flex-shrink-0 text-primary mt-0.5" />
+                      <span>
+                        <strong className="text-foreground">Pro tip:</strong> Include camera movements like &quot;slow pan&quot;, &quot;dolly shot&quot;, or &quot;aerial view&quot; for more cinematic results.
+                      </span>
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="mt-6 sm:mt-8 flex flex-wrap justify-center gap-2 px-2" data-tour="suggestions">
@@ -1567,76 +1605,141 @@ export function Studio() {
             </AnimatePresence>
 
             {mode === 'video' ? (
-              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                {videoItems.map((video, i) => (
+              <div className="space-y-6">
+                {/* Featured Latest Video */}
+                {videoItems.length > 0 && (
                   <motion.div
-                    key={`${video.url}-${video.createdAt}-${i}`}
-                    data-tour={i === 0 ? 'video-result' : undefined}
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: i * 0.04 }}
-                    className="overflow-hidden rounded-2xl border border-border/30 bg-card"
+                    transition={{ duration: 0.4 }}
+                    data-tour="video-result"
+                    className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg"
                   >
-                    <div className="relative aspect-video bg-muted/30">
-                      <video src={video.url} controls className="h-full w-full" />
-                      <div className="pointer-events-none absolute right-2 top-2 rounded-lg bg-black/35 p-1.5 backdrop-blur-sm">
-                        <PicturaIcon size={14} />
+                    <div className="relative aspect-video bg-black/5">
+                      <video 
+                        src={videoItems[0].url} 
+                        controls 
+                        className="h-full w-full"
+                        poster=""
+                      />
+                      <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-lg bg-primary/90 px-2.5 py-1 backdrop-blur-sm">
+                        <Clapperboard className="h-3.5 w-3.5 text-primary-foreground" />
+                        <span className="text-[10px] font-semibold text-primary-foreground">Latest</span>
+                      </div>
+                      <div className="pointer-events-none absolute right-3 top-3 rounded-lg bg-black/40 p-1.5 backdrop-blur-sm">
+                        <PicturaIcon size={16} />
                       </div>
                     </div>
-                    <div className="px-4 pb-4 pt-3">
-                      <p className="line-clamp-2 text-[13px] leading-relaxed text-foreground">{video.prompt}</p>
-                      <div className="mt-2.5 flex items-center gap-1.5">
-                        <span className="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                          Text to Video
+                    <div className="p-4 sm:p-5">
+                      <p className="text-sm sm:text-base leading-relaxed text-foreground">{videoItems[0].prompt}</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] sm:text-xs font-medium text-primary">
+                          <Clapperboard className="h-3 w-3" />
+                          PicturaGen
                         </span>
-                        <span className="text-[10px] font-mono text-muted-foreground/50">{new Date(video.createdAt).toLocaleDateString()}</span>
+                        <span className="rounded-full bg-secondary px-2.5 py-1 text-[10px] sm:text-xs font-medium text-muted-foreground">HD 1280x720</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground/60">{new Date(videoItems[0].createdAt).toLocaleString()}</span>
                       </div>
-                      <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3">
-                        <div className="flex items-center gap-1.5">
+                      <div className="mt-4 flex items-center justify-between border-t border-border/30 pt-4">
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleFeedback(video.url, 'up')}
-                            className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
-                              feedbackMap[video.url] === 'up'
-                                ? 'bg-primary/10 text-primary'
-                                : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
+                            onClick={() => handleFeedback(videoItems[0].url, 'up')}
+                            className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all ${
+                              feedbackMap[videoItems[0].url] === 'up'
+                                ? 'bg-primary/15 text-primary'
+                                : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
                             }`}
                             aria-label="Like this video"
-                            title="Like"
                           >
-                            <ThumbsUp className="h-3 w-3" />
+                            <ThumbsUp className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Like</span>
                           </button>
                           <button
-                            onClick={() => handleFeedback(video.url, 'down')}
-                            className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-[10px] font-medium transition-all ${
-                              feedbackMap[video.url] === 'down'
-                                ? 'bg-destructive/10 text-destructive'
-                                : 'text-muted-foreground/70 hover:bg-secondary hover:text-foreground'
+                            onClick={() => handleFeedback(videoItems[0].url, 'down')}
+                            className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-all ${
+                              feedbackMap[videoItems[0].url] === 'down'
+                                ? 'bg-destructive/15 text-destructive'
+                                : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
                             }`}
                             aria-label="Dislike this video"
-                            title="Needs work"
                           >
-                            <ThumbsDown className="h-3 w-3" />
+                            <ThumbsDown className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            onClick={() => handleCopyPrompt(video.prompt)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
-                            aria-label="Copy video prompt"
-                            title="Copy prompt"
+                            onClick={() => handleCopyPrompt(videoItems[0].prompt)}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-secondary px-3 text-xs font-medium text-muted-foreground transition-all hover:bg-secondary/80 hover:text-foreground"
+                            aria-label="Copy prompt"
                           >
                             <Copy className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Copy</span>
                           </button>
                         </div>
                         <button
-                          onClick={() => { setGeneratedVideoUrl(video.url); setVideoDownloadModalOpen(true) }}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/40 transition-all hover:bg-secondary hover:text-foreground"
+                          onClick={() => { setGeneratedVideoUrl(videoItems[0].url); setVideoDownloadModalOpen(true) }}
+                          className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground transition-all hover:bg-primary/90"
                           aria-label="Download video"
                         >
                           <Download className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Download</span>
                         </button>
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                )}
+
+                {/* Previous Videos Grid */}
+                {videoItems.length > 1 && (
+                  <div>
+                    <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground/60">Previous Videos</p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {videoItems.slice(1).map((video, i) => (
+                        <motion.div
+                          key={`${video.url}-${video.createdAt}-${i}`}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: i * 0.05 }}
+                          className="group overflow-hidden rounded-xl border border-border/40 bg-card transition-all hover:border-border/60 hover:shadow-md"
+                        >
+                          <div className="relative aspect-video bg-muted/30">
+                            <video src={video.url} controls className="h-full w-full" />
+                            <div className="pointer-events-none absolute right-2 top-2 rounded-md bg-black/40 p-1 backdrop-blur-sm">
+                              <PicturaIcon size={12} />
+                            </div>
+                          </div>
+                          <div className="p-3">
+                            <p className="line-clamp-2 text-xs leading-relaxed text-foreground">{video.prompt}</p>
+                            <div className="mt-2 flex items-center justify-between">
+                              <span className="text-[10px] text-muted-foreground/50">{new Date(video.createdAt).toLocaleDateString()}</span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => handleFeedback(video.url, 'up')}
+                                  className={`h-6 w-6 rounded-md transition-all ${feedbackMap[video.url] === 'up' ? 'bg-primary/15 text-primary' : 'text-muted-foreground/50 hover:bg-secondary hover:text-foreground'}`}
+                                  aria-label="Like"
+                                >
+                                  <ThumbsUp className="mx-auto h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleCopyPrompt(video.prompt)}
+                                  className="h-6 w-6 rounded-md text-muted-foreground/50 transition-all hover:bg-secondary hover:text-foreground"
+                                  aria-label="Copy prompt"
+                                >
+                                  <Copy className="mx-auto h-3 w-3" />
+                                </button>
+                                <button
+                                  onClick={() => { setGeneratedVideoUrl(video.url); setVideoDownloadModalOpen(true) }}
+                                  className="h-6 w-6 rounded-md text-muted-foreground/50 transition-all hover:bg-secondary hover:text-foreground"
+                                  aria-label="Download"
+                                >
+                                  <Download className="mx-auto h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

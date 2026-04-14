@@ -52,6 +52,28 @@ async function fileToDataUrl(file: File): Promise<string> {
   return `data:${contentType};base64,${Buffer.from(bytes).toString('base64')}`
 }
 
+async function persistVideoToStorage(temporaryUrl: string): Promise<string> {
+  try {
+    const response = await fetch(temporaryUrl)
+    if (!response.ok) {
+      console.error('Failed to fetch video for persistence:', response.status)
+      return temporaryUrl
+    }
+
+    const videoBuffer = await response.arrayBuffer()
+    const timestamp = Date.now()
+    const randomId = Math.random().toString(36).slice(2, 10)
+    const filename = `pictura/videos/${timestamp}-${randomId}.mp4`
+
+    const { url: persistedUrl } = await uploadObject(filename, videoBuffer, 'video/mp4')
+    console.log('Video persisted to storage:', persistedUrl)
+    return persistedUrl
+  } catch (error) {
+    console.error('Error persisting video to storage:', error)
+    return temporaryUrl
+  }
+}
+
 async function generateWithAlibabaVideo(prompt: string, imageInputs?: string[] | null, preferredModel?: string | null): Promise<string> {
   const apiKey = getAlibabaApiKey()
   if (!apiKey) throw new Error('Alibaba API not configured')
@@ -110,10 +132,13 @@ async function generateWithAlibabaVideo(prompt: string, imageInputs?: string[] |
 
       const data = (await res.json()) as AlibabaTaskResponse
       const taskId = data.output?.task_id
-      if (taskId) return pollVideoTask(apiKey, taskId)
+      if (taskId) {
+        const temporaryUrl = await pollVideoTask(apiKey, taskId)
+        return persistVideoToStorage(temporaryUrl)
+      }
 
       const directUrl = data.output?.video_url || data.output?.video || data.output?.url || data.output?.results?.[0]?.video_url || data.output?.results?.[0]?.url
-      if (directUrl) return directUrl
+      if (directUrl) return persistVideoToStorage(directUrl)
     }
 
     lastError = `model=${model} returned no task_id/video_url`
