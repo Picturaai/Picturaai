@@ -138,26 +138,76 @@ export default function CareersPage() {
           </div>
         </section>
 
-        {/* Stats */}
-        <section className="border-y border-border/40 bg-secondary/30">
-          <div className="mx-auto max-w-2xl px-6 py-10">
+        {/* Stats - Infographic Style */}
+        <section className="py-16 sm:py-20">
+          <div className="mx-auto max-w-3xl px-6">
             <motion.div 
               initial="hidden" 
               whileInView="visible" 
-              viewport={{ once: true }} 
-              className="grid grid-cols-2 gap-6 sm:grid-cols-4"
+              viewport={{ once: true }}
+              className="relative"
             >
-              {[
-                { value: '10K+', label: 'Images' },
-                { value: '3K+', label: 'Creators' },
-                { value: '100%', label: 'Remote' },
-                { value: String(jobs.length), label: 'Roles' },
-              ].map((stat, i) => (
-                <motion.div key={stat.label} custom={i} variants={fadeUp} className="text-center">
-                  <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{stat.label}</p>
+              {/* Connecting line */}
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/20 to-transparent hidden sm:block" />
+              
+              <div className="grid grid-cols-2 gap-8 sm:gap-12">
+                {/* Images Generated */}
+                <motion.div custom={0} variants={fadeUp} className="relative flex flex-col items-end text-right sm:pr-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <path d="M21 15l-5-5L5 21" />
+                    </svg>
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">10K+</p>
+                  <p className="text-xs text-muted-foreground mt-1">Images Generated</p>
+                  <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-r from-primary/60 to-primary/20 ml-auto" />
                 </motion.div>
-              ))}
+
+                {/* Creators */}
+                <motion.div custom={1} variants={fadeUp} className="relative flex flex-col items-start text-left sm:pl-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">3K+</p>
+                  <p className="text-xs text-muted-foreground mt-1">Active Creators</p>
+                  <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-l from-primary/60 to-primary/20" />
+                </motion.div>
+
+                {/* Remote */}
+                <motion.div custom={2} variants={fadeUp} className="relative flex flex-col items-end text-right sm:pr-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Globe className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">100%</p>
+                  <p className="text-xs text-muted-foreground mt-1">Remote Team</p>
+                  <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-r from-primary/60 to-primary/20 ml-auto" />
+                </motion.div>
+
+                {/* Open Roles */}
+                <motion.div custom={3} variants={fadeUp} className="relative flex flex-col items-start text-left sm:pl-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="2" y="7" width="20" height="14" rx="2" />
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{jobs.length}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Open Roles</p>
+                  <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-l from-primary/60 to-primary/20" />
+                </motion.div>
+              </div>
+
+              {/* Center dot decoration */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden sm:block">
+                <div className="h-3 w-3 rounded-full bg-primary/30 ring-4 ring-primary/10" />
+              </div>
             </motion.div>
           </div>
         </section>
