@@ -512,25 +512,25 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
           </section>
 
           {/* Submit */}
-          <div className="pt-2">
+          <div className="pt-4">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 rounded-xl bg-primary text-primary-foreground text-sm font-semibold transition-all hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Submitting application...
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Submitting...
                 </>
               ) : (
                 <>
                   Submit Application
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}
             </button>
-            <p className="text-xs text-muted-foreground text-center mt-4 leading-relaxed">
+            <p className="text-[11px] text-muted-foreground mt-4 leading-relaxed">
               By submitting, you agree to our privacy policy and consent to Pictura processing your application data.
             </p>
           </div>
