@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, MapPin, Globe, Users, Heart, Zap, Coffee, Shield, Sparkles } from 'lucide-react'
+import { ArrowRight, MapPin, Globe, Users, Heart, Briefcase, Coffee, Shield } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
@@ -71,7 +71,7 @@ const jobs = [
 
 const perks = [
   { icon: Globe, label: 'Remote First', description: 'Work from anywhere in the world' },
-  { icon: Zap, label: 'Equity', description: 'Own a piece of what you build' },
+  { icon: Briefcase, label: 'Equity', description: 'Own a piece of what you build' },
   { icon: Heart, label: 'Health', description: 'Comprehensive health coverage' },
   { icon: Coffee, label: 'Flexible Hours', description: 'Work on your own schedule' },
   { icon: Shield, label: 'Unlimited PTO', description: 'Take the time you need' },
@@ -105,15 +105,14 @@ export default function CareersPage() {
         
         <div className="mx-auto max-w-2xl px-6 pt-32 pb-14 sm:pt-40 sm:pb-16">
           <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp} className="text-center">
-            <PicturaIcon size={44} className="mx-auto mb-5" />
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium mb-5">
-              <Sparkles className="h-3 w-3" />
+            <PicturaIcon size={44} className="mx-auto mb-6" />
+            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary/10 text-primary text-xs font-medium mb-6">
               We&apos;re hiring
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-5">
               Join Pictura
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-md mx-auto">
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto text-balance">
               Help us build the future of AI-powered creativity. We&apos;re a small, remote team based in Nigeria with big ambitions.
             </p>
           </motion.div>
@@ -121,13 +120,13 @@ export default function CareersPage() {
       </section>
 
       {/* Stats */}
-      <section className="border-b border-border/40 bg-secondary/20">
-        <div className="mx-auto max-w-2xl px-6 py-10">
+      <section className="border-b border-border/40">
+        <div className="mx-auto max-w-3xl px-6 py-14 sm:py-16">
           <motion.div 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
-            className="grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8"
+            className="grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-10"
           >
             {[
               { value: '10M+', label: 'Images Generated' },
@@ -141,8 +140,8 @@ export default function CareersPage() {
                 variants={fadeUp}
                 className="text-center"
               >
-                <p className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</p>
-                <p className="text-[11px] sm:text-xs text-muted-foreground mt-1">{stat.label}</p>
+                <p className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">{stat.value}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1.5">{stat.label}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -259,25 +258,25 @@ export default function CareersPage() {
       </main>
 
       {/* CTA */}
-      <section className="border-t border-border/40">
-        <div className="mx-auto max-w-2xl px-6 py-14 sm:py-16">
+      <section className="border-t border-border/40 bg-secondary/30">
+        <div className="mx-auto max-w-2xl px-6 py-16 sm:py-20">
           <motion.div 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
             custom={0} 
             variants={fadeUp}
-            className="rounded-2xl border border-border/50 bg-card p-6 sm:p-8 text-center"
+            className="text-center"
           >
-            <h2 className="text-lg font-semibold text-foreground mb-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">
               Don&apos;t see your role?
             </h2>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+            <p className="text-sm sm:text-base text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
               We&apos;re always looking for talented people. Send us your resume and we&apos;ll keep you in mind for future opportunities.
             </p>
             <Link
               href="mailto:careers@picturaai.sbs"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-secondary text-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-secondary hover:bg-secondary/80 text-foreground text-sm font-medium transition-colors"
             >
               Get in touch
               <ArrowRight className="h-4 w-4" />
