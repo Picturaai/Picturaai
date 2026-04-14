@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     const phone = formData.get('phone') as string
     const location = formData.get('location') as string
     const linkedin = formData.get('linkedin') as string || ''
-    const portfolio = formData.get('portfolio') as string || ''
+    const portfolioLink = formData.get('portfolio') as string || ''
     const experience = formData.get('experience') as string
     const startDate = formData.get('startDate') as string || 'Not specified'
     const coverLetter = formData.get('coverLetter') as string || ''
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       phone,
       location,
       linkedin,
-      portfolio,
+      portfolio: portfolioLink,
       experience,
       startDate,
       coverLetter,
