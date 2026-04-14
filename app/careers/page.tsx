@@ -3,12 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, MapPin, Globe, Rocket, Heart, Users } from 'lucide-react'
+import { ArrowRight, MapPin, Globe, Rocket, Heart, Users, ChevronDown, Image, Briefcase } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
-const DEPARTMENTS = ['All', 'Engineering', 'Design', 'Growth', 'Content']
+const DEPARTMENTS = ['All Departments', 'Engineering', 'Design', 'Growth', 'Content']
 
 const jobs = [
   {
@@ -77,44 +77,40 @@ const perks = [
 ]
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
     opacity: 1, y: 0,
-    transition: { duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.5, delay: i * 0.1, ease: [0.25, 0.46, 0.45, 0.94] },
   }),
 }
 
 export default function CareersPage() {
-  const [activeDepartment, setActiveDepartment] = useState('All')
+  const [activeDepartment, setActiveDepartment] = useState('All Departments')
 
   const filteredJobs = jobs.filter(
-    job => activeDepartment === 'All' || job.department === activeDepartment
+    job => activeDepartment === 'All Departments' || job.department === activeDepartment
   )
 
   return (
     <>
       <Navbar />
-      <main>
-        {/* Hero with gradient background */}
-        <section className="relative overflow-hidden pt-28 pb-16 sm:pt-32 sm:pb-20">
-          {/* Background glow like landing page */}
-          <div className="absolute inset-0 -z-10 bg-background">
-            <div className="absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,var(--primary)/0.12,transparent_70%)]" />
-            <div className="absolute -left-32 top-16 h-64 w-64 rounded-full bg-primary/8 blur-[80px]" />
-            <div className="absolute -right-32 top-32 h-64 w-64 rounded-full bg-primary/6 blur-[80px]" />
+      <main className="min-h-screen">
+        {/* Hero */}
+        <section className="relative overflow-hidden pt-28 pb-14 sm:pt-32 sm:pb-16">
+          <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-x-0 top-0 h-[500px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,var(--primary)/0.15,transparent_70%)]" />
           </div>
 
           <div className="mx-auto max-w-2xl px-6 text-center">
             <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
               <PicturaIcon size={40} className="mx-auto" />
-              <p className="mt-4 inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              <p className="mt-4 inline-flex items-center rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
                 We&apos;re hiring
               </p>
               <h1 className="mt-5 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Join{' '}
-                <span className="relative">
+                <span className="relative inline-block">
                   <span className="text-primary">Pictura</span>
-                  {/* Curved underline */}
                   <svg
                     className="absolute -bottom-1 left-0 w-full"
                     viewBox="0 0 100 8"
@@ -122,118 +118,74 @@ export default function CareersPage() {
                     fill="none"
                   >
                     <path
-                      d="M0 7 Q25 0 50 4 T100 2"
+                      d="M0 6 Q25 0 50 4 T100 2"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
-                      className="text-primary/50"
+                      className="text-primary/40"
                     />
                   </svg>
                 </span>
               </h1>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-base text-muted-foreground leading-relaxed max-w-md mx-auto">
                 Help us build the future of AI-powered creativity. We&apos;re a small, remote team based in Nigeria with big ambitions.
               </p>
             </motion.div>
           </div>
         </section>
 
-        {/* Stats - Infographic Style */}
-        <section className="py-16 sm:py-20">
+        {/* Stats */}
+        <section className="py-12 sm:py-14 border-y border-border/50 bg-muted/30">
           <div className="mx-auto max-w-3xl px-6">
             <motion.div 
               initial="hidden" 
               whileInView="visible" 
               viewport={{ once: true }}
-              className="relative"
+              className="grid grid-cols-2 gap-8 sm:grid-cols-4"
             >
-              {/* Connecting line */}
-              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/20 to-transparent hidden sm:block" />
-              
-              <div className="grid grid-cols-2 gap-8 sm:gap-12">
-                {/* Images Generated */}
-                <motion.div custom={0} variants={fadeUp} className="relative flex flex-col items-end text-right sm:pr-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <path d="M21 15l-5-5L5 21" />
-                    </svg>
-                  </div>
-                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">10K+</p>
-                  <p className="text-xs text-muted-foreground mt-1">Images Generated</p>
-                  <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-r from-primary/60 to-primary/20 ml-auto" />
+              {[
+                { icon: Image, value: '10K+', label: 'Images Generated' },
+                { icon: Users, value: '3K+', label: 'Creators' },
+                { icon: Globe, value: '100%', label: 'Remote' },
+                { icon: Briefcase, value: String(jobs.length), label: 'Open Roles' },
+              ].map((stat, i) => (
+                <motion.div 
+                  key={stat.label} 
+                  custom={i} 
+                  variants={fadeUp} 
+                  className="text-center"
+                >
+                  <stat.icon className="h-5 w-5 text-primary mx-auto mb-2" />
+                  <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">{stat.value}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
                 </motion.div>
-
-                {/* Creators */}
-                <motion.div custom={1} variants={fadeUp} className="relative flex flex-col items-start text-left sm:pl-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                  </div>
-                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">3K+</p>
-                  <p className="text-xs text-muted-foreground mt-1">Active Creators</p>
-                  <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-l from-primary/60 to-primary/20" />
-                </motion.div>
-
-                {/* Remote */}
-                <motion.div custom={2} variants={fadeUp} className="relative flex flex-col items-end text-right sm:pr-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Globe className="h-5 w-5 text-primary" />
-                  </div>
-                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">100%</p>
-                  <p className="text-xs text-muted-foreground mt-1">Remote Team</p>
-                  <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-r from-primary/60 to-primary/20 ml-auto" />
-                </motion.div>
-
-                {/* Open Roles */}
-                <motion.div custom={3} variants={fadeUp} className="relative flex flex-col items-start text-left sm:pl-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="2" y="7" width="20" height="14" rx="2" />
-                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                    </svg>
-                  </div>
-                  <p className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{jobs.length}</p>
-                  <p className="text-xs text-muted-foreground mt-1">Open Roles</p>
-                  <div className="mt-2 h-1 w-12 rounded-full bg-gradient-to-l from-primary/60 to-primary/20" />
-                </motion.div>
-              </div>
-
-              {/* Center dot decoration */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden sm:block">
-                <div className="h-3 w-3 rounded-full bg-primary/30 ring-4 ring-primary/10" />
-              </div>
+              ))}
             </motion.div>
           </div>
         </section>
 
         <div className="mx-auto max-w-2xl px-6">
-          {/* Why Join - centered, clean */}
+          {/* Why Join */}
           <motion.section 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
             custom={1} 
             variants={fadeUp} 
-            className="py-14 text-center"
+            className="py-14 sm:py-16 text-center"
           >
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
               Why join{' '}
               <span className="relative inline-block">
                 <span className="text-primary">us</span>
                 <svg
                   className="absolute -bottom-0.5 left-0 w-full"
-                  viewBox="0 0 40 6"
+                  viewBox="0 0 30 5"
                   preserveAspectRatio="none"
                   fill="none"
                 >
                   <path
-                    d="M0 5 Q10 0 20 3 T40 1"
+                    d="M0 4 Q7 0 15 2.5 T30 1"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
@@ -242,7 +194,7 @@ export default function CareersPage() {
                 </svg>
               </span>
             </h2>
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
               {perks.map((perk, i) => (
                 <motion.div 
                   key={perk.title}
@@ -250,27 +202,13 @@ export default function CareersPage() {
                   variants={fadeUp}
                   className="flex flex-col items-center text-center"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <perk.icon className="h-4 w-4 text-primary" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <perk.icon className="h-5 w-5 text-primary" />
                   </div>
-                  <h3 className="relative mt-3 inline-block text-sm font-semibold text-foreground">
+                  <h3 className="mt-4 text-base font-semibold text-foreground">
                     {perk.title}
-                    <svg
-                      className="absolute -bottom-0.5 left-0 w-full"
-                      viewBox="0 0 60 4"
-                      preserveAspectRatio="none"
-                      fill="none"
-                    >
-                      <path
-                        d="M0 3 Q15 0 30 2 T60 1"
-                        stroke="currentColor"
-                        strokeWidth="1"
-                        strokeLinecap="round"
-                        className="text-primary/30"
-                      />
-                    </svg>
                   </h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{perk.desc}</p>
+                  <p className="mt-1.5 text-sm text-muted-foreground">{perk.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -278,71 +216,85 @@ export default function CareersPage() {
 
           <div className="h-px bg-border/50" />
 
-          {/* Filter */}
-          <motion.div 
-            initial="hidden" 
-            whileInView="visible" 
-            viewport={{ once: true }} 
-            custom={2} 
-            variants={fadeUp} 
-            className="py-8"
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              {DEPARTMENTS.map((dept) => (
-                <button
-                  key={dept}
-                  onClick={() => setActiveDepartment(dept)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                    activeDepartment === dept
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  {dept}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Job Listings */}
+          {/* Open Positions */}
           <motion.section 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
-            custom={3} 
+            custom={2} 
             variants={fadeUp}
-            className="pb-14"
+            className="py-14 sm:py-16"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Open positions</h2>
-              <span className="text-xs text-muted-foreground">{filteredJobs.length} role{filteredJobs.length !== 1 ? 's' : ''}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
+                Open{' '}
+                <span className="relative inline-block">
+                  <span className="text-primary">positions</span>
+                  <svg
+                    className="absolute -bottom-0.5 left-0 w-full"
+                    viewBox="0 0 80 5"
+                    preserveAspectRatio="none"
+                    fill="none"
+                  >
+                    <path
+                      d="M0 4 Q20 0 40 2.5 T80 1"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      className="text-primary/50"
+                    />
+                  </svg>
+                </span>
+              </h2>
+              
+              {/* Dropdown Filter */}
+              <div className="relative">
+                <select 
+                  value={activeDepartment}
+                  onChange={(e) => setActiveDepartment(e.target.value)}
+                  className="appearance-none w-full sm:w-auto pl-4 pr-10 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm font-medium cursor-pointer hover:border-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <p className="text-sm text-muted-foreground mb-6">
+              {filteredJobs.length} role{filteredJobs.length !== 1 ? 's' : ''} available
+            </p>
+
+            <div className="space-y-3">
               {filteredJobs.map((job, i) => (
                 <motion.div
                   key={job.id}
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 + i * 0.03 }}
+                  transition={{ delay: i * 0.05 }}
                 >
                   <Link href={`/careers/${job.id}`}>
-                    <article className="group rounded-xl border border-border/50 bg-card p-4 transition-all hover:border-primary/20 hover:bg-card/80">
-                      <div className="flex items-start justify-between gap-3">
+                    <article className="group rounded-xl border border-border/60 bg-card p-5 transition-all hover:border-primary/30 hover:shadow-sm">
+                      <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[10px] font-medium text-primary uppercase tracking-wider">{job.department}</span>
-                            <span className="h-0.5 w-0.5 rounded-full bg-border" />
-                            <span className="text-[10px] text-muted-foreground">{job.type}</span>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-xs font-medium text-primary">{job.department}</span>
+                            <span className="h-1 w-1 rounded-full bg-border" />
+                            <span className="text-xs text-muted-foreground">{job.type}</span>
                           </div>
-                          <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{job.title}</h3>
-                          <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">{job.description}</p>
-                          <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
-                            <MapPin className="h-3 w-3" />
+                          <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">
+                            {job.title}
+                          </h3>
+                          <p className="mt-2 text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                            {job.description}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
                             {job.location}
                           </div>
                         </div>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+                        <ArrowRight className="h-5 w-5 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
                       </div>
                     </article>
                   </Link>
@@ -351,33 +303,53 @@ export default function CareersPage() {
             </div>
 
             {filteredJobs.length === 0 && (
-              <div className="text-center py-10 rounded-xl border border-border/50 bg-card">
-                <p className="text-sm text-muted-foreground">No open positions in {activeDepartment} right now.</p>
+              <div className="text-center py-12 rounded-xl border border-border/50 bg-card">
+                <p className="text-sm text-muted-foreground">No open positions in this department right now.</p>
               </div>
             )}
           </motion.section>
 
           <div className="h-px bg-border/50" />
 
-          {/* CTA - simple, no card */}
+          {/* CTA */}
           <motion.section 
             initial="hidden" 
             whileInView="visible" 
             viewport={{ once: true }} 
-            custom={4} 
+            custom={3} 
             variants={fadeUp} 
-            className="py-14 text-center"
+            className="py-14 sm:py-16 text-center"
           >
-            <h2 className="text-lg font-semibold text-foreground">Don&apos;t see your role?</h2>
-            <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+            <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
+              Don&apos;t see your{' '}
+              <span className="relative inline-block">
+                <span className="text-primary">role</span>
+                <svg
+                  className="absolute -bottom-0.5 left-0 w-full"
+                  viewBox="0 0 40 5"
+                  preserveAspectRatio="none"
+                  fill="none"
+                >
+                  <path
+                    d="M0 4 Q10 0 20 2.5 T40 1"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    className="text-primary/50"
+                  />
+                </svg>
+              </span>
+              ?
+            </h2>
+            <p className="mt-3 text-base text-muted-foreground max-w-sm mx-auto leading-relaxed">
               We&apos;re always looking for talented people. Send us your resume and we&apos;ll keep you in mind.
             </p>
             <Link
               href="mailto:careers@picturaai.sbs"
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Get in touch
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </motion.section>
         </div>
