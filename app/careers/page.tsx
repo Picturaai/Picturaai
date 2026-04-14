@@ -229,46 +229,47 @@ export default function CareersPage() {
             variants={fadeUp}
             className="py-14 sm:py-16"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
                 Open{' '}
                 <span className="relative inline-block">
                   <span className="text-primary">positions</span>
                   <svg
-                    className="absolute -bottom-0.5 left-0 w-full"
-                    viewBox="0 0 80 5"
+                    className="absolute -bottom-1 left-0 w-full"
+                    viewBox="0 0 80 6"
                     preserveAspectRatio="none"
                     fill="none"
                   >
                     <path
-                      d="M0 4 Q20 0 40 2.5 T80 1"
+                      d="M0 5 Q20 0 40 3 T80 1"
                       stroke="currentColor"
-                      strokeWidth="1.5"
+                      strokeWidth="2"
                       strokeLinecap="round"
                       className="text-primary/50"
                     />
                   </svg>
                 </span>
               </h2>
+              <p className="mt-3 text-base text-muted-foreground">
+                {filteredJobs.length} role{filteredJobs.length !== 1 ? 's' : ''} available
+              </p>
+            </div>
               
-              {/* Dropdown Filter */}
+            {/* Dropdown Filter */}
+            <div className="flex justify-center mb-8">
               <div className="relative">
                 <select 
                   value={activeDepartment}
                   onChange={(e) => setActiveDepartment(e.target.value)}
-                  className="appearance-none w-full sm:w-auto pl-4 pr-10 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm font-medium cursor-pointer hover:border-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="appearance-none pl-4 pr-10 py-2.5 rounded-full border border-border bg-card text-foreground text-sm font-medium cursor-pointer hover:border-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
                 >
                   {DEPARTMENTS.map((dept) => (
                     <option key={dept} value={dept}>{dept}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               </div>
             </div>
-
-            <p className="text-sm text-muted-foreground mb-6">
-              {filteredJobs.length} role{filteredJobs.length !== 1 ? 's' : ''} available
-            </p>
 
             <div className="space-y-3">
               {filteredJobs.map((job, i) => (
