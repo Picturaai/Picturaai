@@ -91,6 +91,10 @@ export function Footer() {
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Company</span>
             <Link href="/about" className="text-sm text-foreground/70 transition-colors hover:text-primary">About Imoogle</Link>
             <Link href="/blog" className="text-sm text-foreground/70 transition-colors hover:text-primary">Blog</Link>
+            <Link href="/careers" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
+              Careers
+              <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary font-semibold">HIRING</span>
+            </Link>
             <Link href="/support" className="text-sm text-foreground/70 transition-colors hover:text-primary">Support Us</Link>
             <Link href="/report" className="text-sm text-foreground/70 transition-colors hover:text-primary">Report a Bug</Link>
           </div>
