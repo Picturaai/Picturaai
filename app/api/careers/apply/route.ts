@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Extract files
     const resumeFile = formData.get('resume') as File | null
-    const portfolioFile = formData.get('portfolio') as File | null
+    const portfolioFile = formData.get('portfolioFile') as File | null
 
     if (!jobId || !jobTitle || !firstName || !lastName || !email || !phone || !location || !experience || !resumeFile) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })

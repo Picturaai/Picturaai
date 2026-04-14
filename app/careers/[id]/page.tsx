@@ -227,6 +227,14 @@ const jobs: Record<string, Job> = {
   },
 }
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.5, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] },
+  }),
+}
+
 export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const job = jobs[id]
@@ -241,43 +249,39 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
       {/* Header */}
       <header className="border-b border-border/40">
-        <div className="mx-auto max-w-2xl px-4 pt-28 pb-10 sm:pt-36 sm:pb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
+        <div className="mx-auto max-w-2xl px-6 pt-32 pb-10 sm:pt-40 sm:pb-12">
+          <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
             <Link
               href="/careers"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6"
             >
-              <ArrowLeft className="h-3 w-3" />
+              <ArrowLeft className="h-3.5 w-3.5" />
               All positions
             </Link>
 
-            <div className="flex items-center gap-2.5 mb-3">
-              <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="text-xs font-semibold text-primary uppercase tracking-wider">
                 {job.department}
               </span>
-              <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground/40" />
-              <span className="text-[11px] text-muted-foreground">{job.type}</span>
+              <span className="h-1 w-1 rounded-full bg-border" />
+              <span className="text-xs text-muted-foreground">{job.type}</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-5">
               {job.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" />
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
                 {job.location}
               </div>
-              <div className="flex items-center gap-1.5">
-                <Briefcase className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
                 {job.type}
               </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
                 Posted recently
               </div>
             </div>
@@ -286,68 +290,74 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
       </header>
 
       {/* Content */}
-      <main className="mx-auto max-w-2xl px-4 py-10 sm:py-14">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="space-y-10"
-        >
+      <main className="mx-auto max-w-2xl px-6 py-12 sm:py-16">
+        <div className="space-y-12">
           {/* About */}
-          <section>
-            <h2 className="text-sm font-semibold text-foreground mb-4">About this role</h2>
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={1} variants={fadeUp}>
+            <h2 className="text-lg font-semibold text-foreground mb-4">About this role</h2>
             <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
               {job.about}
             </div>
-          </section>
+          </motion.section>
 
           {/* Responsibilities */}
-          <section>
-            <h2 className="text-sm font-semibold text-foreground mb-4">What you will do</h2>
-            <ul className="space-y-2.5">
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={2} variants={fadeUp}>
+            <h2 className="text-lg font-semibold text-foreground mb-4">What you&apos;ll do</h2>
+            <ul className="space-y-3">
               {job.responsibilities.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10 shrink-0 mt-0.5">
+                    <Check className="h-3 w-3 text-primary" />
+                  </div>
                   {item}
                 </li>
               ))}
             </ul>
-          </section>
+          </motion.section>
 
           {/* Requirements */}
-          <section>
-            <h2 className="text-sm font-semibold text-foreground mb-4">What we are looking for</h2>
-            <ul className="space-y-2.5">
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={3} variants={fadeUp}>
+            <h2 className="text-lg font-semibold text-foreground mb-4">What we&apos;re looking for</h2>
+            <ul className="space-y-3">
               {job.requirements.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10 shrink-0 mt-0.5">
+                    <Check className="h-3 w-3 text-primary" />
+                  </div>
                   {item}
                 </li>
               ))}
             </ul>
-          </section>
+          </motion.section>
 
           {/* Nice to have */}
-          <section>
-            <h2 className="text-sm font-semibold text-foreground mb-4">Nice to have</h2>
-            <ul className="space-y-2.5">
+          <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} custom={4} variants={fadeUp}>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Nice to have</h2>
+            <ul className="space-y-3">
               {job.niceToHave.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50 shrink-0 mt-2" />
+                <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
+                  <span className="h-2 w-2 rounded-full bg-border shrink-0 mt-2" />
                   {item}
                 </li>
               ))}
             </ul>
-          </section>
+          </motion.section>
 
           {/* Apply CTA */}
-          <section className="pt-6 border-t border-border/40">
-            <div className="rounded-xl border border-border/50 bg-secondary/30 p-6 sm:p-8">
-              <h2 className="text-base font-semibold text-foreground mb-2">
+          <motion.section 
+            initial="hidden" 
+            whileInView="visible" 
+            viewport={{ once: true }} 
+            custom={5} 
+            variants={fadeUp}
+            className="pt-4"
+          >
+            <div className="rounded-2xl border border-border/50 bg-card p-6 sm:p-8">
+              <h2 className="text-lg font-semibold text-foreground mb-2">
                 Interested in this role?
               </h2>
-              <p className="text-xs text-muted-foreground mb-6">
-                We would love to hear from you. Submit your application and we will get back to you within 5-7 business days.
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                We&apos;d love to hear from you. Submit your application and we&apos;ll review it carefully. Expect to hear back within 5-7 business days.
               </p>
               <Link
                 href={`/careers/${job.id}/apply`}
@@ -357,8 +367,8 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-          </section>
-        </motion.div>
+          </motion.section>
+        </div>
       </main>
 
       <Footer />
