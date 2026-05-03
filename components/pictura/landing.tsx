@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock, Clapperboard } from 'lucide-react'
+import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock, Clapperboard, Play, Music, AudioWaveform, ChevronDown, Sparkles, Volume2 } from 'lucide-react'
 import { PicturaIcon } from './pictura-logo'
 
 const showcaseImages = [
@@ -199,12 +199,12 @@ export function Landing() {
                 transition={{ duration: 0.5 }}
                 className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors"
               >
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-primary-foreground bg-primary px-2 py-0.5 rounded">
-                  NEW
+                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-primary-foreground bg-primary px-2 py-0.5 rounded">
+                  v2.5
                 </span>
                 <span className="h-4 w-px bg-border" />
                 <span className="text-xs text-foreground">
-                  <span className="font-semibold">pi-1.5-turbo</span> is now available
+                  <span className="font-semibold">Pictura 2.5</span> — video & music are here
                 </span>
                 <ArrowRight className="h-3 w-3 text-muted-foreground" />
               </motion.div>
@@ -473,60 +473,308 @@ export function Landing() {
       </section>
 
 
-      {/* Video Generation */}
-      <section className="border-t border-border/40 py-20 md:py-28">
-        <div className="mx-auto grid max-w-7xl items-center gap-10 px-6 lg:grid-cols-2">
+      {/* Pictura 2.5 - Video & Music Studio Preview */}
+      <section className="relative overflow-hidden border-t border-border/40 py-20 md:py-28">
+        {/* Subtle brand glow */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(ellipse_60%_60%_at_50%_-10%,var(--primary)/0.10,transparent_70%)]" />
+
+        <div className="mx-auto max-w-7xl px-6">
+          {/* Header */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
             custom={0}
             variants={fadeUp}
+            className="mx-auto max-w-2xl text-center"
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-              <Clapperboard className="h-3 w-3" />
-              Text to Video
+              <Sparkles className="h-3 w-3" />
+              Pictura 2.5 — Now in Studio
             </span>
             <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
-              Turn prompts into cinematic videos
+              Cinematic video, with a soundtrack
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              Create short AI videos from a text prompt with smooth motion, stylized scenes, and share-ready results right inside Studio.
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
+              Describe a scene and Pictura generates a smooth, stylized video — then pair it with custom AI music. Both models live inside the same Studio you already know.
             </p>
-            <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Text to video from simple prompts</li>
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Fast rendering with clear progress hints</li>
-              <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Download and save to your gallery</li>
-            </ul>
-            <div className="mt-8">
-              <Link
-                href="/studio"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                Try Text to Video
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
           </motion.div>
 
+          {/* Studio mockup — mirrors the real Studio chrome */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
             custom={1}
             variants={fadeUp}
-            className="rounded-2xl border border-border/50 bg-card p-5"
+            className="mx-auto mt-12 max-w-5xl"
           >
-            <div className="rounded-xl border border-border/40 bg-secondary/30 p-4">
-              <p className="text-xs font-medium text-muted-foreground">Prompt</p>
-              <p className="mt-2 text-sm text-foreground">
-                Cinematic drone shot over a neon-lit city at sunset, smooth camera motion, 6 seconds
-              </p>
+            <div className="relative rounded-2xl border border-border/40 bg-card shadow-xl shadow-primary/5 overflow-hidden">
+              {/* Window chrome — matches Studio header */}
+              <div className="flex items-center justify-between gap-2 border-b border-border/40 bg-secondary/30 px-3 py-2.5 sm:px-4 sm:py-3">
+                {/* Left: brand + model picker */}
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/15">
+                    <PicturaIcon size={12} className="text-primary" />
+                  </div>
+                  <span className="hidden text-xs font-medium text-foreground sm:inline">Pictura</span>
+                  <span className="hidden h-4 w-px bg-border/60 sm:inline-block" />
+                  {/* Model pill */}
+                  <div className="flex items-center gap-1 rounded-lg border border-border/40 bg-card px-1.5 py-1 text-[10px] font-medium text-foreground sm:gap-1.5 sm:px-2 sm:text-[11px]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    <span className="truncate">PicturaGen</span>
+                    <span className="rounded bg-primary/10 px-1 py-px text-[8px] font-bold uppercase tracking-wide text-primary sm:text-[9px]">Beta</span>
+                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {/* Center: URL bar */}
+                <div className="hidden items-center gap-1.5 rounded-lg border border-border/30 bg-background/60 px-3 py-1 md:flex">
+                  <svg className="h-3 w-3 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  <span className="text-[11px] text-muted-foreground">picturaai.sbs/studio</span>
+                </div>
+
+                {/* Right: credits pill */}
+                <div className="flex items-center gap-1.5 rounded-full border border-border/50 bg-card px-2 py-1 text-[10px] font-medium text-foreground sm:px-2.5 sm:text-[11px]">
+                  <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+                    <span className="absolute inset-0 rounded-full bg-primary/15" />
+                    <span className="absolute inset-[3px] rounded-full bg-primary" />
+                  </span>
+                  <span>2 left</span>
+                  <span className="hidden text-muted-foreground sm:inline">today</span>
+                </div>
+              </div>
+
+              {/* Mode tabs — exactly mirrors the Studio mode switcher in the screenshot */}
+              <div className="flex items-center justify-between gap-2 border-b border-border/30 px-3 py-2.5 sm:px-4">
+                <div className="flex items-center gap-1 rounded-lg bg-secondary/60 p-0.5">
+                  <span className="rounded-md px-2.5 py-1 text-[11px] font-medium text-muted-foreground sm:px-3">Text to Image</span>
+                  <span className="rounded-md px-2.5 py-1 text-[11px] font-medium text-muted-foreground sm:px-3">Image to Image</span>
+                  <span className="rounded-md bg-background px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm sm:px-3">Text to Video</span>
+                </div>
+                <span className="hidden font-mono text-[10px] text-muted-foreground/50 sm:inline">picturagen · video</span>
+              </div>
+
+              {/* Output area — Google-style live preview */}
+              <div className="grid gap-0 lg:grid-cols-[1fr_280px]">
+                <div className="relative aspect-video bg-secondary/30 overflow-hidden">
+                  <Image
+                    src="/images/showcase-hero-3.jpg"
+                    alt="Cinematic video preview generated by PicturaGen"
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 720px, 100vw"
+                  />
+                  {/* Cinematic vignette */}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/15" />
+
+                  {/* Top status: live generating chip */}
+                  <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-md">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" />
+                      <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+                    </span>
+                    Generating · 0:06
+                  </div>
+
+                  {/* Quality chip */}
+                  <div className="absolute right-3 top-3 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-md">
+                    HD · 1280×720
+                  </div>
+
+                  {/* Center play button */}
+                  <button
+                    type="button"
+                    aria-label="Play preview"
+                    className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-foreground shadow-lg backdrop-blur-md transition-transform hover:scale-105"
+                  >
+                    <Play className="h-5 w-5 translate-x-0.5 fill-current" />
+                  </button>
+
+                  {/* Bottom controls bar */}
+                  <div className="absolute inset-x-3 bottom-3 flex items-center gap-2.5 rounded-xl border border-white/10 bg-black/45 px-3 py-2 backdrop-blur-md">
+                    <Play className="h-3.5 w-3.5 flex-shrink-0 fill-current text-white" />
+                    <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/20">
+                      <div className="absolute inset-y-0 left-0 w-2/5 rounded-full bg-white/90" />
+                      <span className="absolute -top-1 left-2/5 h-3 w-3 -translate-x-1/2 rounded-full bg-white shadow" />
+                    </div>
+                    <span className="font-mono text-[10px] text-white/80">0:06 / 0:15</span>
+                    <Volume2 className="h-3.5 w-3.5 flex-shrink-0 text-white/80" />
+                  </div>
+
+                  {/* Pictura watermark */}
+                  <div className="absolute bottom-[68px] right-3 flex items-center gap-1.5 rounded-md bg-black/40 px-2 py-1 backdrop-blur-md">
+                    <PicturaIcon size={10} className="text-white" />
+                    <span className="text-[10px] font-medium text-white/90">Pictura</span>
+                  </div>
+                </div>
+
+                {/* Side panel — soundtrack preview (the music AI model) */}
+                <div className="flex flex-col border-t border-border/40 bg-card lg:border-l lg:border-t-0">
+                  <div className="flex items-center justify-between border-b border-border/30 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                        <Music className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-foreground">Soundtrack</p>
+                        <p className="text-[10px] text-muted-foreground">PicturaSound · Preview</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">New</span>
+                  </div>
+
+                  <div className="flex flex-1 flex-col gap-3 px-4 py-4">
+                    {/* Animated waveform */}
+                    <div className="flex h-14 items-end gap-[3px] rounded-lg border border-border/30 bg-secondary/30 p-2">
+                      {[0.3, 0.55, 0.8, 0.45, 0.7, 0.95, 0.6, 0.35, 0.85, 0.5, 0.7, 0.4, 0.6, 0.85, 0.5, 0.3, 0.65, 0.9, 0.45, 0.55, 0.75, 0.4, 0.6, 0.8].map((h, i) => (
+                        <motion.span
+                          key={i}
+                          className="flex-1 rounded-sm bg-primary/70"
+                          animate={{ height: [`${h * 100}%`, `${(1 - h * 0.6) * 100}%`, `${h * 100}%`] }}
+                          transition={{ duration: 1.4 + (i % 5) * 0.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.04 }}
+                          style={{ height: `${h * 100}%` }}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Track meta */}
+                    <div className="rounded-lg border border-border/30 bg-background px-3 py-2.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Mood</p>
+                      <p className="mt-1 text-xs font-medium text-foreground">Cinematic · Ambient · 92 BPM</p>
+                    </div>
+
+                    {/* Style chips */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {['Orchestral', 'Synth pad', 'Soft drums'].map((tag) => (
+                        <span key={tag} className="rounded-md border border-border/40 bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Prompt input — matches Studio bottom dock */}
+              <div className="border-t border-border/40 bg-card p-3 sm:p-4">
+                <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-background px-3 py-2.5 shadow-sm">
+                  <Clapperboard className="h-4 w-4 flex-shrink-0 text-primary" />
+                  <span className="flex-1 truncate text-xs text-foreground sm:text-sm">
+                    Cinematic drone shot over floating temples at golden hour, smooth pan, ambient orchestral score
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Generate"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Sub-row: rotating suggestion + improve, like Studio */}
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-dashed border-border/50 px-3 py-1.5">
+                    <Sparkles className="h-3 w-3 flex-shrink-0 text-muted-foreground/60" />
+                    <span className="truncate text-[11px] text-muted-foreground/70">
+                      Try: &quot;Time-lapse of neon Tokyo street, lo-fi soundtrack&quot;
+                    </span>
+                  </div>
+                  <span className="hidden flex-shrink-0 items-center gap-1.5 rounded-lg border border-border/50 bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground sm:flex">
+                    <Sparkles className="h-3 w-3" />
+                    Improve
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="mt-4 rounded-xl border border-border/40 bg-background p-4">
-              <div className="aspect-video rounded-lg bg-gradient-to-br from-primary/20 via-secondary to-primary/10" />
-              <p className="mt-3 text-xs text-muted-foreground">Preview of generated video output in Studio</p>
-            </div>
+
+            {/* Caption */}
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Live preview of Studio · Text to Video with PicturaSound soundtrack
+            </p>
+          </motion.div>
+
+          {/* Two model cards: video + music */}
+          <div className="mx-auto mt-14 grid max-w-5xl gap-4 md:grid-cols-2">
+            {[
+              {
+                key: 'video',
+                Icon: Clapperboard,
+                tag: 'Beta',
+                name: 'PicturaGen',
+                title: 'Text to Video',
+                desc: 'Cinematic 15-second clips at 1280×720 with smart camera motion, scene continuity, and natural lighting.',
+                specs: ['1280 × 720', 'Up to 15s', 'Smart motion'],
+              },
+              {
+                key: 'music',
+                Icon: AudioWaveform,
+                tag: 'Preview',
+                name: 'PicturaSound',
+                title: 'AI Soundtracks',
+                desc: 'Generate matching score, ambient pads, or full tracks for your videos. Steerable mood, tempo, and instrumentation.',
+                specs: ['Stereo · 44.1kHz', 'Mood & BPM', 'Pairs with video'],
+              },
+            ].map((m, i) => (
+              <motion.div
+                key={m.key}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-30px' }}
+                custom={i + 2}
+                variants={fadeUp}
+                className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card transition-colors hover:border-primary/30"
+              >
+                <div className="flex items-center justify-between border-b border-border/30 px-5 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                      <m.Icon className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{m.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{m.title}</p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                    {m.tag}
+                  </span>
+                </div>
+                <div className="p-5">
+                  <p className="text-sm leading-relaxed text-muted-foreground">{m.desc}</p>
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {m.specs.map((spec) => (
+                      <span key={spec} className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {spec}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-30px' }}
+            custom={4}
+            variants={fadeUp}
+            className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
+          >
+            <Link
+              href="/studio"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Open Studio
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href="/models"
+              className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+            >
+              Explore models
+            </Link>
           </motion.div>
         </div>
       </section>

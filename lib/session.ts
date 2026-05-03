@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { createHash, randomBytes } from 'crypto'
+import { randomBytes } from 'crypto'
 
 const SESSION_ID_LENGTH = 32
 const SESSION_EPOCH = (process.env.SESSION_EPOCH || 'v1').trim()
@@ -21,27 +21,6 @@ function applySessionEpoch(value: string): string {
   return value.startsWith(`${SESSION_EPOCH}_`) ? value : `${SESSION_EPOCH}_${value}`
 }
 
-function getStableFingerprint(request?: RequestLike): string | null {
-  if (!request) return null
-
-  const explicitFingerprint = request.headers.get('x-client-fingerprint')
-  if (explicitFingerprint && explicitFingerprint.trim()) {
-    return createHash('sha256').update(explicitFingerprint.trim()).digest('hex')
-  }
-
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')
-    || request.headers.get('cf-connecting-ip')
-    || 'unknown-ip'
-  const ua = request.headers.get('user-agent') || 'unknown-ua'
-  const acceptLanguage = request.headers.get('accept-language') || 'unknown-lang'
-  const secChUa = request.headers.get('sec-ch-ua') || 'unknown-ch-ua'
-  const secChPlatform = request.headers.get('sec-ch-ua-platform') || 'unknown-platform'
-  const raw = `${ip}|${ua}|${acceptLanguage}|${secChUa}|${secChPlatform}`
-  return createHash('sha256').update(raw).digest('hex')
-}
-
-
 function parseCookieHeader(cookieHeader: string | null): Record<string, string> {
   if (!cookieHeader) return {}
   return cookieHeader.split(';').reduce<Record<string, string>>((acc, part) => {
@@ -57,15 +36,19 @@ export function getSessionIdFromRequest(request: RequestLike): string | undefine
   return cookiesMap[SESSION_COOKIE_NAME] || cookiesMap[LEGACY_SESSION_COOKIE_NAME] || undefined
 }
 
-export async function getOrCreateSessionId(request?: RequestLike): Promise<string> {
+export async function getOrCreateSessionId(_request?: RequestLike): Promise<string> {
   const cookieStore = await cookies()
   let sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value
 
   if (!sessionId) {
+    // Prefer an existing stable cookie if the session cookie was wiped, otherwise
+    // ALWAYS create a fresh random session id. We deliberately do NOT fall back to
+    // a network/browser fingerprint here: many users share an IP + user agent
+    // (school / office / family WiFi, mobile carrier NAT, same browser version),
+    // and reusing a fingerprint as a session id caused different visitors to share
+    // the same gallery storage bucket. Each browser must get its own session.
     const stableCookie = cookieStore.get(STABLE_COOKIE_NAME)?.value
-    const fingerprint = getStableFingerprint(request)
-
-    const baseSessionId = stableCookie || fingerprint || generateSessionId()
+    const baseSessionId = stableCookie || generateSessionId()
     sessionId = applySessionEpoch(baseSessionId)
 
     cookieStore.set(SESSION_COOKIE_NAME, sessionId, {
