@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Zap, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock, Clapperboard, Play, Music, AudioWaveform, ChevronDown, Sparkles, Volume2 } from 'lucide-react'
+import { ArrowRight, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock, Clapperboard, Play, Music, AudioWaveform, ChevronDown, Volume2, Wand2, Lightbulb, Maximize2, Aperture, Type, Headphones, Disc3, Bell } from 'lucide-react'
 import { PicturaIcon } from './pictura-logo'
 
 const showcaseImages = [
@@ -18,7 +18,7 @@ const showcaseImages = [
 
 const features = [
   {
-    icon: Zap,
+    icon: Type,
     title: 'Text to Image',
     description: 'Describe any scene, concept, or idea and Pictura generates it in seconds.',
   },
@@ -473,7 +473,7 @@ export function Landing() {
       </section>
 
 
-      {/* Pictura 2.5 - Video & Music Studio Preview */}
+      {/* Pictura 2.5 — Video Studio Preview */}
       <section className="relative overflow-hidden border-t border-border/40 py-20 md:py-28">
         {/* Subtle brand glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(ellipse_60%_60%_at_50%_-10%,var(--primary)/0.10,transparent_70%)]" />
@@ -489,14 +489,14 @@ export function Landing() {
             className="mx-auto max-w-2xl text-center"
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-              <Sparkles className="h-3 w-3" />
-              Pictura 2.5 — Now in Studio
+              <span className="rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">v2.5</span>
+              Now in Studio
             </span>
             <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
-              Cinematic video, with a soundtrack
+              Cinematic video, from a single sentence
             </h2>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
-              Describe a scene and Pictura generates a smooth, stylized video — then pair it with custom AI music. Both models live inside the same Studio you already know.
+              Describe a scene and PicturaGen renders a smooth, stylized video — directly inside the same Studio you already use for images.
             </p>
           </motion.div>
 
@@ -509,7 +509,7 @@ export function Landing() {
             variants={fadeUp}
             className="mx-auto mt-12 max-w-5xl"
           >
-            <div className="relative rounded-2xl border border-border/40 bg-card shadow-xl shadow-primary/5 overflow-hidden">
+            <div className="relative rounded-2xl border border-border/40 bg-card shadow-2xl shadow-primary/[0.07] overflow-hidden">
               {/* Window chrome — matches Studio header */}
               <div className="flex items-center justify-between gap-2 border-b border-border/40 bg-secondary/30 px-3 py-2.5 sm:px-4 sm:py-3">
                 {/* Left: brand + model picker */}
@@ -523,7 +523,7 @@ export function Landing() {
                   <div className="flex items-center gap-1 rounded-lg border border-border/40 bg-card px-1.5 py-1 text-[10px] font-medium text-foreground sm:gap-1.5 sm:px-2 sm:text-[11px]">
                     <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                     <span className="truncate">PicturaGen</span>
-                    <span className="rounded bg-primary/10 px-1 py-px text-[8px] font-bold uppercase tracking-wide text-primary sm:text-[9px]">Beta</span>
+                    <span className="rounded bg-primary/10 px-1 py-px text-[8px] font-bold uppercase tracking-wide text-primary sm:text-[9px]">v2.5</span>
                     <ChevronDown className="h-3 w-3 text-muted-foreground" />
                   </div>
                 </div>
@@ -545,7 +545,7 @@ export function Landing() {
                 </div>
               </div>
 
-              {/* Mode tabs — exactly mirrors the Studio mode switcher in the screenshot */}
+              {/* Mode tabs — exactly mirrors the Studio mode switcher */}
               <div className="flex items-center justify-between gap-2 border-b border-border/30 px-3 py-2.5 sm:px-4">
                 <div className="flex items-center gap-1 rounded-lg bg-secondary/60 p-0.5">
                   <span className="rounded-md px-2.5 py-1 text-[11px] font-medium text-muted-foreground sm:px-3">Text to Image</span>
@@ -555,103 +555,63 @@ export function Landing() {
                 <span className="hidden font-mono text-[10px] text-muted-foreground/50 sm:inline">picturagen · video</span>
               </div>
 
-              {/* Output area — Google-style live preview */}
-              <div className="grid gap-0 lg:grid-cols-[1fr_280px]">
-                <div className="relative aspect-video bg-secondary/30 overflow-hidden">
-                  <Image
-                    src="/images/showcase-hero-3.jpg"
-                    alt="Cinematic video preview generated by PicturaGen"
-                    fill
-                    className="object-cover"
-                    sizes="(min-width: 1024px) 720px, 100vw"
-                  />
-                  {/* Cinematic vignette */}
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/15" />
+              {/* Output area — full-width cinematic preview */}
+              <div className="relative aspect-video bg-secondary/30 overflow-hidden">
+                <Image
+                  src="/images/showcase-hero-3.jpg"
+                  alt="Cinematic video preview generated by PicturaGen"
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 1024px, 100vw"
+                  priority={false}
+                />
+                {/* Cinematic vignette */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/15" />
 
-                  {/* Top status: live generating chip */}
-                  <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-md">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" />
-                      <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-primary" />
-                    </span>
-                    Generating · 0:06
-                  </div>
+                {/* Top-left: live generating chip */}
+                <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/45 px-2.5 py-1 text-[10px] font-medium text-white backdrop-blur-md sm:left-4 sm:top-4">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/70" />
+                    <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+                  </span>
+                  Rendering · frame 142 / 360
+                </div>
 
-                  {/* Quality chip */}
-                  <div className="absolute right-3 top-3 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-md">
+                {/* Top-right: quality + seed chips */}
+                <div className="absolute right-3 top-3 flex items-center gap-1.5 sm:right-4 sm:top-4">
+                  <div className="rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-md">
                     HD · 1280×720
                   </div>
-
-                  {/* Center play button */}
-                  <button
-                    type="button"
-                    aria-label="Play preview"
-                    className="absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-foreground shadow-lg backdrop-blur-md transition-transform hover:scale-105"
-                  >
-                    <Play className="h-5 w-5 translate-x-0.5 fill-current" />
-                  </button>
-
-                  {/* Bottom controls bar */}
-                  <div className="absolute inset-x-3 bottom-3 flex items-center gap-2.5 rounded-xl border border-white/10 bg-black/45 px-3 py-2 backdrop-blur-md">
-                    <Play className="h-3.5 w-3.5 flex-shrink-0 fill-current text-white" />
-                    <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/20">
-                      <div className="absolute inset-y-0 left-0 w-2/5 rounded-full bg-white/90" />
-                      <span className="absolute -top-1 left-2/5 h-3 w-3 -translate-x-1/2 rounded-full bg-white shadow" />
-                    </div>
-                    <span className="font-mono text-[10px] text-white/80">0:06 / 0:15</span>
-                    <Volume2 className="h-3.5 w-3.5 flex-shrink-0 text-white/80" />
-                  </div>
-
-                  {/* Pictura watermark */}
-                  <div className="absolute bottom-[68px] right-3 flex items-center gap-1.5 rounded-md bg-black/40 px-2 py-1 backdrop-blur-md">
-                    <PicturaIcon size={10} className="text-white" />
-                    <span className="text-[10px] font-medium text-white/90">Pictura</span>
+                  <div className="hidden rounded-full bg-black/50 px-2 py-0.5 font-mono text-[10px] text-white/80 backdrop-blur-md sm:block">
+                    seed 42891
                   </div>
                 </div>
 
-                {/* Side panel — soundtrack preview (the music AI model) */}
-                <div className="flex flex-col border-t border-border/40 bg-card lg:border-l lg:border-t-0">
-                  <div className="flex items-center justify-between border-b border-border/30 px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                        <Music className="h-3.5 w-3.5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-foreground">Soundtrack</p>
-                        <p className="text-[10px] text-muted-foreground">PicturaSound · Preview</p>
-                      </div>
-                    </div>
-                    <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">New</span>
-                  </div>
+                {/* Center play button */}
+                <button
+                  type="button"
+                  aria-label="Play preview"
+                  className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-foreground shadow-xl backdrop-blur-md transition-transform hover:scale-105"
+                >
+                  <Play className="h-6 w-6 translate-x-0.5 fill-current" />
+                </button>
 
-                  <div className="flex flex-1 flex-col gap-3 px-4 py-4">
-                    {/* Animated waveform */}
-                    <div className="flex h-14 items-end gap-[3px] rounded-lg border border-border/30 bg-secondary/30 p-2">
-                      {[0.3, 0.55, 0.8, 0.45, 0.7, 0.95, 0.6, 0.35, 0.85, 0.5, 0.7, 0.4, 0.6, 0.85, 0.5, 0.3, 0.65, 0.9, 0.45, 0.55, 0.75, 0.4, 0.6, 0.8].map((h, i) => (
-                        <motion.span
-                          key={i}
-                          className="flex-1 rounded-sm bg-primary/70"
-                          animate={{ height: [`${h * 100}%`, `${(1 - h * 0.6) * 100}%`, `${h * 100}%`] }}
-                          transition={{ duration: 1.4 + (i % 5) * 0.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.04 }}
-                          style={{ height: `${h * 100}%` }}
-                        />
-                      ))}
-                    </div>
+                {/* Pictura watermark */}
+                <div className="absolute bottom-[68px] right-3 flex items-center gap-1.5 rounded-md bg-black/40 px-2 py-1 backdrop-blur-md sm:right-4">
+                  <PicturaIcon size={10} className="text-white" />
+                  <span className="text-[10px] font-medium text-white/90">Pictura</span>
+                </div>
 
-                    {/* Track meta */}
-                    <div className="rounded-lg border border-border/30 bg-background px-3 py-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Mood</p>
-                      <p className="mt-1 text-xs font-medium text-foreground">Cinematic · Ambient · 92 BPM</p>
+                {/* Bottom controls bar with frame strip */}
+                <div className="absolute inset-x-3 bottom-3 rounded-xl border border-white/10 bg-black/50 px-3 py-2 backdrop-blur-md sm:inset-x-4 sm:bottom-4">
+                  <div className="flex items-center gap-2.5">
+                    <Play className="h-3.5 w-3.5 flex-shrink-0 fill-current text-white" />
+                    <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/20">
+                      <div className="absolute inset-y-0 left-0 w-2/5 rounded-full bg-white" />
+                      <span className="absolute -top-1 left-2/5 h-3 w-3 -translate-x-1/2 rounded-full bg-white shadow" />
                     </div>
-
-                    {/* Style chips */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {['Orchestral', 'Synth pad', 'Soft drums'].map((tag) => (
-                        <span key={tag} className="rounded-md border border-border/40 bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                    <span className="font-mono text-[10px] text-white/80">0:06 / 0:15</span>
+                    <Volume2 className="h-3.5 w-3.5 flex-shrink-0 text-white/60" />
                   </div>
                 </div>
               </div>
@@ -661,7 +621,7 @@ export function Landing() {
                 <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-background px-3 py-2.5 shadow-sm">
                   <Clapperboard className="h-4 w-4 flex-shrink-0 text-primary" />
                   <span className="flex-1 truncate text-xs text-foreground sm:text-sm">
-                    Cinematic drone shot over floating temples at golden hour, smooth pan, ambient orchestral score
+                    Cinematic drone shot over floating temples at golden hour, smooth pan
                   </span>
                   <button
                     type="button"
@@ -675,13 +635,13 @@ export function Landing() {
                 {/* Sub-row: rotating suggestion + improve, like Studio */}
                 <div className="mt-2 flex items-center gap-2">
                   <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-dashed border-border/50 px-3 py-1.5">
-                    <Sparkles className="h-3 w-3 flex-shrink-0 text-muted-foreground/60" />
+                    <Lightbulb className="h-3 w-3 flex-shrink-0 text-muted-foreground/60" />
                     <span className="truncate text-[11px] text-muted-foreground/70">
-                      Try: &quot;Time-lapse of neon Tokyo street, lo-fi soundtrack&quot;
+                      Try: &quot;Time-lapse of a neon Tokyo street, slow handheld&quot;
                     </span>
                   </div>
                   <span className="hidden flex-shrink-0 items-center gap-1.5 rounded-lg border border-border/50 bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground sm:flex">
-                    <Sparkles className="h-3 w-3" />
+                    <Wand2 className="h-3 w-3" />
                     Improve
                   </span>
                 </div>
@@ -690,65 +650,43 @@ export function Landing() {
 
             {/* Caption */}
             <p className="mt-4 text-center text-xs text-muted-foreground">
-              Live preview of Studio · Text to Video with PicturaSound soundtrack
+              Live preview of Studio · PicturaGen v2.5 Text to Video
             </p>
           </motion.div>
 
-          {/* Two model cards: video + music */}
-          <div className="mx-auto mt-14 grid max-w-5xl gap-4 md:grid-cols-2">
+          {/* Feature highlights — replaces the old "two model cards" with three concise points */}
+          <div className="mx-auto mt-14 grid max-w-5xl gap-3 sm:grid-cols-3">
             {[
               {
-                key: 'video',
                 Icon: Clapperboard,
-                tag: 'Beta',
-                name: 'PicturaGen',
-                title: 'Text to Video',
-                desc: 'Cinematic 15-second clips at 1280×720 with smart camera motion, scene continuity, and natural lighting.',
-                specs: ['1280 × 720', 'Up to 15s', 'Smart motion'],
+                title: 'Cinematic motion',
+                desc: 'Smart camera moves, scene continuity, and natural lighting baked in.',
               },
               {
-                key: 'music',
-                Icon: AudioWaveform,
-                tag: 'Preview',
-                name: 'PicturaSound',
-                title: 'AI Soundtracks',
-                desc: 'Generate matching score, ambient pads, or full tracks for your videos. Steerable mood, tempo, and instrumentation.',
-                specs: ['Stereo · 44.1kHz', 'Mood & BPM', 'Pairs with video'],
+                Icon: Maximize2,
+                title: 'HD output',
+                desc: '1280×720 video clips up to 15 seconds, downloadable instantly.',
               },
-            ].map((m, i) => (
+              {
+                Icon: Wand2,
+                title: 'Same Studio',
+                desc: 'Same prompt box, history, and gallery you already know.',
+              },
+            ].map((f, i) => (
               <motion.div
-                key={m.key}
+                key={f.title}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: '-30px' }}
                 custom={i + 2}
                 variants={fadeUp}
-                className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card transition-colors hover:border-primary/30"
+                className="rounded-2xl border border-border/50 bg-card p-5 transition-colors hover:border-primary/30"
               >
-                <div className="flex items-center justify-between border-b border-border/30 px-5 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                      <m.Icon className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">{m.name}</p>
-                      <p className="text-[11px] text-muted-foreground">{m.title}</p>
-                    </div>
-                  </div>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                    {m.tag}
-                  </span>
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                  <f.Icon className="h-4 w-4 text-primary" />
                 </div>
-                <div className="p-5">
-                  <p className="text-sm leading-relaxed text-muted-foreground">{m.desc}</p>
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {m.specs.map((spec) => (
-                      <span key={spec} className="rounded-md bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        {spec}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                <p className="mt-4 text-sm font-semibold text-foreground">{f.title}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -758,7 +696,7 @@ export function Landing() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-30px' }}
-            custom={4}
+            custom={5}
             variants={fadeUp}
             className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
@@ -775,6 +713,139 @@ export function Landing() {
             >
               Explore models
             </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* PicturaSound — Coming Soon */}
+      <section className="relative overflow-hidden border-t border-border/40 py-20 md:py-28">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={0}
+            variants={fadeUp}
+            className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-border/50 bg-card"
+          >
+            {/* Decorative gradient backdrop */}
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,var(--primary)/0.12,transparent_55%),radial-gradient(circle_at_10%_90%,var(--primary)/0.08,transparent_50%)]" />
+
+            <div className="relative grid items-center gap-8 p-8 md:grid-cols-2 md:p-12">
+              {/* Left: copy */}
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/60" />
+                    <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+                  </span>
+                  Coming Soon
+                </span>
+                <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+                  PicturaSound — AI music, made for your videos
+                </h2>
+                <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
+                  Generate full original soundtracks, ambient pads, or mood-matched scores directly inside Studio. Steerable by mood, tempo, and instruments — and designed to pair perfectly with PicturaGen videos.
+                </p>
+
+                <ul className="mt-6 space-y-2.5 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2.5">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
+                      <Music className="h-3 w-3 text-primary" />
+                    </span>
+                    Stereo 44.1kHz output, ready to export
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
+                      <Disc3 className="h-3 w-3 text-primary" />
+                    </span>
+                    Mood, BPM, and instrument controls
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
+                      <Headphones className="h-3 w-3 text-primary" />
+                    </span>
+                    Auto-syncs to your generated video
+                  </li>
+                </ul>
+
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                  <Link
+                    href="/sound"
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                  >
+                    <Bell className="h-4 w-4" />
+                    Notify me at launch
+                  </Link>
+                  <Link
+                    href="/models"
+                    className="inline-flex items-center justify-center rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+                  >
+                    Learn more
+                  </Link>
+                </div>
+              </div>
+
+              {/* Right: animated player mockup */}
+              <div className="relative">
+                <div className="rounded-2xl border border-border/40 bg-background/80 p-5 shadow-lg backdrop-blur-sm">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
+                        <AudioWaveform className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">PicturaSound</p>
+                        <p className="text-[11px] text-muted-foreground">Generative music model</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                      Soon
+                    </span>
+                  </div>
+
+                  {/* Animated waveform */}
+                  <div className="mt-5 flex h-24 items-center gap-[3px] rounded-xl border border-border/30 bg-secondary/30 px-3">
+                    {[0.3, 0.55, 0.8, 0.45, 0.7, 0.95, 0.6, 0.35, 0.85, 0.5, 0.7, 0.4, 0.6, 0.85, 0.5, 0.3, 0.65, 0.9, 0.45, 0.55, 0.75, 0.4, 0.6, 0.8, 0.45, 0.65, 0.9, 0.5].map((h, i) => (
+                        <motion.span
+                          key={i}
+                          className="flex-1 rounded-sm bg-primary/70"
+                          animate={{ height: [`${h * 100}%`, `${(1 - h * 0.55) * 100}%`, `${h * 100}%`] }}
+                          transition={{ duration: 1.4 + (i % 5) * 0.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.05 }}
+                          style={{ height: `${h * 100}%` }}
+                        />
+                    ))}
+                  </div>
+
+                  {/* Track meta */}
+                  <div className="mt-4 grid grid-cols-2 gap-2.5">
+                    <div className="rounded-lg border border-border/30 bg-card px-3 py-2">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">Mood</p>
+                      <p className="mt-0.5 text-xs font-medium text-foreground">Cinematic · Ambient</p>
+                    </div>
+                    <div className="rounded-lg border border-border/30 bg-card px-3 py-2">
+                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">Tempo</p>
+                      <p className="mt-0.5 text-xs font-medium text-foreground">92 BPM · 4/4</p>
+                    </div>
+                  </div>
+
+                  {/* Style chips */}
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {['Orchestral', 'Synth pad', 'Soft drums', 'Strings'].map((tag) => (
+                      <span key={tag} className="rounded-md border border-border/40 bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Floating accent badge */}
+                <div className="absolute -right-2 -top-2 hidden rotate-6 rounded-xl border border-border/50 bg-card px-3 py-1.5 text-[10px] font-semibold text-foreground shadow-md sm:block">
+                  Pictura 2.5
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -1367,7 +1438,7 @@ export function Landing() {
                 {[
                   { icon: Cpu, label: 'Prompt Analysis', desc: 'NLP parsing & intent detection' },
                   { icon: Layers, label: 'Model Router', desc: 'Style-optimized model selection' },
-                  { icon: Zap, label: 'Diffusion Engine', desc: 'Multi-pass image generation' },
+                  { icon: Aperture, label: 'Diffusion Engine', desc: 'Multi-pass image generation' },
                   { icon: Shield, label: 'Safety & Enhance', desc: 'Content filter & upscaling' },
                   { icon: Globe, label: 'Edge Delivery', desc: 'CDN-backed global output' },
                 ].map((s, i, arr) => (
@@ -1400,7 +1471,7 @@ export function Landing() {
                   {[
                     { icon: Cpu, label: 'Prompt Analysis', desc: 'NLP parsing' },
                     { icon: Layers, label: 'Model Router', desc: 'Style routing' },
-                    { icon: Zap, label: 'Diffusion', desc: 'Generation' },
+                    { icon: Aperture, label: 'Diffusion', desc: 'Generation' },
                     { icon: Shield, label: 'Safety', desc: 'Filter & enhance' },
                     { icon: Globe, label: 'Delivery', desc: 'CDN output' },
                   ].map((s) => (
@@ -1461,7 +1532,7 @@ export function Landing() {
                     sub: geo ? `${geo.currency.code} \u2014 free forever` : 'Always free',
                   },
                   {
-                    icon: Zap,
+                    icon: Maximize2,
                     value: '1024',
                     label: 'Max Resolution',
                     sub: 'px output size',
