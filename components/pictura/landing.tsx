@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock, Clapperboard, Play, Music, AudioWaveform, ChevronDown, Volume2, Wand2, Lightbulb, Maximize2, Aperture, Type, Headphones, Disc3, Bell } from 'lucide-react'
+import { ArrowRight, Layers, Globe, FlaskConical, Cpu, Shield, BarChart3, BookOpen, Microscope, GitBranch, Check, X, MapPin, CircleDollarSign, Image as ImageIcon, Clock, Clapperboard, Play, Music, ChevronDown, Volume2, Wand2, Lightbulb, Maximize2, Aperture, Type, Disc3, Bell, Mic2, SlidersHorizontal, Download, Heart, SkipBack, SkipForward, Pause } from 'lucide-react'
 import { PicturaIcon } from './pictura-logo'
 
 const showcaseImages = [
@@ -717,135 +717,302 @@ export function Landing() {
         </div>
       </section>
 
-      {/* PicturaSound — Coming Soon */}
+      {/* PicturaSound — Music Studio Preview */}
       <section className="relative overflow-hidden border-t border-border/40 py-20 md:py-28">
+        {/* Subtle brand glow */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(ellipse_60%_60%_at_50%_-10%,var(--primary)/0.10,transparent_70%)]" />
+
         <div className="mx-auto max-w-7xl px-6">
+          {/* Header */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
             custom={0}
             variants={fadeUp}
-            className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-border/50 bg-card"
+            className="mx-auto max-w-2xl text-center"
           >
-            {/* Decorative gradient backdrop */}
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,var(--primary)/0.12,transparent_55%),radial-gradient(circle_at_10%_90%,var(--primary)/0.08,transparent_50%)]" />
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inset-0 animate-ping rounded-full bg-primary/60" />
+                <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+              </span>
+              PicturaSound · Coming Soon
+            </span>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+              Make real songs, from a single prompt
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
+              PicturaSound is a standalone studio for AI music. Type lyrics or a vibe and get a full track — vocals, instruments, structure. Use it on its own, or pair it with a PicturaGen video.
+            </p>
+          </motion.div>
 
-            <div className="relative grid items-center gap-8 p-8 md:grid-cols-2 md:p-12">
-              {/* Left: copy */}
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inset-0 animate-ping rounded-full bg-primary/60" />
-                    <span className="relative inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+          {/* Music Studio mockup — mirrors Studio chrome */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={1}
+            variants={fadeUp}
+            className="mx-auto mt-12 max-w-5xl"
+          >
+            <div className="relative rounded-2xl border border-border/40 bg-card shadow-2xl shadow-primary/[0.07] overflow-hidden">
+              {/* Window chrome — matches Studio header */}
+              <div className="flex items-center justify-between gap-2 border-b border-border/40 bg-secondary/30 px-3 py-2.5 sm:px-4 sm:py-3">
+                {/* Left: brand + model picker */}
+                <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                  <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-primary/15">
+                    <PicturaIcon size={12} className="text-primary" />
+                  </div>
+                  <span className="hidden text-xs font-medium text-foreground sm:inline">Pictura</span>
+                  <span className="hidden h-4 w-px bg-border/60 sm:inline-block" />
+                  {/* Model pill */}
+                  <div className="flex items-center gap-1 rounded-lg border border-border/40 bg-card px-1.5 py-1 text-[10px] font-medium text-foreground sm:gap-1.5 sm:px-2 sm:text-[11px]">
+                    <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
+                    <span className="truncate">PicturaSound</span>
+                    <span className="rounded bg-primary/10 px-1 py-px text-[8px] font-bold uppercase tracking-wide text-primary sm:text-[9px]">v1</span>
+                    <ChevronDown className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                  </div>
+                </div>
+
+                {/* Center: URL bar */}
+                <div className="hidden items-center gap-1.5 rounded-lg border border-border/30 bg-background/60 px-3 py-1 md:flex">
+                  <svg className="h-3 w-3 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  <span className="text-[11px] text-muted-foreground">picturaai.sbs/sound</span>
+                </div>
+
+                {/* Right: credits pill */}
+                <div className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-border/50 bg-card px-2 py-1 text-[10px] font-medium text-foreground sm:px-2.5 sm:text-[11px]">
+                  <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+                    <span className="absolute inset-0 rounded-full bg-primary/15" />
+                    <span className="absolute inset-[3px] rounded-full bg-primary" />
                   </span>
-                  Coming Soon
-                </span>
-                <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
-                  PicturaSound — AI music, made for your videos
-                </h2>
-                <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
-                  Generate full original soundtracks, ambient pads, or mood-matched scores directly inside Studio. Steerable by mood, tempo, and instruments — and designed to pair perfectly with PicturaGen videos.
-                </p>
-
-                <ul className="mt-6 space-y-2.5 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2.5">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
-                      <Music className="h-3 w-3 text-primary" />
-                    </span>
-                    Stereo 44.1kHz output, ready to export
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
-                      <Disc3 className="h-3 w-3 text-primary" />
-                    </span>
-                    Mood, BPM, and instrument controls
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
-                      <Headphones className="h-3 w-3 text-primary" />
-                    </span>
-                    Auto-syncs to your generated video
-                  </li>
-                </ul>
-
-                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href="/sound"
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-                  >
-                    <Bell className="h-4 w-4" />
-                    Notify me at launch
-                  </Link>
-                  <Link
-                    href="/models"
-                    className="inline-flex items-center justify-center rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
-                  >
-                    Learn more
-                  </Link>
+                  <span>5 left</span>
+                  <span className="hidden text-muted-foreground sm:inline">today</span>
                 </div>
               </div>
 
-              {/* Right: animated player mockup */}
-              <div className="relative">
-                <div className="rounded-2xl border border-border/40 bg-background/80 p-5 shadow-lg backdrop-blur-sm">
-                  {/* Header */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-                        <AudioWaveform className="h-5 w-5 text-primary" />
-                      </div>
+              {/* Mode tabs — Lyrics / Prompt / Instrumental */}
+              <div className="flex items-center justify-between gap-2 border-b border-border/30 px-3 py-2.5 sm:px-4">
+                <div className="flex items-center gap-1 overflow-x-auto rounded-lg bg-secondary/60 p-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <span className="whitespace-nowrap rounded-md bg-background px-2.5 py-1 text-[11px] font-semibold text-foreground shadow-sm sm:px-3">Prompt to Song</span>
+                  <span className="whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] font-medium text-muted-foreground sm:px-3">Lyrics to Song</span>
+                  <span className="whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] font-medium text-muted-foreground sm:px-3">Instrumental</span>
+                </div>
+                <span className="hidden font-mono text-[10px] text-muted-foreground/50 sm:inline">picturasound · music</span>
+              </div>
+
+              {/* Output area — track card with cover, waveform, controls */}
+              <div className="relative bg-secondary/20 p-4 sm:p-6">
+                {/* Track card */}
+                <div className="rounded-2xl border border-border/40 bg-card overflow-hidden shadow-lg">
+                  {/* Top: cover + meta — stacks on mobile */}
+                  <div className="grid gap-0 sm:grid-cols-[180px_1fr]">
+                    {/* Album art */}
+                    <div className="relative aspect-square overflow-hidden bg-secondary/30 sm:aspect-auto">
+                      <Image
+                        src="/images/showcase-hero-2.jpg"
+                        alt="AI generated album art"
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 640px) 180px, 100vw"
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/40" />
+                      {/* Spinning vinyl accent */}
+                      <motion.div
+                        className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 backdrop-blur-md"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                      >
+                        <Disc3 className="h-4 w-4 text-white" />
+                      </motion.div>
+                    </div>
+
+                    {/* Track info */}
+                    <div className="flex flex-col justify-between gap-3 p-4 sm:p-5">
                       <div>
-                        <p className="text-sm font-semibold text-foreground">PicturaSound</p>
-                        <p className="text-[11px] text-muted-foreground">Generative music model</p>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">Generated</span>
+                          <span className="text-[10px] text-muted-foreground">2:48 · 44.1kHz · Stereo</span>
+                        </div>
+                        <h3 className="mt-2 text-lg font-bold text-foreground sm:text-xl">Midnight Drive</h3>
+                        <p className="text-xs text-muted-foreground sm:text-sm">Synthwave · Female vocals · 112 BPM</p>
+                      </div>
+
+                      {/* Player controls */}
+                      <div className="flex items-center gap-3">
+                        <button type="button" aria-label="Previous" className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                          <SkipBack className="h-4 w-4 fill-current" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Play"
+                          className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-transform hover:scale-105"
+                        >
+                          <Pause className="h-5 w-5 fill-current" />
+                        </button>
+                        <button type="button" aria-label="Next" className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                          <SkipForward className="h-4 w-4 fill-current" />
+                        </button>
+                        <div className="ml-2 flex flex-1 items-center gap-2">
+                          <span className="font-mono text-[10px] text-muted-foreground">1:14</span>
+                          <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-secondary">
+                            <div className="absolute inset-y-0 left-0 w-[44%] rounded-full bg-primary" />
+                            <span className="absolute -top-1 left-[44%] h-3 w-3 -translate-x-1/2 rounded-full bg-primary shadow ring-2 ring-card" />
+                          </div>
+                          <span className="font-mono text-[10px] text-muted-foreground">2:48</span>
+                        </div>
+                        <button type="button" aria-label="Like" className="hidden h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-primary sm:flex">
+                          <Heart className="h-4 w-4" />
+                        </button>
+                        <button type="button" aria-label="Download" className="hidden h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:flex">
+                          <Download className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
-                    <span className="rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                      Soon
-                    </span>
                   </div>
 
-                  {/* Animated waveform */}
-                  <div className="mt-5 flex h-24 items-center gap-[3px] rounded-xl border border-border/30 bg-secondary/30 px-3">
-                    {[0.3, 0.55, 0.8, 0.45, 0.7, 0.95, 0.6, 0.35, 0.85, 0.5, 0.7, 0.4, 0.6, 0.85, 0.5, 0.3, 0.65, 0.9, 0.45, 0.55, 0.75, 0.4, 0.6, 0.8, 0.45, 0.65, 0.9, 0.5].map((h, i) => (
-                        <motion.span
-                          key={i}
-                          className="flex-1 rounded-sm bg-primary/70"
-                          animate={{ height: [`${h * 100}%`, `${(1 - h * 0.55) * 100}%`, `${h * 100}%`] }}
-                          transition={{ duration: 1.4 + (i % 5) * 0.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.05 }}
-                          style={{ height: `${h * 100}%` }}
-                        />
-                    ))}
-                  </div>
-
-                  {/* Track meta */}
-                  <div className="mt-4 grid grid-cols-2 gap-2.5">
-                    <div className="rounded-lg border border-border/30 bg-card px-3 py-2">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">Mood</p>
-                      <p className="mt-0.5 text-xs font-medium text-foreground">Cinematic · Ambient</p>
-                    </div>
-                    <div className="rounded-lg border border-border/30 bg-card px-3 py-2">
-                      <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/60">Tempo</p>
-                      <p className="mt-0.5 text-xs font-medium text-foreground">92 BPM · 4/4</p>
+                  {/* Live animated waveform */}
+                  <div className="border-t border-border/30 bg-secondary/20 p-4 sm:p-5">
+                    <div className="flex h-16 items-center gap-[2px] sm:h-20 sm:gap-[3px]">
+                      {[0.32, 0.55, 0.78, 0.42, 0.68, 0.92, 0.6, 0.35, 0.82, 0.5, 0.72, 0.4, 0.58, 0.85, 0.5, 0.3, 0.65, 0.9, 0.45, 0.55, 0.75, 0.4, 0.6, 0.8, 0.45, 0.65, 0.88, 0.52, 0.36, 0.74, 0.48, 0.62, 0.86, 0.5, 0.3, 0.7, 0.42, 0.58, 0.82, 0.5].map((h, i) => {
+                        const playedThreshold = 0.44 // matches the 44% progress
+                        const progress = i / 39
+                        const played = progress < playedThreshold
+                        return (
+                          <motion.span
+                            key={i}
+                            className={`flex-1 rounded-sm ${played ? 'bg-primary' : 'bg-primary/30'}`}
+                            animate={{ height: [`${h * 100}%`, `${(1 - h * 0.55) * 100}%`, `${h * 100}%`] }}
+                            transition={{ duration: 1.6 + (i % 5) * 0.2, repeat: Infinity, ease: 'easeInOut', delay: i * 0.04 }}
+                            style={{ height: `${h * 100}%` }}
+                          />
+                        )
+                      })}
                     </div>
                   </div>
 
-                  {/* Style chips */}
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {['Orchestral', 'Synth pad', 'Soft drums', 'Strings'].map((tag) => (
-                      <span key={tag} className="rounded-md border border-border/40 bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        {tag}
-                      </span>
-                    ))}
+                  {/* Lyrics preview row */}
+                  <div className="border-t border-border/30 bg-card px-4 py-3 sm:px-5">
+                    <div className="flex items-center gap-2">
+                      <Mic2 className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">Lyrics</p>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-foreground sm:text-sm">
+                      <span className="text-muted-foreground/60">[Verse 1]</span> Headlights tracing every line we drew, <span className="rounded bg-primary/10 px-1 text-primary">midnight runs the city through&hellip;</span>
+                    </p>
                   </div>
                 </div>
+              </div>
 
-                {/* Floating accent badge */}
-                <div className="absolute -right-2 -top-2 hidden rotate-6 rounded-xl border border-border/50 bg-card px-3 py-1.5 text-[10px] font-semibold text-foreground shadow-md sm:block">
-                  Pictura 2.5
+              {/* Prompt input — matches Studio bottom dock */}
+              <div className="border-t border-border/40 bg-card p-3 sm:p-4">
+                <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-background px-3 py-2.5 shadow-sm">
+                  <Music className="h-4 w-4 flex-shrink-0 text-primary" />
+                  <span className="flex-1 truncate text-xs text-foreground sm:text-sm">
+                    Dreamy synthwave with female vocals about late night drives, 112 BPM
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Generate"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Style chips + improve, like Studio */}
+                <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {['Synthwave', 'Lo-fi', 'Cinematic', 'Pop', 'Hip hop', 'Acoustic'].map((style, i) => (
+                    <span
+                      key={style}
+                      className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                        i === 0
+                          ? 'border-primary/30 bg-primary/10 text-primary'
+                          : 'border-border/50 bg-card text-muted-foreground'
+                      }`}
+                    >
+                      {style}
+                    </span>
+                  ))}
+                  <span className="ml-auto hidden flex-shrink-0 items-center gap-1.5 rounded-lg border border-border/50 bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground sm:flex">
+                    <SlidersHorizontal className="h-3 w-3" />
+                    Tune
+                  </span>
                 </div>
               </div>
             </div>
+
+            {/* Caption */}
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Live preview of PicturaSound v1 · A separate Pictura service for music
+            </p>
+          </motion.div>
+
+          {/* Feature highlights — mirrors video section structure */}
+          <div className="mx-auto mt-14 grid max-w-5xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                Icon: Mic2,
+                title: 'Real songs',
+                desc: 'Full tracks with vocals, lyrics, and song structure — not just loops.',
+              },
+              {
+                Icon: SlidersHorizontal,
+                title: 'Steerable',
+                desc: 'Pick mood, BPM, key, instruments, and vocal style.',
+              },
+              {
+                Icon: Clapperboard,
+                title: 'Pairs with video',
+                desc: 'Drop any track straight onto a PicturaGen video.',
+              },
+              {
+                Icon: Download,
+                title: 'Yours to use',
+                desc: 'Download stereo WAV/MP3 — clear license for your projects.',
+              },
+            ].map((f, i) => (
+              <motion.div
+                key={f.title}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-30px' }}
+                custom={i + 2}
+                variants={fadeUp}
+                className="rounded-2xl border border-border/50 bg-card p-5 transition-colors hover:border-primary/30"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                  <f.Icon className="h-4 w-4 text-primary" />
+                </div>
+                <p className="mt-4 text-sm font-semibold text-foreground">{f.title}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-30px' }}
+            custom={6}
+            variants={fadeUp}
+            className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
+          >
+            <Link
+              href="/sound"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              <Bell className="h-4 w-4" />
+              Notify me at launch
+            </Link>
+            <Link
+              href="/models"
+              className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+            >
+              Learn more
+            </Link>
           </motion.div>
         </div>
       </section>
