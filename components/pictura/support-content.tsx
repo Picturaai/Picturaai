@@ -2,6 +2,7 @@
 
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { OpenSourceBanner } from '@/components/pictura/open-source-banner'
 import { SmartCaptcha } from '@/components/pictura/smart-captcha'
 import { motion } from 'framer-motion'
 import { Heart, Coffee, Rocket, Star, Shield } from 'lucide-react'
@@ -251,6 +252,9 @@ export function SupportContent() {
           </motion.div>
         </div>
       </main>
+      <div className="px-6 pb-16">
+        <OpenSourceBanner description="Another way to support Pictura: star the repository, report a bug, or send a pull request. Pictura is fully open source." />
+      </div>
       <Footer />
 
       {/* Donation Modal */}

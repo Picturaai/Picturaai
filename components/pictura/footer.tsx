@@ -27,7 +27,7 @@ export function Footer() {
               <span className="text-lg font-bold tracking-tight text-foreground">Pictura</span>
             </span>
             <p className="mt-3 max-w-[240px] text-sm leading-relaxed text-muted-foreground">
-              Non-profit AI image generation by Imoogle Labs. Free and accessible to everyone.
+              Non-profit, open source AI image generation by Imoogle Labs. Free and accessible to everyone.
             </p>
             
             {/* Social Links */}

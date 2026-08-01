@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, Check, Zap, Layers, Download, Globe, Shield, Clock } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { OpenSourceBanner } from '@/components/pictura/open-source-banner'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
@@ -107,6 +108,9 @@ export default function PricingPage() {
           </motion.div>
         </div>
       </main>
+      <div className="px-6 pb-16">
+        <OpenSourceBanner description="Free forever, and open source too. The whole Pictura stack is public on GitHub, so you can audit exactly what runs behind every generation — or self-host it." />
+      </div>
       <Footer />
     </>
   )

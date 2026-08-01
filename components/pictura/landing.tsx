@@ -242,7 +242,7 @@ export function Landing() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg"
             >
-              Free AI image generation by Imoogle Labs. Create stunning visuals from text or transform existing images.
+              Free, open source AI image generation by Imoogle Labs. Create stunning visuals from text or transform existing images.
             </motion.p>
 
             {/* CTA buttons - minimal shadows */}
@@ -423,6 +423,22 @@ export function Landing() {
                     <p className="text-[10px] sm:text-xs text-muted-foreground">Quality</p>
                   </div>
                 </div>
+
+                {/* Open source */}
+                <a
+                  href={GITHUB_REPO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden items-center gap-3 sm:flex"
+                >
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <GitHubIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-lg sm:text-2xl font-bold text-foreground">Open</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Source</p>
+                  </div>
+                </a>
               </div>
             </div>
           </motion.div>

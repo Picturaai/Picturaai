@@ -2,6 +2,7 @@
 
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { OpenSourceBanner } from '@/components/pictura/open-source-banner'
 import { motion } from 'framer-motion'
 import { Zap, Sparkles, Wand2, Download, Share2, Palette, ImageIcon } from 'lucide-react'
 
@@ -99,6 +100,9 @@ export function FeaturesContent() {
           </motion.div>
         </div>
       </main>
+      <div className="px-6 pb-16">
+        <OpenSourceBanner description="Every feature on this page is open source. Read the implementation on GitHub, or help build the next one." />
+      </div>
       <Footer />
     </>
   )

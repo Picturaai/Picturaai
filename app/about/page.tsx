@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { OpenSourceBanner } from '@/components/pictura/open-source-banner'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 const fadeUp = {
@@ -286,6 +287,9 @@ export default function AboutPage() {
           </motion.div>
         </div>
       </main>
+      <div className="px-6 pb-16">
+        <OpenSourceBanner description="Imoogle Labs builds Pictura in the open — Studio, the public API, and PicturaCAPTCHA all live in one public repository you can read, fork, and contribute to." />
+      </div>
       <Footer />
     </>
   )

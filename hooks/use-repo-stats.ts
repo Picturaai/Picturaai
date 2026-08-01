@@ -29,7 +29,11 @@ export function useRepoStats(): { stats: RepoStats; loading: boolean } {
   const [loading, setLoading] = useState(!cachedStats)
 
   useEffect(() => {
-    if (cachedStats) return
+    if (cachedStats) {
+      setStats(cachedStats)
+      setLoading(false)
+      return
+    }
     let active = true
     loadStats().then((next) => {
       if (!active) return

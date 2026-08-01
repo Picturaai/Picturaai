@@ -10,6 +10,7 @@ import {
 import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { OpenSourceBanner } from '@/components/pictura/open-source-banner'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 const PRICING_BY_COUNTRY: Record<string, { currency: string; symbol: string; perImage: number; freeCredits: number; pro: number }> = {
@@ -688,6 +689,9 @@ print(image.url)`,
           </div>
         </section>
       </main>
+      <div className="px-6 pb-16">
+        <OpenSourceBanner description="The API you are reading about is open source. Every endpoint on this page is implemented in the public Pictura repository — read the handlers, report a bug, or send a fix." />
+      </div>
       <Footer />
     </>
   )

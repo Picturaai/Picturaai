@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { Check, Shield, Globe, Code2, ArrowRight, Copy, CheckCircle2, X, Lock, Eye, Fingerprint } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { OpenSourceBanner } from '@/components/pictura/open-source-banner'
 import { SmartCaptcha } from '@/components/pictura/smart-captcha'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
@@ -715,6 +716,9 @@ export default function CaptchaPage() {
         </div>
       </section>
       
+      <div className="px-6 pb-16">
+        <OpenSourceBanner description="PicturaCAPTCHA is open source. Verification, scoring, and the widget itself are all public, so you never have to trust a black box on your sign-up form." />
+      </div>
       <Footer />
     </div>
   )
