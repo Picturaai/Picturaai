@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { neon } from '@neondatabase/serverless'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql } from '@/lib/db'
 
 // Auto-migrate database schema - add columns if they don't exist
 async function migrateSchema() {

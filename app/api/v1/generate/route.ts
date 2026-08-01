@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
 import { hashPassword } from '@/lib/email'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql } from '@/lib/db'
 
 // Alibaba Cloud Model Studio (DashScope) - Text to Image
 async function generateWithAlibaba(prompt: string, width: number, height: number): Promise<string> {

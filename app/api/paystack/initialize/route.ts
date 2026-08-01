@@ -1,57 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
-
-const sql = neon(process.env.DATABASE_URL!)
-
-// Verify session helper
-async function verifySession(token: string): Promise<{ developerId: string } | null> {
-  try {
-    const sessions = await sql`
-      SELECT developer_id, expires_at FROM developer_sessions
-      WHERE session_token = ${token}
-    `
-    if (sessions.length === 0) return null
-    const session = sessions[0]
-    if (new Date(session.expires_at) <= new Date()) return null
-    return { developerId: session.developer_id }
-  } catch {
-    return null
-  }
-}
-
-function getTokenFromRequest(req: NextRequest): string | null {
-  const cookieToken = req.cookies.get('pictura_session')?.value
-  if (cookieToken) return cookieToken
-  const authHeader = req.headers.get('authorization')
-  if (authHeader?.startsWith('Bearer ')) return authHeader.substring(7)
-  return null
-}
+import { errorResponse } from '@/lib/api-response'
+import { sql } from '@/lib/db'
+import { requireDeveloperSession } from '@/lib/developer-auth'
 
 export async function POST(req: NextRequest) {
   try {
-    const token = getTokenFromRequest(req)
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const session = await verifySession(token)
-    if (!session) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
-    }
+    const session = await requireDeveloperSession(req)
+    if (!session.ok) return session.response
 
     const { amount, credits, planName, email, name } = await req.json()
 
     if (!amount || amount < 100) {
-      return NextResponse.json({ error: 'Minimum amount is 100 NGN' }, { status: 400 })
+      return errorResponse('Minimum amount is 100 NGN', 400)
     }
 
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+      return errorResponse('Email is required', 400)
     }
 
     const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY
     if (!paystackSecretKey) {
-      return NextResponse.json({ error: 'Payment system not configured' }, { status: 500 })
+      return errorResponse('Payment system not configured', 500)
     }
 
     const reference = `PICTURA-${session.developerId.substring(0, 8)}-${Date.now()}-${Math.random().toString(36).substring(7)}`
@@ -99,16 +68,10 @@ export async function POST(req: NextRequest) {
       })
     } else {
       console.error('Paystack error:', data)
-      return NextResponse.json(
-        { error: data.message || 'Payment initialization failed' },
-        { status: 400 }
-      )
+      return errorResponse(data.message || 'Payment initialization failed', 400)
     }
   } catch (error) {
     console.error('Payment initialization error:', error)
-    return NextResponse.json(
-      { error: 'An error occurred while initializing payment' },
-      { status: 500 }
-    )
+    return errorResponse('An error occurred while initializing payment', 500)
   }
 }

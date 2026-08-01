@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
 import { cookies } from 'next/headers'
 import crypto from 'crypto'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql } from '@/lib/db'
 
 function generateSiteKey() {
   return 'pic_' + crypto.randomBytes(16).toString('hex')

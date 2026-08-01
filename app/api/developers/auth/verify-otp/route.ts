@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
 import { sendWelcomeEmail, generateToken, hashPassword } from '@/lib/email'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql } from '@/lib/db'
 
 // Free credits for developers to start building
 const CURRENCY_CREDITS: Record<string, number> = {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
+import { decodeDataUrl } from '@/lib/image-data'
+import { uploadObject } from '@/lib/storage'
 
 // Download image and convert to base64
 async function imageUrlToBase64(url: string): Promise<string> {
@@ -340,17 +341,13 @@ export async function POST(request: NextRequest) {
 
     // If result is base64, upload to blob storage
     let finalUrl = editedImageUrl
-    if (editedImageUrl.startsWith('data:')) {
-      const base64Data = editedImageUrl.split(',')[1]
-      const imageBuffer = Buffer.from(base64Data, 'base64')
+    const imageBuffer = decodeDataUrl(editedImageUrl)
+    if (imageBuffer) {
       const timestamp = Date.now()
       const filename = `pictura/edited/${timestamp}-${instruction.slice(0, 20).replace(/[^a-zA-Z0-9]/g, '_')}.png`
-      
-      const blob = await put(filename, imageBuffer, {
-        access: 'public',
-        contentType: 'image/png',
-      })
-      finalUrl = blob.url
+
+      const uploaded = await uploadObject(filename, imageBuffer, 'image/png')
+      finalUrl = uploaded.url
     }
 
     return NextResponse.json({

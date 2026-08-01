@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
 import { cookies } from 'next/headers'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql } from '@/lib/db'
 
 async function getDevFromSession() {
   const cookieStore = await cookies()

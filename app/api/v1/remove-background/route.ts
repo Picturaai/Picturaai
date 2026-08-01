@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
-import { put } from '@vercel/blob'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { authenticateApiKey, insufficientCredits, recordApiUsage } from '@/lib/api-key-auth'
+import { errorResponse, serverErrorResponse } from '@/lib/api-response'
+import { persistImageUrl } from '@/lib/image-data'
+import { firstSuccessful } from '@/lib/provider-fallback'
+import { runReplicatePrediction } from '@/lib/replicate'
 
 // Remove.bg API
 async function removeWithRemoveBg(imageUrl: string): Promise<string> {
@@ -29,38 +30,11 @@ async function removeWithRemoveBg(imageUrl: string): Promise<string> {
 }
 
 // Replicate rembg model
-async function removeWithReplicate(imageUrl: string): Promise<string> {
-  const apiKey = process.env.REPLICATE_API_TOKEN
-  if (!apiKey) throw new Error('Replicate not configured')
-
-  const response = await fetch('https://api.replicate.com/v1/predictions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Token ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      version: 'cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003',
-      input: { image: imageUrl },
-    }),
-  })
-
-  if (!response.ok) throw new Error('Replicate creation failed')
-  const prediction = await response.json()
-  
-  // Poll for result
-  for (let i = 0; i < 60; i++) {
-    await new Promise(r => setTimeout(r, 1000))
-    const statusRes = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
-      headers: { 'Authorization': `Token ${apiKey}` },
-    })
-    const status = await statusRes.json()
-    if (status.status === 'succeeded' && status.output) {
-      return status.output
-    }
-    if (status.status === 'failed') throw new Error('Replicate failed')
-  }
-  throw new Error('Replicate timed out')
+function removeWithReplicate(imageUrl: string): Promise<string> {
+  return runReplicatePrediction(
+    'cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003',
+    { image: imageUrl }
+  )
 }
 
 // Fal AI background removal
@@ -85,76 +59,43 @@ async function removeWithFal(imageUrl: string): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing API key' }, { status: 401 })
-    }
+    const auth = await authenticateApiKey(request)
+    if (!auth.ok) return auth.response
 
-    const apiKey = authHeader.substring(7)
-    
-    const keyResult = await sql`
-      SELECT ak.id, ak.developer_id, d.credits
-      FROM api_keys ak
-      JOIN developers d ON ak.developer_id = d.id
-      WHERE ak.key = ${apiKey} AND ak.is_active = true
-    `
-
-    if (keyResult.length === 0) {
-      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
-    }
-
-    const { developer_id, credits } = keyResult[0]
     const creditCost = 0.5 // Half credit for background removal
-
-    if (credits < creditCost) {
-      return NextResponse.json({ error: 'Insufficient credits' }, { status: 402 })
-    }
+    const noCredits = insufficientCredits(auth.context, creditCost)
+    if (noCredits) return noCredits
 
     const body = await request.json()
     const { image_url } = body
 
     if (!image_url) {
-      return NextResponse.json({ error: 'image_url is required' }, { status: 400 })
+      return errorResponse('image_url is required', 400)
     }
 
     const startTime = Date.now()
-    let resultUrl: string | null = null
-    const providers = [removeWithFal, removeWithReplicate, removeWithRemoveBg]
-
-    for (const provider of providers) {
-      try {
-        resultUrl = await provider(image_url)
-        break
-      } catch (err) {
-        console.error('Background removal provider failed:', err)
-        continue
-      }
-    }
+    const resultUrl = await firstSuccessful(
+      [
+        () => removeWithFal(image_url),
+        () => removeWithReplicate(image_url),
+        () => removeWithRemoveBg(image_url),
+      ],
+      'Background removal'
+    )
 
     if (!resultUrl) {
-      return NextResponse.json({ error: 'All providers failed' }, { status: 500 })
+      return errorResponse('All providers failed', 500)
     }
 
-    // Upload to blob if base64
-    let finalUrl = resultUrl
-    if (resultUrl.startsWith('data:')) {
-      const base64Data = resultUrl.split(',')[1]
-      const imageBuffer = Buffer.from(base64Data, 'base64')
-      const blob = await put(`pictura/bg-removed/${Date.now()}.png`, imageBuffer, {
-        access: 'public',
-        contentType: 'image/png',
-      })
-      finalUrl = blob.url
-    }
-
+    const finalUrl = await persistImageUrl(resultUrl, 'pictura/bg-removed')
     const generationTime = Date.now() - startTime
 
-    // Deduct credits and log
-    await sql`UPDATE developers SET credits = credits - ${creditCost} WHERE id = ${developer_id}`
-    await sql`
-      INSERT INTO usage_analytics (developer_id, endpoint, generation_time_ms, credits_used, status)
-      VALUES (${developer_id}, '/v1/remove-background', ${generationTime}, ${creditCost}, 'success')
-    `
+    await recordApiUsage({
+      developerId: auth.context.developerId,
+      endpoint: '/v1/remove-background',
+      creditsUsed: creditCost,
+      generationTimeMs: generationTime,
+    })
 
     return NextResponse.json({
       success: true,
@@ -164,7 +105,6 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Background removal error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse('Background removal error', error)
   }
 }
