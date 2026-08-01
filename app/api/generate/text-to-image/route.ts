@@ -510,10 +510,13 @@ export async function POST(request: Request) {
 
     // Handle base64 images (from Stability)
     let imageBuffer: ArrayBuffer | Buffer
+    let imageBase64: string | undefined
     const decoded = decodeDataUrl(imageUrl)
     if (decoded) {
       console.log('[TextToImage] Using base64 data from provider')
       imageBuffer = decoded
+      // Also create base64 string for fallback
+      imageBase64 = `data:image/png;base64,${Buffer.from(decoded).toString('base64')}`
     } else {
       console.log('[TextToImage] Downloading image from:', imageUrl)
       const downloaded = await fetchImageBytes(imageUrl)
@@ -525,6 +528,7 @@ export async function POST(request: Request) {
         )
       }
       imageBuffer = downloaded
+      imageBase64 = `data:image/png;base64,${Buffer.from(downloaded).toString('base64')}`
       console.log('[TextToImage] Successfully downloaded image, size:', imageBuffer.byteLength)
     }
 
@@ -532,13 +536,26 @@ export async function POST(request: Request) {
     const filename = `pictura/text-to-image/${timestamp}-${model}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
     // Upload to Vercel Blob
+    let finalUrl: string
     console.log('[TextToImage] Uploading to blob storage...')
-    const blob = await uploadObject(filename, imageBuffer, 'image/png')
-    console.log('[TextToImage] Uploaded to:', blob.url)
+    try {
+      const blob = await uploadObject(filename, imageBuffer, 'image/png')
+      console.log('[TextToImage] Uploaded to:', blob.url)
+      finalUrl = blob.url
+    } catch (blobError) {
+      console.error('[TextToImage] Blob upload failed, using base64 fallback:', blobError)
+      if (!imageBase64) {
+        return NextResponse.json(
+          { error: 'Failed to upload image. Please try again.' },
+          { status: 500 }
+        )
+      }
+      finalUrl = imageBase64
+    }
 
     const createdAt = new Date().toISOString()
     const galleryPersisted = await tryAppendMediaToGallery(sessionId, {
-      url: blob.url,
+      url: finalUrl,
       prompt: prompt.trim(),
       type: 'text-to-image',
       mediaKind: 'image',
@@ -553,7 +570,7 @@ export async function POST(request: Request) {
     console.log('[TextToImage] Rate limit after:', updatedRateLimitInfo)
 
     return NextResponse.json({
-      url: blob.url,
+      url: finalUrl,
       prompt: prompt.trim(),
       model,
       type: 'text-to-image',
