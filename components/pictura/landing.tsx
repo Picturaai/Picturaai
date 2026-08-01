@@ -1773,7 +1773,7 @@ export function Landing() {
       </section>
 
       {/* Open Source Section */}
-      <section className="relative border-t border-border/40 bg-gradient-to-b from-secondary/30 to-background py-16 md:py-24">
+      <section className="relative border-t border-border/40 bg-secondary/20 py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-6">
           <motion.div
             initial="hidden"
@@ -1788,49 +1788,22 @@ export function Landing() {
               Open Source
             </div>
             <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
-              Built in the open
+              Pictura is open source
             </h2>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
-              Pictura is open source and free. Read the code, contribute, or deploy it yourself.
+              Free and open to everyone. Contribute, fork, or run it yourself.
             </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            custom={1}
-            variants={fadeUp}
-            className="mx-auto mt-10 max-w-2xl"
-          >
-            <a
-              href={GITHUB_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-start gap-4 rounded-2xl border border-border/50 bg-card p-6 transition-all hover:border-primary/30 hover:shadow-lg sm:flex-row sm:items-center sm:justify-between md:p-8"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-foreground/10">
-                  <GitHubIcon className="h-6 w-6 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-mono text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                    Picturaai/Picturaai
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Next.js · TypeScript · Tailwind
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row">
-                <GitHubStarButton variant="block" />
-                <button className="group relative inline-flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 active:scale-[0.98] sm:px-5">
-                  View Code
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </button>
-              </div>
-            </a>
+            <div className="mt-6">
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+              >
+                <GitHubIcon className="h-4 w-4" />
+                View on GitHub
+              </a>
+            </div>
           </motion.div>
         </div>
       </section>
