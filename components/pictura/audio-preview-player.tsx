@@ -118,7 +118,7 @@ export function AudioPreviewPlayer({
             <p className="text-xs text-muted-foreground sm:text-sm">{subtitle}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => seek(currentTime - SKIP_SECONDS)}
@@ -144,8 +144,8 @@ export function AudioPreviewPlayer({
               <SkipForward className="h-4 w-4 fill-current" />
             </button>
 
-            <div className="ml-2 flex flex-1 items-center gap-2">
-              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">{formatMediaTime(currentTime)}</span>
+            <div className="ml-1 flex min-w-0 flex-1 items-center gap-2 sm:ml-2">
+              <span className="flex-shrink-0 font-mono text-[10px] text-muted-foreground tabular-nums">{formatMediaTime(currentTime)}</span>
               <input
                 type="range"
                 min={0}
@@ -154,12 +154,12 @@ export function AudioPreviewPlayer({
                 value={currentTime}
                 onChange={(e) => seek(Number(e.target.value))}
                 aria-label="Seek track"
-                className="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-secondary outline-none [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+                className="h-1 w-full min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-secondary outline-none [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
                 style={{
                   backgroundImage: `linear-gradient(to right, var(--primary) ${ratio * 100}%, transparent ${ratio * 100}%)`,
                 }}
               />
-              <span className="font-mono text-[10px] text-muted-foreground tabular-nums">{formatMediaTime(duration)}</span>
+              <span className="flex-shrink-0 font-mono text-[10px] text-muted-foreground tabular-nums">{formatMediaTime(duration)}</span>
             </div>
 
             <button
