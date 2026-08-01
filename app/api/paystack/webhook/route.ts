@@ -14,13 +14,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not configured' }, { status: 500 })
     }
 
-    // Verify webhook signature
+    // Verify webhook signature (constant-time comparison)
     const hash = crypto
       .createHmac('sha512', paystackSecretKey)
       .update(body)
       .digest('hex')
 
-    if (hash !== signature) {
+    const expected = Buffer.from(hash)
+    const provided = Buffer.from(signature || '')
+    if (
+      !signature ||
+      expected.length !== provided.length ||
+      !crypto.timingSafeEqual(expected, provided)
+    ) {
       console.error('Invalid Paystack webhook signature')
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
