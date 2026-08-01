@@ -156,6 +156,10 @@ async function generateWithLeonardo(prompt: string): Promise<string> {
   if (!createResponse.ok) {
     const errorText = await createResponse.text()
     console.error('Leonardo API error:', createResponse.status, errorText)
+    // Check if it's a token/credit error
+    if (errorText.includes('not enough api tokens') || errorText.includes('api_tokens') || createResponse.status === 400) {
+      throw new Error('Leonardo API out of credits')
+    }
     throw new Error('Leonardo generation failed')
   }
 
@@ -471,24 +475,25 @@ export async function POST(request: Request) {
       ? [
           // Primary: Alibaba DashScope international
           generateWithQwen,
-          // Fallbacks: ZyLabs, Stability, Mistral, Fal, DeepInfra, BFL, HuggingFace
-          generateWithZyLabs,
+          // Fallbacks: Stability, Mistral, Fal, DeepInfra, BFL, HuggingFace (ZyLabs disabled - has issues)
           generateWithStability,
           generateWithMistral,
           generateWithFal,
           generateWithHuggingFace,
           generateWithBFL,
+          // Leonardo last - out of credits
+          generateWithLeonardo,
         ]
       : [
-          // pi-1.0: Use more providers as fallback chain
-          generateWithLeonardo,
-          generateWithZyLabs,
+          // pi-1.0: Use more providers as fallback chain (Leonardo removed - out of credits)
           generateWithMistral,
           generateWithStability,
           generateWithFal,
           generateWithHuggingFace,
           generateWithBFL,
           generateWithQwen,
+          // ZyLabs as last resort
+          generateWithZyLabs,
         ]
 
     const imageUrl = await firstSuccessful(

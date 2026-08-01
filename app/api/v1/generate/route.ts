@@ -269,8 +269,7 @@ async function generateWithPicturaEngine(prompt: string, width: number, height: 
     ? [
         // Primary: Alibaba domestic
         generateWithAlibaba,
-        // Fallbacks: ZyLabs, Stability, Mistral, OpenAI, BFL, Fal, Together, DeepInfra, Fireworks
-        generateWithZyLabs,
+        // Fallbacks: Stability, Mistral, OpenAI, BFL, Fal, Together, DeepInfra, Fireworks
         generateWithStability,
         generateWithMistral,
         generateWithOpenAI,
@@ -280,14 +279,14 @@ async function generateWithPicturaEngine(prompt: string, width: number, height: 
         generateWithFireworks,
         generateWithDeepInfra,
         generateWithReplicate,
-        generateWithLeonardo,
         generateWithHuggingFace,
+        // Leonardo & ZyLabs last - have issues
+        generateWithLeonardo,
+        generateWithZyLabs,
       ]
     : model === 'pi-1.0'
       ? [
-          // pi-1.0: Use more providers as fallback chain
-          generateWithLeonardo,
-          generateWithZyLabs,
+          // pi-1.0: Use more providers as fallback chain (Leonardo removed - out of credits)
           generateWithMistral,
           generateWithStability,
           generateWithAlibaba,
@@ -299,6 +298,8 @@ async function generateWithPicturaEngine(prompt: string, width: number, height: 
           generateWithDeepInfra,
           generateWithReplicate,
           generateWithHuggingFace,
+          // ZyLabs as last resort
+          generateWithZyLabs,
         ]
       : [
           // Default fallback chain
@@ -308,13 +309,14 @@ async function generateWithPicturaEngine(prompt: string, width: number, height: 
           generateWithOpenAI,
           generateWithBFL,
           generateWithReplicate,
-          generateWithLeonardo,
           generateWithFal,
           generateWithTogether,
           generateWithFireworks,
           generateWithDeepInfra,
-          generateWithZyLabs,
           generateWithHuggingFace,
+          // Leonardo & ZyLabs last
+          generateWithLeonardo,
+          generateWithZyLabs,
         ]
   
   for (const provider of providers) {
