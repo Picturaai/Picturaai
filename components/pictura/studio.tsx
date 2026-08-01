@@ -400,6 +400,13 @@ function dedupeMedia(items: GeneratedMedia[]): GeneratedMedia[] {
   return unique
 }
 
+/** The generation succeeded but the server could not store it in the gallery. */
+function warnIfNotPersisted(data: { galleryPersisted?: boolean }) {
+  if (data.galleryPersisted === false) {
+    toast.warning('Saved to this session only - we could not add it to your gallery. Download it to keep it.')
+  }
+}
+
 export function Studio() {
   const [mode, setMode] = useState<Mode>('text')
   const [prompt, setPrompt] = useState('')
@@ -677,8 +684,12 @@ export function Studio() {
       if (res.ok) {
         const data = await res.json()
         setVideoRateLimit(data)
+      } else {
+        console.error('[Client] Video rate limit request failed:', res.status)
       }
-    } catch { /* silent */ }
+    } catch (e) {
+      console.error('[Client] Video rate limit error:', e)
+    }
   }, [buildAuthHeaders])
 
   const clearPendingGeneration = useCallback(() => {
@@ -730,6 +741,7 @@ export function Studio() {
     let allImages: GeneratedMedia[] = []
     
     // First try to load from server
+    let serverLoadFailed = false
     try {
       const res = await fetch('/api/gallery', { credentials: 'include', headers: buildAuthHeaders() })
       if (res.ok) {
@@ -737,8 +749,18 @@ export function Studio() {
         if (saved && saved.length > 0) {
           allImages = [...saved]
         }
+      } else {
+        serverLoadFailed = true
+        console.error('[Client] Gallery request failed:', res.status)
       }
-    } catch { /* silent */ }
+    } catch (e) {
+      serverLoadFailed = true
+      console.error('[Client] Gallery load error:', e)
+    }
+
+    if (serverLoadFailed) {
+      toast.error('Could not load your gallery. Refresh to try again.')
+    }
     
     // Also check localStorage as fallback
     try {
@@ -750,7 +772,9 @@ export function Studio() {
           allImages = dedupeMedia([...allImages, ...localImages])
         }
       }
-    } catch { /* silent */ }
+    } catch (e) {
+      console.error('[Client] Cached gallery could not be parsed:', e)
+    }
     
     if (allImages.length > 0) {
       // Sort newest first by createdAt
@@ -834,7 +858,9 @@ export function Studio() {
                   allImages = dedupeMedia([...allImages, ...localImages])
                 }
               }
-            } catch { /* silent */ }
+            } catch (e) {
+              console.error('[Client] Cached gallery could not be parsed:', e)
+            }
             
             if (allImages.length > 0) {
               const sorted = dedupeMedia(allImages).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -958,8 +984,9 @@ export function Studio() {
           // Don't clear prompt on timeout so user can retry
           toast.info('Generation timed out. Please try again.')
         }
-      } catch {
-        // Silent polling failures
+      } catch (e) {
+        // Keep polling, the next tick may succeed
+        console.error('[Client] Generation status poll failed:', e)
       }
     }
 
@@ -1143,6 +1170,7 @@ export function Studio() {
         if (data.rateLimitInfo) setVideoRateLimit(data.rateLimitInfo)
         playSuccessSound()
         toast.success('Video generated!')
+        warnIfNotPersisted(data)
 
       } else {
         await completeLoadingAndSettle()
@@ -1155,6 +1183,7 @@ export function Studio() {
         }
         playSuccessSound()
         toast.success('Image generated!')
+        warnIfNotPersisted(data)
       }
 
       // Clear prompt after successful generation for all modes
@@ -1258,13 +1287,18 @@ export function Studio() {
   const dismissTour = async () => {
     setTourStep(-1)
     try {
-      await fetch('/api/studio/preferences', {
+      const res = await fetch('/api/studio/preferences', {
         method: 'POST',
         credentials: 'include',
         headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ completed: true }),
       })
-    } catch { /* silent */ }
+      if (!res.ok) {
+        console.error('[Client] Could not save tour preference:', res.status)
+      }
+    } catch (e) {
+      console.error('[Client] Could not save tour preference:', e)
+    }
   }
   const nextTourStep = () => {
     if (tourStep >= TOUR_STEPS.length - 1) { dismissTour(); return }

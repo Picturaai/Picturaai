@@ -12,13 +12,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not configured' }, { status: 500 })
     }
 
-    // Verify webhook signature
+    // Verify webhook signature (constant-time comparison)
     const hash = crypto
       .createHmac('sha512', paystackSecretKey)
       .update(body)
       .digest('hex')
 
-    if (hash !== signature) {
+    const expected = Buffer.from(hash)
+    const provided = Buffer.from(signature || '')
+    if (
+      !signature ||
+      expected.length !== provided.length ||
+      !crypto.timingSafeEqual(expected, provided)
+    ) {
       console.error('Invalid Paystack webhook signature')
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
@@ -57,13 +63,19 @@ export async function POST(req: NextRequest) {
           FROM developers WHERE id = ${developerId}
         `
 
-        // Remove pending transaction if exists
-        await sql`
-          DELETE FROM credit_transactions 
-          WHERE developer_id = ${developerId} 
-          AND type = 'pending'
-          AND description LIKE ${`%${reference}%`}
-        `.catch(() => {})
+        // Remove pending transaction if exists. Credits are already granted at
+        // this point, so a cleanup failure is logged rather than retried by
+        // Paystack (a retry would be rejected as "Already processed").
+        try {
+          await sql`
+            DELETE FROM credit_transactions 
+            WHERE developer_id = ${developerId} 
+            AND type = 'pending'
+            AND description LIKE ${`%${reference}%`}
+          `
+        } catch (error) {
+          console.error(`Failed to clear pending transaction for ${reference}:`, error)
+        }
 
         console.log(`Credits added: ${credits} to developer ${developerId}`)
       }

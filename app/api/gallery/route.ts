@@ -14,8 +14,10 @@ export async function GET(request: Request) {
     if (!media) return NextResponse.json({ images: [] })
     return NextResponse.json({ images: media })
   } catch (error) {
+    // Reporting an empty gallery here would look like "you have no images";
+    // fail loudly so the client can distinguish an outage from an empty gallery.
     console.error('Gallery load error:', error)
-    return NextResponse.json({ images: [] })
+    return NextResponse.json({ error: 'Failed to load gallery' }, { status: 503 })
   }
 }
 

@@ -7,13 +7,13 @@ async function migrateSchema() {
   try {
     // Add signup_method column to developers table if it doesn't exist
     await sql`ALTER TABLE developers ADD COLUMN IF NOT EXISTS signup_method VARCHAR(50) DEFAULT 'pictura'`
-  } catch (e) {
-    // Column might already exist, ignore
+  } catch (error) {
+    console.error('developers.signup_method migration failed:', error)
   }
 }
 
 // Run migration on module load
-migrateSchema()
+void migrateSchema()
 
 export async function GET(request: NextRequest) {
   try {

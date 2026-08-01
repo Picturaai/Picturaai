@@ -5,7 +5,7 @@ import { runReplicatePrediction } from '@/lib/replicate'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
-import { appendMediaToGallery } from '@/lib/gallery'
+import { tryAppendMediaToGallery } from '@/lib/gallery'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { getRequestContext } from '@/lib/request-context'
 
@@ -515,7 +515,7 @@ export async function POST(request: Request) {
     const blob = await uploadObject(filename, imageBuffer, 'image/png')
 
     const createdAt = new Date().toISOString()
-    await appendMediaToGallery(sessionId, {
+    const galleryPersisted = await tryAppendMediaToGallery(sessionId, {
       url: blob.url,
       prompt: prompt.trim(),
       type: 'text-to-image',
@@ -538,6 +538,7 @@ export async function POST(request: Request) {
       requestId: requestId || undefined,
       createdAt,
       rateLimitInfo: updatedRateLimitInfo,
+      galleryPersisted,
     })
   } catch (error) {
     console.error('Text-to-image generation error:', error)

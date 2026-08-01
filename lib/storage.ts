@@ -183,7 +183,10 @@ async function r2ListByPrefix(prefix: string): Promise<string[]> {
     },
   })
 
-  if (!res.ok) return []
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => '')
+    throw new Error(`R2 list failed for prefix "${prefix}": ${res.status} ${errorText}`)
+  }
   const xml = await res.text()
   const matches = [...xml.matchAll(/<Key>(.*?)<\/Key>/g)]
   return matches.map((m) => m[1])
@@ -228,19 +231,30 @@ export async function uploadObject(
   return { url: getPublicUrl(key) }
 }
 
+/**
+ * Reads a JSON object from storage. Returns null only when the object does not
+ * exist; any other failure (network, auth, malformed body) throws so callers can
+ * tell "nothing stored yet" apart from "storage is unavailable".
+ */
 export async function readJsonObject<T>(key: string): Promise<T | null> {
   if (!getR2Config()) {
     const { blobs } = await list({ prefix: key })
     if (blobs.length === 0) return null
     const res = await fetch(blobs[0].url)
-    if (!res.ok) return null
-    return res.json()
+    if (res.status === 404) return null
+    if (!res.ok) {
+      throw new Error(`Blob read failed for "${key}": ${res.status}`)
+    }
+    return res.json() as Promise<T>
   }
 
   const res = await r2Request('GET', key)
   if (res.status === 404) return null
-  if (!res.ok) return null
-  return res.json()
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => '')
+    throw new Error(`R2 read failed for "${key}": ${res.status} ${errorText}`)
+  }
+  return res.json() as Promise<T>
 }
 
 export async function listObjectKeys(prefix: string): Promise<string[]> {

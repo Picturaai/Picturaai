@@ -35,7 +35,8 @@ export async function sendEmail(options: SendEmailOptions) {
 }
 
 export function generateOTP(): string {
-  return Math.random().toString().slice(2, 8)
+  // Use a cryptographically secure RNG so OTP codes are not predictable.
+  return crypto.randomInt(0, 1_000_000).toString().padStart(6, '0')
 }
 
 export function hashPassword(password: string): string {

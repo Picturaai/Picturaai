@@ -581,7 +581,8 @@ export async function POST(request: NextRequest) {
     let imageUrl: string
     try {
       imageUrl = await generateWithPicturaEngine(prompt, width || 1024, height || 1024, model)
-    } catch {
+    } catch (error) {
+      console.error('[Pictura] Engine generation failed:', error)
       return NextResponse.json({ 
         error: 'Image generation failed. Please try again.',
         code: 'generation_failed'
@@ -635,8 +636,7 @@ export async function POST(request: NextRequest) {
     console.error('[Pictura] API Error:', error)
     return NextResponse.json({ 
       error: 'Internal server error',
-      code: 'internal_error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      code: 'internal_error'
     }, { status: 500 })
   }
 }

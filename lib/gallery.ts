@@ -11,13 +11,10 @@ function isSameMediaEntry(a: GeneratedMedia, b: GeneratedMedia): boolean {
 export async function appendMediaToGallery(sessionId: string, mediaItem: GeneratedMedia): Promise<void> {
   const galleryPath = `pictura/galleries/${sessionId}.json`
 
-  let media: GeneratedMedia[] = []
-  try {
-    const existing = await readJsonObject<GeneratedMedia[]>(galleryPath)
-    if (existing) media = existing
-  } catch {
-    media = []
-  }
+  // A failed read must propagate: treating it as an empty gallery would
+  // overwrite the stored history with just this one entry.
+  const existing = await readJsonObject<GeneratedMedia[]>(galleryPath)
+  let media: GeneratedMedia[] = Array.isArray(existing) ? existing : []
 
   const normalizedMedia: GeneratedMedia = {
     ...mediaItem,
@@ -27,5 +24,20 @@ export async function appendMediaToGallery(sessionId: string, mediaItem: Generat
   const alreadyExists = media.some((item) => isSameMediaEntry(item, normalizedMedia))
   media = alreadyExists ? media : [normalizedMedia, ...media]
   await uploadObject(galleryPath, JSON.stringify(media), 'application/json')
+}
+
+/**
+ * Appends media and reports whether the write succeeded instead of throwing, so
+ * a generation that already produced a URL is still returned to the caller.
+ * The caller is responsible for telling the user the item was not persisted.
+ */
+export async function tryAppendMediaToGallery(sessionId: string, mediaItem: GeneratedMedia): Promise<boolean> {
+  try {
+    await appendMediaToGallery(sessionId, mediaItem)
+    return true
+  } catch (error) {
+    console.error(`[Gallery] Failed to persist media for session ${sessionId}:`, error)
+    return false
+  }
 }
 

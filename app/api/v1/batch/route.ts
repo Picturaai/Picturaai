@@ -85,10 +85,13 @@ async function processBatchJob(
           completedCount++
           totalCredits += 1
         } else {
-          results.push({ prompt, error: 'Generation failed' })
+          const details = await response.text().catch(() => '')
+          console.error(`[Batch ${batchId}] Generation failed with ${response.status}:`, details)
+          results.push({ prompt, error: `Generation failed (${response.status})` })
           failedCount++
         }
-      } catch {
+      } catch (error) {
+        console.error(`[Batch ${batchId}] Generation request threw:`, error)
         results.push({ prompt, error: 'Generation failed' })
         failedCount++
       }

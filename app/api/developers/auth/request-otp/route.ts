@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
           expires_at = ${otpExpiry},
           verified = false
       `
-    } catch {
+    } catch (error) {
+      console.error('OTP record write failed:', error)
       return NextResponse.json({ error: 'Database error. Please try again.' }, { status: 500 })
     }
 

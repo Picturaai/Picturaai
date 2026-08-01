@@ -107,7 +107,7 @@ export async function checkAndTriggerAlerts(developerId: string, currentCredits:
 
     for (const alert of alertsToTrigger) {
       // Log the webhook
-      await sql`
+      const logRows = await sql`
         INSERT INTO webhook_logs (developer_id, event_type, payload, status)
         VALUES (
           ${developerId}, 
@@ -115,10 +115,15 @@ export async function checkAndTriggerAlerts(developerId: string, currentCredits:
           ${JSON.stringify({ threshold: alert.threshold_amount, current_credits: currentCredits })},
           'pending'
         )
+        RETURNING id
       `
+      const logId = logRows[0]?.id ?? null
 
       // If webhook type, send webhook
       if ((alert.alert_type === 'webhook' || alert.alert_type === 'both') && alert.webhook_url) {
+        let status = 'failed'
+        let responseStatus: number | null = null
+
         try {
           const response = await fetch(alert.webhook_url, {
             method: 'POST',
@@ -130,20 +135,22 @@ export async function checkAndTriggerAlerts(developerId: string, currentCredits:
               timestamp: new Date().toISOString()
             })
           })
+          status = response.ok ? 'sent' : 'failed'
+          responseStatus = response.status
+        } catch (error) {
+          console.error(`Credit alert webhook delivery failed for developer ${developerId}:`, error)
+        }
 
+        // Always resolve the pending log row, otherwise a delivery failure
+        // leaves it stuck in 'pending' forever.
+        if (logId !== null) {
           await sql`
             UPDATE webhook_logs
-            SET status = ${response.ok ? 'sent' : 'failed'}, 
-                response_status = ${response.status},
+            SET status = ${status},
+                response_status = ${responseStatus},
                 sent_at = NOW()
-            WHERE developer_id = ${developerId} 
-              AND event_type = 'credit_alert'
-              AND status = 'pending'
-            ORDER BY created_at DESC
-            LIMIT 1
+            WHERE id = ${logId}
           `
-        } catch {
-          // Webhook failed silently
         }
       }
 
