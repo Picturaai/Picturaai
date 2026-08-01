@@ -14,7 +14,8 @@ async function verifySession(token: string): Promise<{ developerId: string } | n
     const session = sessions[0]
     if (new Date(session.expires_at) <= new Date()) return null
     return { developerId: session.developer_id }
-  } catch {
+  } catch (error) {
+    console.error('Session lookup failed:', error)
     return null
   }
 }

@@ -502,7 +502,9 @@ export function VectorEditor() {
       ))
       setSelectedIds(newShapes.map(s => s.id))
       saveHistory()
-    } catch { /* ignore */ }
+    } catch (error) {
+      console.error('Could not paste shapes from the clipboard:', error)
+    }
   }, [activeLayerId, saveHistory])
   
   // Keyboard shortcuts

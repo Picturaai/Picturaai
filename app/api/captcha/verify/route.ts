@@ -82,8 +82,9 @@ export async function POST(req: NextRequest) {
           challenges_failed INTEGER DEFAULT 0
         )
       `
-    } catch {
-      // table exists
+    } catch (tableError) {
+      // The table normally already exists; anything else here is worth seeing.
+      console.error('CAPTCHA sites table check failed:', tableError)
     }
 
     let site
@@ -92,7 +93,9 @@ export async function POST(req: NextRequest) {
         SELECT id, domain, is_active FROM captcha_sites
         WHERE secret_key = ${secret} OR secret_hash = ${secretHash}
       `
-    } catch {
+    } catch (queryError) {
+      // Older deployments have no secret_key column; retry on secret_hash only.
+      console.error('CAPTCHA secret_key lookup failed, retrying on secret_hash:', queryError)
       site = await sql`
         SELECT id, domain, is_active FROM captcha_sites
         WHERE secret_hash = ${secretHash}
@@ -111,60 +114,59 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Domain mismatch for this CAPTCHA secret' }, { status: 403, headers })
     }
 
+    let decoded: { t: number; s?: string; v: boolean; i?: number; steps?: number; r?: string }
     try {
-      let decoded: { t: number; s?: string; v: boolean; i?: number; steps?: number; r?: string }
-
-      try {
-        decoded = JSON.parse(Buffer.from(token, 'base64').toString())
-      } catch {
-        if (token.startsWith('pictura_') && token.endsWith('_verified')) {
-          const parts = token.split('_')
-          decoded = { t: parseInt(parts[1], 10), s: parts[2], v: true }
-        } else {
-          throw new Error('Invalid token format')
-        }
+      decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+    } catch {
+      if (token.startsWith('pictura_') && token.endsWith('_verified')) {
+        const parts = token.split('_')
+        decoded = { t: parseInt(parts[1], 10), s: parts[2], v: true }
+      } else {
+        return NextResponse.json({ success: false, error: 'Invalid token format' }, { status: 400, headers })
       }
+    }
 
-      const tokenAge = Date.now() - decoded.t
-      if (tokenAge > 5 * 60 * 1000) {
-        await sql`
-          UPDATE captcha_sites
-          SET challenges_failed = COALESCE(challenges_failed, 0) + 1
-          WHERE id = ${site[0].id}
-        `
+    if (!Number.isFinite(decoded.t)) {
+      return NextResponse.json({ success: false, error: 'Invalid token format' }, { status: 400, headers })
+    }
 
-        return NextResponse.json({ success: false, error: 'Token expired' }, { status: 400, headers })
-      }
-
-      if (!decoded.v) {
-        await sql`
-          UPDATE captcha_sites
-          SET challenges_failed = COALESCE(challenges_failed, 0) + 1
-          WHERE id = ${site[0].id}
-        `
-
-        return NextResponse.json({ success: false, error: 'Verification not completed' }, { status: 400, headers })
-      }
-
+    const tokenAge = Date.now() - decoded.t
+    if (tokenAge > 5 * 60 * 1000) {
       await sql`
         UPDATE captcha_sites
-        SET challenges_solved = COALESCE(challenges_solved, 0) + 1
+        SET challenges_failed = COALESCE(challenges_failed, 0) + 1
         WHERE id = ${site[0].id}
       `
 
-      return NextResponse.json(
-        {
-          success: true,
-          hostname: site[0].domain,
-          challenge_ts: new Date(decoded.t).toISOString(),
-          interactions: decoded.i || 0,
-          steps_completed: decoded.steps || 1,
-        },
-        { headers }
-      )
-    } catch {
-      return NextResponse.json({ success: false, error: 'Invalid token format' }, { status: 400, headers })
+      return NextResponse.json({ success: false, error: 'Token expired' }, { status: 400, headers })
     }
+
+    if (!decoded.v) {
+      await sql`
+        UPDATE captcha_sites
+        SET challenges_failed = COALESCE(challenges_failed, 0) + 1
+        WHERE id = ${site[0].id}
+      `
+
+      return NextResponse.json({ success: false, error: 'Verification not completed' }, { status: 400, headers })
+    }
+
+    await sql`
+      UPDATE captcha_sites
+      SET challenges_solved = COALESCE(challenges_solved, 0) + 1
+      WHERE id = ${site[0].id}
+    `
+
+    return NextResponse.json(
+      {
+        success: true,
+        hostname: site[0].domain,
+        challenge_ts: new Date(decoded.t).toISOString(),
+        interactions: decoded.i || 0,
+        steps_completed: decoded.steps || 1,
+      },
+      { headers }
+    )
   } catch (error) {
     console.error('CAPTCHA verification error:', error)
     return NextResponse.json({ success: false, error: 'Verification failed' }, { status: 500, headers })

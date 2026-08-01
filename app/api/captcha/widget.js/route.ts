@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 const WIDGET_SCRIPT = `(function(){
   function base64Encode(obj){
-    try { return btoa(JSON.stringify(obj)); } catch(e){ return ''; }
+    try { return btoa(JSON.stringify(obj)); } catch(e){ console.error('[PicturaCaptcha] Could not encode token:', e); return ''; }
   }
 
   function render(el){
@@ -77,7 +77,7 @@ const WIDGET_SCRIPT = `(function(){
       }
 
       if (callbackName && typeof window[callbackName] === 'function') {
-        try { window[callbackName](token); } catch(e) {}
+        try { window[callbackName](token); } catch(e) { console.error('[PicturaCaptcha] data-callback threw:', e); }
       }
 
       var evt = new CustomEvent('pictura-captcha-verified', { detail: { token: token } });
