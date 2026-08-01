@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
-import { appendMediaToGallery } from '@/lib/gallery'
+import { tryAppendMediaToGallery } from '@/lib/gallery'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { getRequestContext } from '@/lib/request-context'
 
@@ -37,7 +37,8 @@ async function generateViaInternalEditRoute(request: Request, prompt: string, so
     if (!response.ok) return null
     const data = await response.json()
     return typeof data?.url === 'string' ? data.url : null
-  } catch {
+  } catch (error) {
+    console.error('[Pictura] img2img internal edit fallback failed:', error)
     return null
   }
 }
@@ -72,7 +73,8 @@ async function fetchSourceImageDataUrl(sourceImageUrl: string): Promise<string |
     const bytes = await response.arrayBuffer()
     const base64 = Buffer.from(bytes).toString('base64')
     return `data:${contentType};base64,${base64}`
-  } catch {
+  } catch (error) {
+    console.error('[Pictura] img2img source image download failed:', error)
     return null
   }
 }
@@ -269,8 +271,9 @@ export async function POST(request: Request) {
     if (image) {
       try {
         sourceCandidates.push(await fileToDataUrl(image))
-      } catch {
-        // Ignore file conversion failure and continue with URL candidates
+      } catch (error) {
+        // Continue with URL candidates when the upload cannot be inlined
+        console.error('[Pictura] img2img upload could not be converted to a data URL:', error)
       }
     }
     const sourceDataUrl = await fetchSourceImageDataUrl(sourceImageUrl)
@@ -299,7 +302,7 @@ export async function POST(request: Request) {
         const filename = `pictura/image-to-image/${timestamp}-qwen-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
         const blob = await uploadObject(filename, imageBuffer, 'image/png')
         const createdAt = new Date().toISOString()
-        await appendMediaToGallery(sessionId, {
+        const galleryPersisted = await tryAppendMediaToGallery(sessionId, {
           url: blob.url,
           prompt: prompt.trim(),
           type: 'image-to-image',
@@ -319,6 +322,7 @@ export async function POST(request: Request) {
           requestId: requestId || undefined,
           createdAt,
           rateLimitInfo: updatedRateLimitInfo,
+          galleryPersisted,
         })
       }
     }
@@ -331,7 +335,7 @@ export async function POST(request: Request) {
         const filename = `pictura/image-to-image/${timestamp}-internal-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
         const blob = await uploadObject(filename, imageBuffer, 'image/png')
         const createdAt = new Date().toISOString()
-        await appendMediaToGallery(sessionId, {
+        const galleryPersisted = await tryAppendMediaToGallery(sessionId, {
           url: blob.url,
           prompt: prompt.trim(),
           type: 'image-to-image',
@@ -351,6 +355,7 @@ export async function POST(request: Request) {
           requestId: requestId || undefined,
           createdAt,
           rateLimitInfo: updatedRateLimitInfo,
+          galleryPersisted,
           provider: 'internal-edit-fallback',
         })
       }
@@ -414,7 +419,7 @@ export async function POST(request: Request) {
     const blob = await uploadObject(filename, imageBuffer, 'image/png')
     const createdAt = new Date().toISOString()
 
-    await appendMediaToGallery(sessionId, {
+    const galleryPersisted = await tryAppendMediaToGallery(sessionId, {
       url: blob.url,
       prompt: prompt.trim(),
       type: 'image-to-image',
@@ -436,6 +441,7 @@ export async function POST(request: Request) {
       requestId: requestId || undefined,
       createdAt,
       rateLimitInfo: updatedRateLimitInfo,
+      galleryPersisted,
     })
   } catch (error) {
     console.error('Image-to-image generation error:', error)

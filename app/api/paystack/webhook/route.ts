@@ -59,13 +59,19 @@ export async function POST(req: NextRequest) {
           FROM developers WHERE id = ${developerId}
         `
 
-        // Remove pending transaction if exists
-        await sql`
-          DELETE FROM credit_transactions 
-          WHERE developer_id = ${developerId} 
-          AND type = 'pending'
-          AND description LIKE ${`%${reference}%`}
-        `.catch(() => {})
+        // Remove pending transaction if exists. Credits are already granted at
+        // this point, so a cleanup failure is logged rather than retried by
+        // Paystack (a retry would be rejected as "Already processed").
+        try {
+          await sql`
+            DELETE FROM credit_transactions 
+            WHERE developer_id = ${developerId} 
+            AND type = 'pending'
+            AND description LIKE ${`%${reference}%`}
+          `
+        } catch (error) {
+          console.error(`Failed to clear pending transaction for ${reference}:`, error)
+        }
 
         console.log(`Credits added: ${credits} to developer ${developerId}`)
       }

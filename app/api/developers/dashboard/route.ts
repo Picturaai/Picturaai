@@ -18,7 +18,8 @@ async function verifySession(token: string): Promise<{ developerId: string } | n
     if (expiresAt <= new Date()) return null
 
     return { developerId: session.developer_id }
-  } catch {
+  } catch (error) {
+    console.error('Session lookup failed:', error)
     return null
   }
 }
@@ -43,7 +44,8 @@ async function getDeveloperById(developerId: string) {
       FROM developers
       WHERE id = ${developerId}
     `
-  } catch {
+  } catch (error) {
+    console.warn('Developer lookup failed, falling back to legacy columns:', error)
     return await sql`
       SELECT id, email, full_name, null::text as name, credits_balance, currency, created_at,
              null::timestamp as last_login, null::text as tier, phone_number as phone,
@@ -63,7 +65,8 @@ async function getApiKeysForDeveloper(developerId: string) {
       WHERE developer_id = ${developerId}
       ORDER BY created_at DESC
     `
-  } catch {
+  } catch (error) {
+    console.warn('API key lookup failed, falling back to legacy columns:', error)
     return await sql`
       SELECT id, name, key_prefix, null::text as secret_key, created_at, last_used_at,
              0::integer as requests_count, is_active
@@ -83,7 +86,8 @@ async function getRecentTransactions(developerId: string) {
       ORDER BY created_at DESC
       LIMIT 10
     `
-  } catch {
+  } catch (error) {
+    console.warn('Transaction lookup failed, falling back to legacy columns:', error)
     return await sql`
       SELECT id, type, amount, description, amount as balance_after, created_at
       FROM credit_transactions

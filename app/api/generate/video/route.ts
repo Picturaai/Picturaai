@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getOrCreateSessionId } from '@/lib/session'
 import { getVideoRateLimitInfo, incrementVideoUsage } from '@/lib/rate-limit'
-import { appendMediaToGallery } from '@/lib/gallery'
+import { tryAppendMediaToGallery } from '@/lib/gallery'
 import { getAdminSessionFromRequest } from '@/lib/admin-auth'
 import { getRequestContext } from '@/lib/request-context'
 import { uploadObject } from '@/lib/storage'
@@ -171,7 +171,9 @@ export async function POST(request: Request) {
         imageUrl = uploadBlob.url
         try {
           uploadedImageDataUrl = await fileToDataUrl(image)
-        } catch {
+        } catch (error) {
+          // Fall back to the uploaded URL only
+          console.error('Video reference image could not be converted to a data URL:', error)
           uploadedImageDataUrl = null
         }
       }
@@ -199,7 +201,7 @@ export async function POST(request: Request) {
     const videoUrl = await generateWithAlibabaVideo(prompt, imageInputs, model)
     const createdAt = new Date().toISOString()
 
-    await appendMediaToGallery(sessionId, {
+    const galleryPersisted = await tryAppendMediaToGallery(sessionId, {
       url: videoUrl,
       prompt: prompt.trim(),
       type: 'text-to-video',
@@ -218,6 +220,7 @@ export async function POST(request: Request) {
       requestId: requestId || undefined,
       createdAt,
       rateLimitInfo: updatedLimit,
+      galleryPersisted,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Video generation failed'

@@ -13,7 +13,8 @@ async function verifySession(token: string): Promise<{ developerId: string } | n
     `
     if (sessions.length === 0) return null
     return { developerId: sessions[0].developer_id }
-  } catch {
+  } catch (error) {
+    console.error('Session lookup failed:', error)
     return null
   }
 }

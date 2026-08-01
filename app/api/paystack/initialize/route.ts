@@ -14,7 +14,8 @@ async function verifySession(token: string): Promise<{ developerId: string } | n
     const session = sessions[0]
     if (new Date(session.expires_at) <= new Date()) return null
     return { developerId: session.developer_id }
-  } catch {
+  } catch (error) {
+    console.error('Session lookup failed:', error)
     return null
   }
 }
@@ -84,12 +85,17 @@ export async function POST(req: NextRequest) {
     const data = await response.json()
 
     if (data.status && data.data?.authorization_url) {
-      // Store pending transaction
-      await sql`
-        INSERT INTO credit_transactions (developer_id, type, amount, description, balance_after)
-        SELECT ${session.developerId}, 'pending', ${credits}, ${`Pending: ${planName} (${reference})`}, credits_balance
-        FROM developers WHERE id = ${session.developerId}
-      `.catch(() => {})
+      // Store pending transaction. The checkout link is still valid if this
+      // bookkeeping write fails, so log it instead of failing the payment.
+      try {
+        await sql`
+          INSERT INTO credit_transactions (developer_id, type, amount, description, balance_after)
+          SELECT ${session.developerId}, 'pending', ${credits}, ${`Pending: ${planName} (${reference})`}, credits_balance
+          FROM developers WHERE id = ${session.developerId}
+        `
+      } catch (error) {
+        console.error(`Failed to record pending transaction for ${reference}:`, error)
+      }
 
       return NextResponse.json({
         success: true,
