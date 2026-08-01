@@ -1772,6 +1772,42 @@ export function Landing() {
         </div>
       </section>
 
+      {/* Open Source Section */}
+      <section className="relative border-t border-border/40 bg-secondary/20 py-16 md:py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            custom={0}
+            variants={fadeUp}
+            className="mx-auto max-w-2xl text-center"
+          >
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+              <GitHubIcon className="h-3 w-3" />
+              Open Source
+            </div>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-4xl text-balance">
+              Pictura is open source
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground text-pretty">
+              Free and open to everyone. Contribute, fork, or run it yourself.
+            </p>
+            <div className="mt-6">
+              <a
+                href={GITHUB_REPO_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+              >
+                <GitHubIcon className="h-4 w-4" />
+                View on GitHub
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
     </>
   )
 }
