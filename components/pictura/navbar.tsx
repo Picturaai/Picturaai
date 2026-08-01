@@ -47,9 +47,12 @@ export function Navbar() {
         }`}
       >
         <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Link href="/" aria-label="Pictura home">
-            <PicturaLogo size="sm" />
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/" aria-label="Pictura home">
+              <PicturaLogo size="sm" />
+            </Link>
+            <GitHubStarButton variant="compact" label="Star" className="hidden sm:inline-flex" />
+          </div>
 
           {/* Desktop links */}
           <div className="hidden items-center gap-1 md:flex">
@@ -66,7 +69,6 @@ export function Navbar() {
                 {l.label}
               </Link>
             ))}
-            <GitHubStarButton variant="compact" label="Star" className="ml-3 hidden lg:inline-flex" />
             <Link
               href="/studio"
               className="group ml-2 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.97]"
