@@ -466,18 +466,29 @@ export async function POST(request: Request) {
     }
 
     // Generate based on selected model with automatic fallback
-    // Model-specific provider pipelines
+    // Model-specific provider pipelines with more fallback providers
     const providers = model === 'pi-1.5-turbo'
       ? [
-          generateWithQwen,      // Alibaba
-          generateWithZyLabs,    // ZyLabs
-          generateWithStability, // Stability
-          generateWithMistral,   // Mistral
+          // Primary: Alibaba DashScope international
+          generateWithQwen,
+          // Fallbacks: ZyLabs, Stability, Mistral, Fal, DeepInfra, BFL, HuggingFace
+          generateWithZyLabs,
+          generateWithStability,
+          generateWithMistral,
+          generateWithFal,
+          generateWithHuggingFace,
+          generateWithBFL,
         ]
       : [
-          generateWithLeonardo,  // Leonardo
-          generateWithZyLabs,    // ZyLabs
-          generateWithMistral,   // Mistral
+          // pi-1.0: Use more providers as fallback chain
+          generateWithLeonardo,
+          generateWithZyLabs,
+          generateWithMistral,
+          generateWithStability,
+          generateWithFal,
+          generateWithHuggingFace,
+          generateWithBFL,
+          generateWithQwen,
         ]
 
     const imageUrl = await firstSuccessful(
@@ -496,23 +507,29 @@ export async function POST(request: Request) {
     let imageBuffer: ArrayBuffer | Buffer
     const decoded = decodeDataUrl(imageUrl)
     if (decoded) {
+      console.log('[TextToImage] Using base64 data from provider')
       imageBuffer = decoded
     } else {
+      console.log('[TextToImage] Downloading image from:', imageUrl)
       const downloaded = await fetchImageBytes(imageUrl)
       if (!downloaded) {
+        console.error('[TextToImage] Failed to download image from:', imageUrl)
         return NextResponse.json(
-          { error: 'Failed to download generated image' },
+          { error: 'Failed to download generated image. Please try again.' },
           { status: 500 }
         )
       }
       imageBuffer = downloaded
+      console.log('[TextToImage] Successfully downloaded image, size:', imageBuffer.byteLength)
     }
 
     const timestamp = Date.now()
     const filename = `pictura/text-to-image/${timestamp}-${model}-${prompt.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '_')}.png`
 
     // Upload to Vercel Blob
+    console.log('[TextToImage] Uploading to blob storage...')
     const blob = await uploadObject(filename, imageBuffer, 'image/png')
+    console.log('[TextToImage] Uploaded to:', blob.url)
 
     const createdAt = new Date().toISOString()
     const galleryPersisted = await tryAppendMediaToGallery(sessionId, {

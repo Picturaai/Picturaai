@@ -1,6 +1,6 @@
 /** Public GitHub repository backing the open source badges across the site. */
-export const GITHUB_OWNER = 'Picturaai'
-export const GITHUB_REPO = 'Picturaai'
+export const GITHUB_OWNER = 'sidihost'
+export const GITHUB_REPO = 'picturaai'
 export const GITHUB_REPO_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}`
 export const GITHUB_STARGAZERS_URL = `${GITHUB_REPO_URL}/stargazers`
 export const GITHUB_FORK_URL = `${GITHUB_REPO_URL}/fork`

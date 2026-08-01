@@ -10,6 +10,7 @@ import { GitHubStarButton } from './github-star-button'
 
 const links = [
   { href: '/studio', label: 'Studio' },
+  { href: '/voice-studio', label: 'Voice' },
   { href: '/models', label: 'Models' },
   { href: '/captcha', label: 'CAPTCHA' },
   { href: '/api-docs', label: 'API' },

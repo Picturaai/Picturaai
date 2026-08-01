@@ -2,7 +2,8 @@ import nodemailer from 'nodemailer'
 import { emailTemplates } from './email-templates'
 import crypto from 'crypto'
 
-const transporter = nodemailer.createTransport({
+// ZeptoMail transporter (primary)
+const zeptoTransporter = nodemailer.createTransport({
   host: 'smtp.zeptomail.com',
   port: 587,
   secure: false,
@@ -12,6 +13,21 @@ const transporter = nodemailer.createTransport({
   },
 })
 
+// Resend transporter (fallback)
+interface ResendConfig {
+  apiKey: string
+  fromEmail: string
+}
+
+function getResendConfig(): ResendConfig | null {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return null
+  return {
+    apiKey,
+    fromEmail: process.env.RESEND_FROM_EMAIL || 'developer@picturaai.sbs',
+  }
+}
+
 export interface SendEmailOptions {
   to: string
   subject: string
@@ -19,9 +35,9 @@ export interface SendEmailOptions {
   from?: string
 }
 
-export async function sendEmail(options: SendEmailOptions) {
+async function sendWithZepto(options: SendEmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const result = await transporter.sendMail({
+    const result = await zeptoTransporter.sendMail({
       from: options.from || `Pictura Developer <developer@picturaai.sbs>`,
       to: options.to,
       subject: options.subject,
@@ -29,8 +45,67 @@ export async function sendEmail(options: SendEmailOptions) {
     })
     return { success: true, messageId: result.messageId }
   } catch (error) {
-    console.error('Email send error:', error)
+    console.error('[Email] ZeptoMail error:', error)
     return { success: false, error: String(error) }
+  }
+}
+
+async function sendWithResend(options: SendEmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const config = getResendConfig()
+  if (!config) {
+    return { success: false, error: 'Resend not configured' }
+  }
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${config.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: options.from || config.fromEmail,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('[Email] Resend API error:', response.status, errorData)
+      return { success: false, error: `Resend error: ${response.status}` }
+    }
+
+    const data = await response.json()
+    return { success: true, messageId: data.id }
+  } catch (error) {
+    console.error('[Email] Resend error:', error)
+    return { success: false, error: String(error) }
+  }
+}
+
+export async function sendEmail(options: SendEmailOptions) {
+  // Try ZeptoMail first
+  const zeptoResult = await sendWithZepto(options)
+  if (zeptoResult.success) {
+    return zeptoResult
+  }
+
+  console.log('[Email] ZeptoMail failed, trying Resend fallback...')
+
+  // Try Resend as fallback
+  const resendResult = await sendWithResend(options)
+  if (resendResult.success) {
+    console.log('[Email] Resend fallback succeeded')
+    return resendResult
+  }
+
+  // Both failed
+  console.error('[Email] Both ZeptoMail and Resend failed')
+  return { 
+    success: false, 
+    error: `ZeptoMail: ${zeptoResult.error}; Resend: ${resendResult.error}` 
   }
 }
 
