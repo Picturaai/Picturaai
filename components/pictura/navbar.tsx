@@ -51,7 +51,7 @@ export function Navbar() {
             <Link href="/" aria-label="Pictura home">
               <PicturaLogo size="sm" />
             </Link>
-            <GitHubStarButton variant="compact" label="Star" className="hidden sm:inline-flex" />
+            <GitHubStarButton variant="compact" label="Star" className="inline-flex" />
           </div>
 
           {/* Desktop links */}
