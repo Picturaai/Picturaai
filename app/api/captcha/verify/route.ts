@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
 import crypto from 'crypto'
-
-function getDb() {
-  const url = process.env.DATABASE_URL
-  if (!url) throw new Error('DATABASE_URL is not configured')
-  return neon(url)
-}
+import { getDb } from '@/lib/db'
 
 function corsHeaders(origin: string | null) {
   return {

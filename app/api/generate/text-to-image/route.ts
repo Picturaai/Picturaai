@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server'
+import { decodeDataUrl, fetchImageBytes } from '@/lib/image-data'
+import { firstSuccessful } from '@/lib/provider-fallback'
+import { runReplicatePrediction } from '@/lib/replicate'
 import { getRateLimitInfo, incrementUsage } from '@/lib/rate-limit'
 import { getOrCreateSessionId } from '@/lib/session'
 import { uploadObject } from '@/lib/storage'
@@ -248,39 +251,11 @@ async function generateWithOpenAI(prompt: string): Promise<string> {
 }
 
 // Replicate - Flux and other models
-async function generateWithReplicate(prompt: string): Promise<string> {
-  const apiKey = process.env.REPLICATE_API_TOKEN
-  if (!apiKey) throw new Error('Replicate API key not configured')
-
-  const response = await fetch('https://api.replicate.com/v1/predictions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Token ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      version: 'black-forest-labs/flux-schnell',
-      input: { prompt: prompt.trim(), aspect_ratio: '1:1' },
-    }),
+function generateWithReplicate(prompt: string): Promise<string> {
+  return runReplicatePrediction('black-forest-labs/flux-schnell', {
+    prompt: prompt.trim(),
+    aspect_ratio: '1:1',
   })
-
-  if (!response.ok) throw new Error('Replicate creation failed')
-  
-  const prediction = await response.json()
-  
-  // Poll for completion
-  for (let i = 0; i < 60; i++) {
-    await new Promise(r => setTimeout(r, 1000))
-    const statusRes = await fetch(`https://api.replicate.com/v1/predictions/${prediction.id}`, {
-      headers: { 'Authorization': `Token ${apiKey}` },
-    })
-    const status = await statusRes.json()
-    if (status.status === 'succeeded' && status.output) {
-      return Array.isArray(status.output) ? status.output[0] : status.output
-    }
-    if (status.status === 'failed') throw new Error('Replicate generation failed')
-  }
-  throw new Error('Replicate generation timed out')
 }
 
 // Together AI
@@ -492,7 +467,6 @@ export async function POST(request: Request) {
 
     // Generate based on selected model with automatic fallback
     // Model-specific provider pipelines
-    let imageUrl: string
     const providers = model === 'pi-1.5-turbo'
       ? [
           generateWithQwen,      // Alibaba
@@ -505,21 +479,13 @@ export async function POST(request: Request) {
           generateWithZyLabs,    // ZyLabs
           generateWithMistral,   // Mistral
         ]
-    
-    let lastError: Error | null = null
-    for (const provider of providers) {
-      try {
-        imageUrl = await provider(prompt)
-        break // Success, exit loop
-      } catch (err) {
-        lastError = err instanceof Error ? err : new Error(String(err))
-        console.log(`[Pictura] Provider failed, trying next: ${lastError.message}`)
-        continue // Try next provider
-      }
-    }
 
-    if (!imageUrl!) {
-      console.error('All providers failed:', lastError)
+    const imageUrl = await firstSuccessful(
+      providers.map((provider) => () => provider(prompt)),
+      '[Pictura] Text-to-image'
+    )
+
+    if (!imageUrl) {
       return NextResponse.json(
         { error: 'Image generation failed. Please try again.' },
         { status: 500 }
@@ -528,19 +494,18 @@ export async function POST(request: Request) {
 
     // Handle base64 images (from Stability)
     let imageBuffer: ArrayBuffer | Buffer
-    if (imageUrl.startsWith('data:')) {
-      const base64Data = imageUrl.split(',')[1]
-      imageBuffer = Buffer.from(base64Data, 'base64')
+    const decoded = decodeDataUrl(imageUrl)
+    if (decoded) {
+      imageBuffer = decoded
     } else {
-      // Download the generated image
-      const imageResponse = await fetch(imageUrl)
-      if (!imageResponse.ok) {
+      const downloaded = await fetchImageBytes(imageUrl)
+      if (!downloaded) {
         return NextResponse.json(
           { error: 'Failed to download generated image' },
           { status: 500 }
         )
       }
-      imageBuffer = await imageResponse.arrayBuffer()
+      imageBuffer = downloaded
     }
 
     const timestamp = Date.now()

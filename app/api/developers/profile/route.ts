@@ -1,53 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
-
-const sql = neon(process.env.DATABASE_URL!)
-
-async function verifySession(token: string): Promise<{ developerId: string } | null> {
-  try {
-    const sessions = await sql`
-      SELECT developer_id, expires_at FROM developer_sessions
-      WHERE session_token = ${token}
-    `
-
-    if (sessions.length === 0) return null
-    const session = sessions[0]
-    if (new Date(session.expires_at) <= new Date()) return null
-    return { developerId: session.developer_id }
-  } catch (error) {
-    console.error('Session lookup failed:', error)
-    return null
-  }
-}
-
-function getTokenFromRequest(req: NextRequest): string | null {
-  const cookieToken = req.cookies.get('pictura_session')?.value
-  if (cookieToken) return cookieToken
-
-  const authHeader = req.headers.get('authorization')
-  if (authHeader?.startsWith('Bearer ')) return authHeader.substring(7)
-
-  return null
-}
-
-async function getAuthenticatedDeveloperId(req: NextRequest): Promise<string | null> {
-  const token = getTokenFromRequest(req)
-  if (!token) return null
-
-  const session = await verifySession(token)
-  if (!session) return null
-
-  return session.developerId
-}
+import { errorResponse } from '@/lib/api-response'
+import { sql } from '@/lib/db'
+import { DEVELOPER_SESSION_COOKIE, getAuthenticatedDeveloperId } from '@/lib/developer-auth'
 
 export async function PATCH(req: NextRequest) {
   try {
     const developerId = await getAuthenticatedDeveloperId(req)
-    if (!developerId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!developerId) return errorResponse('Unauthorized', 401)
 
     const { name } = await req.json()
     if (!name || typeof name !== 'string' || !name.trim()) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+      return errorResponse('Name is required', 400)
     }
 
     const safeName = name.trim().slice(0, 80)
@@ -61,14 +24,14 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ success: true, name: safeName })
   } catch (error) {
     console.error('Update profile error:', error)
-    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
+    return errorResponse('Failed to update profile', 500)
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
     const developerId = await getAuthenticatedDeveloperId(req)
-    if (!developerId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!developerId) return errorResponse('Unauthorized', 401)
 
     const deletedEmail = `deleted+${developerId.slice(0, 8)}-${Date.now()}@pictura.local`
 
@@ -87,10 +50,10 @@ export async function DELETE(req: NextRequest) {
     `
 
     const response = NextResponse.json({ success: true })
-    response.cookies.delete('pictura_session')
+    response.cookies.delete(DEVELOPER_SESSION_COOKIE)
     return response
   } catch (error) {
     console.error('Delete profile error:', error)
-    return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 })
+    return errorResponse('Failed to delete account', 500)
   }
 }

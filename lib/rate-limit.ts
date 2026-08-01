@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless'
+import { getDb } from '@/lib/db'
 import type { AdminRole } from '@/lib/admin-auth'
 
 const DAILY_LIMIT = 999999
@@ -28,11 +28,6 @@ export function getDailyLimits() {
 
 // Persistent rate limit storage using database
 // Uses a separate table to avoid schema conflicts
-
-function getDb() {
-  const sql = neon(process.env.DATABASE_URL!)
-  return sql
-}
 
 function getResetTime(): Date {
   const now = new Date()

@@ -1,37 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
 import crypto from 'crypto'
+import { errorResponse, serverErrorResponse } from '@/lib/api-response'
+import { sql } from '@/lib/db'
+import { requireDeveloperSession } from '@/lib/developer-auth'
 import { hashPassword } from '@/lib/email'
-
-const sql = neon(process.env.DATABASE_URL!)
-
-async function verifySession(token: string): Promise<{ developerId: string } | null> {
-  try {
-    const sessions = await sql`
-      SELECT developer_id FROM developer_sessions
-      WHERE session_token = ${token} AND expires_at > now()
-    `
-    if (sessions.length === 0) return null
-    return { developerId: sessions[0].developer_id }
-  } catch (error) {
-    console.error('Session lookup failed:', error)
-    return null
-  }
-}
-
-function getTokenFromRequest(req: NextRequest): string | null {
-  // First try cookie
-  const cookieToken = req.cookies.get('pictura_session')?.value
-  if (cookieToken) return cookieToken
-  
-  // Then try Authorization header
-  const authHeader = req.headers.get('authorization')
-  if (authHeader?.startsWith('Bearer ')) {
-    return authHeader.substring(7)
-  }
-  
-  return null
-}
 
 function generateApiKey(): string {
   return 'pic_' + crypto.randomBytes(32).toString('hex')
@@ -39,20 +11,13 @@ function generateApiKey(): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = getTokenFromRequest(req)
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const session = await verifySession(token)
-    if (!session) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
-    }
+    const session = await requireDeveloperSession(req)
+    if (!session.ok) return session.response
 
     const { name } = await req.json()
 
     if (!name) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+      return errorResponse('Name is required', 400)
     }
 
     // Generate API key
@@ -68,7 +33,7 @@ export async function POST(req: NextRequest) {
     `
 
     if (keys.length === 0) {
-      return NextResponse.json({ error: 'Failed to create API key' }, { status: 500 })
+      return errorResponse('Failed to create API key', 500)
     }
 
     const key = keys[0]
@@ -84,22 +49,14 @@ export async function POST(req: NextRequest) {
       message: 'Save this key securely - it will not be shown again'
     })
   } catch (error) {
-    console.error('API key creation error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse('API key creation error', error)
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
-    const token = getTokenFromRequest(req)
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const session = await verifySession(token)
-    if (!session) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
-    }
+    const session = await requireDeveloperSession(req)
+    if (!session.ok) return session.response
 
     const keys = await sql`
       SELECT id, name, key_prefix, created_at, last_used_at, requests_count, is_active
@@ -120,28 +77,20 @@ export async function GET(req: NextRequest) {
       }))
     })
   } catch (error) {
-    console.error('API keys list error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse('API keys list error', error)
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const token = getTokenFromRequest(req)
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const session = await verifySession(token)
-    if (!session) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
-    }
+    const session = await requireDeveloperSession(req)
+    if (!session.ok) return session.response
 
     const { searchParams } = new URL(req.url)
     const keyId = searchParams.get('id')
 
     if (!keyId) {
-      return NextResponse.json({ error: 'Key ID is required' }, { status: 400 })
+      return errorResponse('Key ID is required', 400)
     }
 
     // Actually delete the key (not just deactivate)
@@ -152,12 +101,11 @@ export async function DELETE(req: NextRequest) {
     `
 
     if (result.length === 0) {
-      return NextResponse.json({ error: 'Key not found' }, { status: 404 })
+      return errorResponse('Key not found', 404)
     }
 
     return NextResponse.json({ success: true, message: 'API key deleted' })
   } catch (error) {
-    console.error('API key deletion error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse('API key deletion error', error)
   }
 }

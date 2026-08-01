@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
 import { sendOTPEmail, generateOTP, hashPassword } from '@/lib/email'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { sql } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {

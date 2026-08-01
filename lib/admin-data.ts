@@ -1,8 +1,4 @@
-import { neon } from '@neondatabase/serverless'
-
-function getDb() {
-  return neon(process.env.DATABASE_URL!)
-}
+import { getDb } from '@/lib/db'
 
 export type SupportReportStatus = 'open' | 'in_progress' | 'resolved'
 

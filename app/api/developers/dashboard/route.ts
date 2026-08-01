@@ -1,40 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
-
-const sql = neon(process.env.DATABASE_URL!)
-
-async function verifySession(token: string): Promise<{ developerId: string } | null> {
-  try {
-    const sessions = await sql`
-      SELECT developer_id, expires_at FROM developer_sessions
-      WHERE session_token = ${token}
-    `
-
-    if (sessions.length === 0) return null
-
-    const session = sessions[0]
-    const expiresAt = new Date(session.expires_at)
-
-    if (expiresAt <= new Date()) return null
-
-    return { developerId: session.developer_id }
-  } catch (error) {
-    console.error('Session lookup failed:', error)
-    return null
-  }
-}
-
-function getTokenFromRequest(req: NextRequest): string | null {
-  const cookieToken = req.cookies.get('pictura_session')?.value
-  if (cookieToken) return cookieToken
-
-  const authHeader = req.headers.get('authorization')
-  if (authHeader?.startsWith('Bearer ')) {
-    return authHeader.substring(7)
-  }
-
-  return null
-}
+import { errorResponse, serverErrorResponse } from '@/lib/api-response'
+import { sql } from '@/lib/db'
+import { requireDeveloperSession } from '@/lib/developer-auth'
 
 async function getDeveloperById(developerId: string) {
   try {
@@ -44,8 +11,7 @@ async function getDeveloperById(developerId: string) {
       FROM developers
       WHERE id = ${developerId}
     `
-  } catch (error) {
-    console.warn('Developer lookup failed, falling back to legacy columns:', error)
+  } catch {
     return await sql`
       SELECT id, email, full_name, null::text as name, credits_balance, currency, created_at,
              null::timestamp as last_login, null::text as tier, phone_number as phone,
@@ -65,8 +31,7 @@ async function getApiKeysForDeveloper(developerId: string) {
       WHERE developer_id = ${developerId}
       ORDER BY created_at DESC
     `
-  } catch (error) {
-    console.warn('API key lookup failed, falling back to legacy columns:', error)
+  } catch {
     return await sql`
       SELECT id, name, key_prefix, null::text as secret_key, created_at, last_used_at,
              0::integer as requests_count, is_active
@@ -86,8 +51,7 @@ async function getRecentTransactions(developerId: string) {
       ORDER BY created_at DESC
       LIMIT 10
     `
-  } catch (error) {
-    console.warn('Transaction lookup failed, falling back to legacy columns:', error)
+  } catch {
     return await sql`
       SELECT id, type, amount, description, amount as balance_after, created_at
       FROM credit_transactions
@@ -100,23 +64,14 @@ async function getRecentTransactions(developerId: string) {
 
 export async function GET(req: NextRequest) {
   try {
-    const token = getTokenFromRequest(req)
-
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const session = await verifySession(token)
-
-    if (!session) {
-      return NextResponse.json({ error: 'Session expired' }, { status: 401 })
-    }
+    const session = await requireDeveloperSession(req)
+    if (!session.ok) return session.response
 
     // Get developer data
     const developers = await getDeveloperById(session.developerId)
 
     if (developers.length === 0) {
-      return NextResponse.json({ error: 'Developer not found' }, { status: 404 })
+      return errorResponse('Developer not found', 404)
     }
 
     const developer = developers[0]
@@ -181,7 +136,6 @@ export async function GET(req: NextRequest) {
       })),
     })
   } catch (error) {
-    console.error('Dashboard error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse('Dashboard error', error)
   }
 }

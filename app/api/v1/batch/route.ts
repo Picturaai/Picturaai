@@ -1,54 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { neon } from '@neondatabase/serverless'
-
-const sql = neon(process.env.DATABASE_URL!)
+import { authenticateApiKey, insufficientCredits } from '@/lib/api-key-auth'
+import { errorResponse, serverErrorResponse } from '@/lib/api-response'
+import { sql } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing API key' }, { status: 401 })
-    }
+    const auth = await authenticateApiKey(request)
+    if (!auth.ok) return auth.response
 
-    const apiKey = authHeader.substring(7)
-    
-    // Validate API key
-    const keyResult = await sql`
-      SELECT ak.id, ak.developer_id, d.credits, d.tier
-      FROM api_keys ak
-      JOIN developers d ON ak.developer_id = d.id
-      WHERE ak.key = ${apiKey} AND ak.is_active = true
-    `
-
-    if (keyResult.length === 0) {
-      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
-    }
-
-    const { developer_id, credits, tier } = keyResult[0]
+    const { developerId: developer_id, tier } = auth.context
     const body = await request.json()
     const { prompts, model = 'pi-1.0', style_preset, width = 1024, height = 1024 } = body
 
     if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
-      return NextResponse.json({ error: 'Prompts array is required' }, { status: 400 })
+      return errorResponse('Prompts array is required', 400)
     }
 
     // Limit batch size based on tier
     const maxBatchSize = tier === 'enterprise' ? 50 : tier === 'pro' ? 20 : 10
     if (prompts.length > maxBatchSize) {
-      return NextResponse.json({ 
-        error: `Batch size exceeds limit. Max ${maxBatchSize} for ${tier} tier` 
-      }, { status: 400 })
+      return errorResponse(`Batch size exceeds limit. Max ${maxBatchSize} for ${tier} tier`, 400)
     }
 
     // Check credits (estimate 1 credit per image)
-    const estimatedCost = prompts.length
-    if (credits < estimatedCost) {
-      return NextResponse.json({ 
-        error: 'Insufficient credits',
-        required: estimatedCost,
-        available: credits
-      }, { status: 402 })
-    }
+    const noCredits = insufficientCredits(auth.context, prompts.length, true)
+    if (noCredits) return noCredits
 
     // Create batch job
     const batchResult = await sql`
@@ -72,8 +48,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Batch API error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse('Batch API error', error)
   }
 }
 
@@ -147,23 +122,10 @@ async function processBatchJob(
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Missing API key' }, { status: 401 })
-    }
+    const auth = await authenticateApiKey(request)
+    if (!auth.ok) return auth.response
 
-    const apiKey = authHeader.substring(7)
-    
-    const keyResult = await sql`
-      SELECT ak.developer_id FROM api_keys ak
-      WHERE ak.key = ${apiKey} AND ak.is_active = true
-    `
-
-    if (keyResult.length === 0) {
-      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
-    }
-
-    const { developer_id } = keyResult[0]
+    const { developerId: developer_id } = auth.context
 
     // Get recent batch jobs
     const jobs = await sql`
@@ -178,7 +140,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ jobs })
 
   } catch (error) {
-    console.error('Batch list error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return serverErrorResponse('Batch list error', error)
   }
 }
