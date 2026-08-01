@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, FlaskConical } from 'lucide-react'
 import { PicturaLogo } from './pictura-logo'
+import { GitHubStarButton } from './github-star-button'
 
 const links = [
   { href: '/studio', label: 'Studio' },
@@ -65,9 +66,10 @@ export function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <GitHubStarButton variant="compact" label="Star" className="ml-3 hidden lg:inline-flex" />
             <Link
               href="/studio"
-              className="group ml-3 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.97]"
+              className="group ml-2 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.97]"
             >
               Try Pictura
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -148,6 +150,7 @@ export function Navbar() {
                   Open Studio
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
+                <GitHubStarButton variant="block" className="mt-3" />
               </motion.div>
 
               {/* Footer info - pushed to bottom */}
