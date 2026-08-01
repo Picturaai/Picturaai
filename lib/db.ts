@@ -20,7 +20,16 @@ export function getDb(): Db {
 
 /**
  * Shorthand for {@link getDb} that keeps the client's own call signatures, so
- * call sites can write `sql`SELECT ...`` (or `sql(query, params)`) directly.
+ * call sites can write `sql`SELECT ...`` directly. `sql.query(text, params)`
+ * and `sql.transaction(...)` are forwarded too; the driver only accepts the
+ * tagged-template form for a plain call.
  */
-export const sql: Db = ((...args: unknown[]) =>
-  (getDb() as unknown as (...a: unknown[]) => unknown)(...args)) as unknown as Db
+export const sql: Db = Object.assign(
+  (...args: unknown[]) => (getDb() as unknown as (...a: unknown[]) => unknown)(...args),
+  {
+    query: (...args: unknown[]) =>
+      (getDb().query as unknown as (...a: unknown[]) => unknown)(...args),
+    transaction: (...args: unknown[]) =>
+      (getDb().transaction as unknown as (...a: unknown[]) => unknown)(...args),
+  },
+) as unknown as Db

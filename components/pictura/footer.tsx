@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { PicturaIcon } from './pictura-logo'
+import { GitHubIcon, GitHubStarButton } from './github-star-button'
+import { GITHUB_ISSUES_URL, GITHUB_REPO_URL } from '@/lib/github'
 
 // Social Icons as components
 const XIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
@@ -25,7 +27,7 @@ export function Footer() {
               <span className="text-lg font-bold tracking-tight text-foreground">Pictura</span>
             </span>
             <p className="mt-3 max-w-[240px] text-sm leading-relaxed text-muted-foreground">
-              Non-profit AI image generation by Imoogle Labs. Free and accessible to everyone.
+              Non-profit, open source AI image generation by Imoogle Labs. Free and accessible to everyone.
             </p>
             
             {/* Social Links */}
@@ -50,7 +52,20 @@ export function Footer() {
                 >
                   <TelegramIcon className="h-4 w-4" />
                 </a>
+                <a
+                  href={GITHUB_REPO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                  aria-label="Pictura on GitHub"
+                >
+                  <GitHubIcon className="h-4 w-4" />
+                </a>
               </div>
+            </div>
+
+            <div className="mt-5">
+              <GitHubStarButton />
             </div>
             
             <div className="mt-5 flex items-center gap-2">
@@ -100,7 +115,13 @@ export function Footer() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Legal</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Open Source</span>
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
+              <GitHubIcon className="h-3.5 w-3.5" />
+              Source code
+            </a>
+            <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground/70 transition-colors hover:text-primary">Issues</a>
+            <a href={`${GITHUB_REPO_URL}/pulls`} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground/70 transition-colors hover:text-primary">Pull requests</a>
             <Link href="/legal" className="text-sm text-foreground/70 transition-colors hover:text-primary">Privacy & Terms</Link>
             <Link href="/captcha/privacy" className="text-sm text-foreground/70 transition-colors hover:text-primary">CAPTCHA Privacy</Link>
           </div>
@@ -109,6 +130,10 @@ export function Footer() {
         <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-border/40 pt-8 md:flex-row md:items-center">
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} Imoogle Technology. All rights reserved.
+            {' '}&middot;{' '}
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-primary">
+              Open source on GitHub
+            </a>
           </p>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">

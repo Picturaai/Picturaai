@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     query += ` ORDER BY created_at DESC LIMIT 100`
 
-    const images = await sql(query, params)
+    const images = await sql.query(query, params)
 
     return NextResponse.json({ images })
   } catch (error) {

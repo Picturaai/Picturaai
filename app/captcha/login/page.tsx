@@ -209,7 +209,7 @@ export default function CaptchaLoginPage() {
                   <SmartCaptcha 
                     key={captchaKey}
                     onVerify={() => setCaptchaVerified(true)} 
-                    size="compact"
+                    isCompact
                   />
                 </div>
 

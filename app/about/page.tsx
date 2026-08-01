@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { OpenSourceBanner } from '@/components/pictura/open-source-banner'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 const fadeUp = {
@@ -18,7 +19,9 @@ const fadeUp = {
   }),
 }
 
-const roadmap = [
+type RoadmapStatus = 'Live' | 'In Progress' | 'Coming Soon' | 'Planned'
+
+const roadmap: { label: string; status: RoadmapStatus }[] = [
   { label: 'Pictura Beta Launch', status: 'Live' as const },
   { label: 'Text-to-Image Generation', status: 'Live' as const },
   { label: 'Image-to-Image Transformation', status: 'Live' as const },
@@ -286,6 +289,9 @@ export default function AboutPage() {
           </motion.div>
         </div>
       </main>
+      <div className="px-6 pb-16">
+        <OpenSourceBanner description="Imoogle Labs builds Pictura in the open — Studio, the public API, and PicturaCAPTCHA all live in one public repository you can read, fork, and contribute to." />
+      </div>
       <Footer />
     </>
   )

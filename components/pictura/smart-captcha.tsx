@@ -311,7 +311,8 @@ export function SmartCaptcha({ onVerify, siteKey = 'demo', isCompact = false }: 
     else if (interactionsRef.current < 30) risk += 20
     else if (interactionsRef.current < 50) risk += 10
     
-    const timeOnPage = (Date.now() - (window as unknown as { __picturaLoadTime?: number }).__picturaLoadTime) || 5000
+    const loadTime = (window as unknown as { __picturaLoadTime?: number }).__picturaLoadTime
+    const timeOnPage = loadTime ? Date.now() - loadTime : 5000
     if (timeOnPage < 2000) risk += 30
     else if (timeOnPage < 5000) risk += 15
     

@@ -8,8 +8,8 @@ export const metadata: Metadata = {
     default: 'Pictura - AI Image Generation | Create Stunning Images Free',
     template: '%s | Pictura',
   },
-  description: 'Create stunning AI-generated images and videos with Pictura. Fast text-to-image, image-to-image, and video generation with powerful AI models.',
-  keywords: ['AI image generation', 'text to image', 'image to image', 'AI video generation', 'AI art generator', 'Pictura', 'creative AI tools'],
+  description: 'Create stunning AI-generated images and videos with Pictura, a free and open source AI studio. Fast text-to-image, image-to-image, and video generation with powerful AI models.',
+  keywords: ['AI image generation', 'text to image', 'image to image', 'AI video generation', 'AI art generator', 'Pictura', 'creative AI tools', 'open source AI'],
   authors: [{ name: 'Pictura', url: 'https://picturaai.sbs' }],
   creator: 'Pictura',
   publisher: 'Pictura',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     url: 'https://picturaai.sbs',
     siteName: 'Pictura',
     title: 'Pictura - AI Image Generation | Create Stunning Images Free',
-    description: 'Create stunning AI-generated images and videos with Pictura. Fast text-to-image, image-to-image, and video generation with powerful AI models.',
+    description: 'Create stunning AI-generated images and videos with Pictura, a free and open source AI studio. Fast text-to-image, image-to-image, and video generation with powerful AI models.',
     images: [
       {
         url: '/og-image.jpg',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Pictura - AI Image Generation | Create Stunning Images Free',
-    description: 'Create stunning AI-generated images and videos with Pictura.',
+    description: 'Create stunning AI-generated images and videos with Pictura — free and open source.',
     images: ['/og-image.jpg'],
     creator: '@imoogle',
   },

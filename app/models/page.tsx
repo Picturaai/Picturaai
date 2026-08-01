@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, Check, ChevronRight, Cpu, ImageIcon, Layers, Brush, Camera, Palette, Users, Building2, Wand2, Download, ExternalLink, Clock, Maximize, FileImage, Ratio } from 'lucide-react'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
+import { OpenSourceBanner } from '@/components/pictura/open-source-banner'
 import { PicturaIcon } from '@/components/pictura/pictura-logo'
 
 const fadeIn = {
@@ -505,6 +506,9 @@ export default function ModelsPage() {
         </div>
       </section>
 
+      <div className="px-6 pb-16">
+        <OpenSourceBanner description="The routing, prompting, and serving code behind every Pictura model is public on GitHub. Read how a model is called, or open a pull request to improve it." />
+      </div>
       <Footer />
     </div>
   )

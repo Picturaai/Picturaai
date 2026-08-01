@@ -210,17 +210,17 @@ export async function uploadObject(
 ): Promise<{ url: string }> {
   const r2 = getR2Config()
 
-  if (!r2) {
-    const blob = await put(key, data as BodyInit, { access: 'public', contentType })
-    return { url: blob.url }
-  }
-
   let body: Buffer
   if (typeof data === 'string') body = Buffer.from(data)
   else if (data instanceof ArrayBuffer) body = Buffer.from(data)
   else if (Buffer.isBuffer(data)) body = data
   else if (data instanceof Uint8Array) body = Buffer.from(data)
   else body = Buffer.from(await data.arrayBuffer())
+
+  if (!r2) {
+    const blob = await put(key, body, { access: 'public', contentType })
+    return { url: blob.url }
+  }
 
   const res = await r2Request('PUT', key, body, contentType)
   if (!res.ok) {

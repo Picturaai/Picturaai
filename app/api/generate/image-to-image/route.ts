@@ -203,7 +203,7 @@ async function generateWithQwenEdit(prompt: string, sourceCandidates: string[]):
   return null
 }
 
-async function resolveGeneratedImageBuffer(imageValue: string): Promise<ArrayBuffer | null> {
+async function resolveGeneratedImageBuffer(imageValue: string): Promise<ArrayBuffer | Uint8Array | null> {
   const trimmed = imageValue.trim()
   if (!trimmed) return null
 
@@ -391,9 +391,10 @@ export async function POST(request: Request) {
     }
 
     if (response?.ok) {
-      data = await response.json()
-      console.log('[Pictura] img2img response:', JSON.stringify(data).slice(0, 500))
-      generatedImageUrl = extractImageUrl(data)
+      const payload = (await response.json()) as Record<string, unknown>
+      data = payload
+      console.log('[Pictura] img2img response:', JSON.stringify(payload).slice(0, 500))
+      generatedImageUrl = extractImageUrl(payload)
     } else if (response) {
       console.log('[Pictura] img2img GET failed:', response.status, await response.text().catch(() => ''))
     }
