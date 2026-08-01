@@ -8,9 +8,17 @@ export function decodeDataUrl(url: string): Buffer | null {
 
 /** Downloads image bytes, returning null when the request fails. */
 export async function fetchImageBytes(url: string): Promise<ArrayBuffer | null> {
-  const response = await fetch(url)
-  if (!response.ok) return null
-  return response.arrayBuffer()
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      console.error(`[ImageData] Failed to fetch image: ${response.status} ${response.statusText} from ${url}`)
+      return null
+    }
+    return response.arrayBuffer()
+  } catch (error) {
+    console.error(`[ImageData] Error fetching image from ${url}:`, error)
+    return null
+  }
 }
 
 /**

@@ -208,7 +208,7 @@ async function generateWithFal(prompt: string, width: number, height: number): P
 }
 
 // HuggingFace
-async function generateWithHuggingFace(prompt: string): Promise<string> {
+async function generateWithHuggingFace(prompt: string, _width?: number, _height?: number): Promise<string> {
   const apiKey = process.env.HUGGINGFACE_API_KEY
   if (!apiKey) throw new Error('HuggingFace not configured')
 
@@ -267,18 +267,41 @@ async function generateWithPicturaEngine(prompt: string, width: number, height: 
   
   const providers = model === 'pi-1.5-turbo'
     ? [
-        generateWithAlibaba,   // Alibaba
-        generateWithZyLabs,    // ZyLabs
-        generateWithStability, // Stability
-        generateWithMistral,   // Mistral
+        // Primary: Alibaba domestic
+        generateWithAlibaba,
+        // Fallbacks: ZyLabs, Stability, Mistral, OpenAI, BFL, Fal, Together, DeepInfra, Fireworks
+        generateWithZyLabs,
+        generateWithStability,
+        generateWithMistral,
+        generateWithOpenAI,
+        generateWithBFL,
+        generateWithFal,
+        generateWithTogether,
+        generateWithFireworks,
+        generateWithDeepInfra,
+        generateWithReplicate,
+        generateWithLeonardo,
+        generateWithHuggingFace,
       ]
     : model === 'pi-1.0'
       ? [
-          generateWithLeonardo, // Leonardo
-          generateWithZyLabs,   // ZyLabs
-          generateWithMistral,  // Mistral
+          // pi-1.0: Use more providers as fallback chain
+          generateWithLeonardo,
+          generateWithZyLabs,
+          generateWithMistral,
+          generateWithStability,
+          generateWithAlibaba,
+          generateWithOpenAI,
+          generateWithBFL,
+          generateWithFal,
+          generateWithTogether,
+          generateWithFireworks,
+          generateWithDeepInfra,
+          generateWithReplicate,
+          generateWithHuggingFace,
         ]
       : [
+          // Default fallback chain
           generateWithStability,
           generateWithAlibaba,
           generateWithMistral,
@@ -290,8 +313,8 @@ async function generateWithPicturaEngine(prompt: string, width: number, height: 
           generateWithTogether,
           generateWithFireworks,
           generateWithDeepInfra,
-          (p: string) => generateWithHuggingFace(p),
           generateWithZyLabs,
+          generateWithHuggingFace,
         ]
   
   for (const provider of providers) {
