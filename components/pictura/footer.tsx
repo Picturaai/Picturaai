@@ -111,15 +111,13 @@ export function Footer() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Open Source</span>
-            <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
-              <GitHubIcon className="h-3.5 w-3.5" />
-              Source code
-            </a>
-            <a href={GITHUB_ISSUES_URL} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground/70 transition-colors hover:text-primary">Issues</a>
-            <a href={`${GITHUB_REPO_URL}/pulls`} target="_blank" rel="noopener noreferrer" className="text-sm text-foreground/70 transition-colors hover:text-primary">Pull requests</a>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Legal</span>
             <Link href="/legal" className="text-sm text-foreground/70 transition-colors hover:text-primary">Privacy & Terms</Link>
             <Link href="/captcha/privacy" className="text-sm text-foreground/70 transition-colors hover:text-primary">CAPTCHA Privacy</Link>
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-foreground/70 transition-colors hover:text-primary">
+              <GitHubIcon className="h-3.5 w-3.5" />
+              GitHub
+            </a>
           </div>
         </div>
 
