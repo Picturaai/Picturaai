@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { PicturaIcon } from './pictura-logo'
-import { GitHubIcon, GitHubStarButton } from './github-star-button'
+import { GitHubIcon } from './github-star-button'
 import { GITHUB_ISSUES_URL, GITHUB_REPO_URL } from '@/lib/github'
 
 // Social Icons as components
@@ -62,10 +62,6 @@ export function Footer() {
                   <GitHubIcon className="h-4 w-4" />
                 </a>
               </div>
-            </div>
-
-            <div className="mt-5">
-              <GitHubStarButton />
             </div>
             
             <div className="mt-5 flex items-center gap-2">
