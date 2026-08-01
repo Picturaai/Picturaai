@@ -721,7 +721,7 @@ export function Landing() {
             viewport={{ once: true, margin: '-50px' }}
             custom={1}
             variants={fadeUp}
-            className="mx-auto mt-12 max-w-5xl"
+            className="mx-auto mt-12 max-w-7xl"
           >
             <div className="relative rounded-2xl border border-border/40 bg-card shadow-2xl shadow-primary/[0.07] overflow-hidden">
               {/* Window chrome — matches Studio header */}
@@ -785,42 +785,7 @@ export function Landing() {
                 />
               </div>
 
-              {/* Prompt input — matches Studio bottom dock */}
-              <div className="border-t border-border/40 bg-card p-3 sm:p-4">
-                <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-background px-3 py-2.5 shadow-sm">
-                  <Music className="h-4 w-4 flex-shrink-0 text-primary" />
-                  <span className="flex-1 truncate text-xs text-foreground sm:text-sm">
-                    Dreamy synthwave instrumental about late night drives, 112 BPM
-                  </span>
-                  <button
-                    type="button"
-                    aria-label="Generate"
-                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </div>
 
-                {/* Style chips + improve, like Studio */}
-                <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  {['Synthwave', 'Lo-fi', 'Cinematic', 'Pop', 'Hip hop', 'Acoustic'].map((style, i) => (
-                    <span
-                      key={style}
-                      className={`whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                        i === 0
-                          ? 'border-primary/30 bg-primary/10 text-primary'
-                          : 'border-border/50 bg-card text-muted-foreground'
-                      }`}
-                    >
-                      {style}
-                    </span>
-                  ))}
-                  <span className="ml-auto hidden flex-shrink-0 items-center gap-1.5 rounded-lg border border-border/50 bg-card px-3 py-1.5 text-[11px] font-medium text-muted-foreground sm:flex">
-                    <SlidersHorizontal className="h-3 w-3" />
-                    Tune
-                  </span>
-                </div>
-              </div>
             </div>
 
             {/* Caption */}
