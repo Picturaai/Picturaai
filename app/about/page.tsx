@@ -19,7 +19,9 @@ const fadeUp = {
   }),
 }
 
-const roadmap = [
+type RoadmapStatus = 'Live' | 'In Progress' | 'Coming Soon' | 'Planned'
+
+const roadmap: { label: string; status: RoadmapStatus }[] = [
   { label: 'Pictura Beta Launch', status: 'Live' as const },
   { label: 'Text-to-Image Generation', status: 'Live' as const },
   { label: 'Image-to-Image Transformation', status: 'Live' as const },

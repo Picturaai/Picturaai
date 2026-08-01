@@ -123,10 +123,7 @@ export default function CaptchaPage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/5 rounded-2xl blur-xl" />
                 <div className="relative bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-xl">
                   <p className="text-sm font-medium text-foreground mb-4">Try it yourself:</p>
-                  <SmartCaptcha 
-                    onVerify={() => setDemoVerified(true)} 
-                    size="normal"
-                  />
+                  <SmartCaptcha onVerify={() => setDemoVerified(true)} />
                   {demoVerified && (
                     <motion.p 
                       initial={{ opacity: 0, y: 10 }}

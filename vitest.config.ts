@@ -9,6 +9,10 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // The db driver is mocked in tests, but getDb() still requires the variable.
+    env: {
+      DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://vitest:vitest@localhost:5432/vitest',
+    },
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     coverage: {
       provider: 'v8',
