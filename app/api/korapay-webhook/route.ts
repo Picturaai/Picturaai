@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
@@ -82,24 +83,42 @@ function generateAdminEmailHtml(name: string, email: string, amount: number, ref
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const rawBody = await request.text()
 
-    // Verify webhook signature (Korapay sends X-Korapay-Signature header)
+    // Verify webhook signature (Korapay sends X-Korapay-Signature header).
+    // Signature verification is mandatory: reject if the secret is not
+    // configured or the signature is missing/invalid, so forged webhooks
+    // cannot trigger notification emails.
     const signature = request.headers.get('X-Korapay-Signature')
     const webhookSecret = process.env.KORAPAY_WEBHOOK_SECRET || ''
 
-    if (webhookSecret && signature) {
-      // In production, verify the HMAC signature
-      const crypto = await import('crypto')
-      const expectedSignature = crypto
-        .createHmac('sha256', webhookSecret)
-        .update(JSON.stringify(body))
-        .digest('hex')
-      
-      if (signature !== expectedSignature) {
-        console.error('Invalid webhook signature')
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-      }
+    if (!webhookSecret) {
+      console.error('KORAPAY_WEBHOOK_SECRET not configured')
+      return NextResponse.json({ error: 'Not configured' }, { status: 500 })
+    }
+
+    // Korapay signs the JSON-stringified `data` object with the secret key.
+    let body: any
+    try {
+      body = JSON.parse(rawBody)
+    } catch {
+      return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+    }
+
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(JSON.stringify(body?.data ?? {}))
+      .digest('hex')
+
+    const expected = Buffer.from(expectedSignature)
+    const provided = Buffer.from(signature || '')
+    if (
+      !signature ||
+      expected.length !== provided.length ||
+      !crypto.timingSafeEqual(expected, provided)
+    ) {
+      console.error('Invalid Korapay webhook signature')
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
     const { event, data } = body

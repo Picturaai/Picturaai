@@ -637,8 +637,7 @@ export async function POST(request: NextRequest) {
     console.error('[Pictura] API Error:', error)
     return NextResponse.json({ 
       error: 'Internal server error',
-      code: 'internal_error',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      code: 'internal_error'
     }, { status: 500 })
   }
 }
