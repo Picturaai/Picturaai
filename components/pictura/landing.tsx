@@ -183,148 +183,283 @@ export function Landing() {
 
   return (
     <>
-      {/* Hero - Clean, minimal design */}
-      <section className="relative overflow-hidden pt-28 pb-16 md:pt-36 md:pb-24">
-        {/* Brand color background glow */}
+      {/* Hero - Stunning Visual Experience */}
+      <section className="relative overflow-hidden pt-24 pb-20 md:pt-32 md:pb-28">
+        {/* Animated Background */}
         <div className="absolute inset-0 -z-10 bg-background">
-          {/* Top glow */}
-          <div className="absolute inset-x-0 top-0 h-[500px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,var(--primary)/0.15,transparent_70%)]" />
-          {/* Side accents */}
-          <div className="absolute -left-40 top-20 h-80 w-80 rounded-full bg-primary/10 blur-[100px]" />
-          <div className="absolute -right-40 top-40 h-80 w-80 rounded-full bg-primary/8 blur-[100px]" />
+          {/* Main gradient orb */}
+          <motion.div
+            className="absolute left-1/2 top-0 -translate-x-1/2 h-[600px] md:h-[800px] w-[600px] md:w-[800px] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, var(--primary)/0.15 0%, transparent 70%)',
+            }}
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.5, 0.8, 0.5],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          {/* Floating orbs */}
+          <motion.div
+            className="absolute -left-32 top-40 h-96 w-96 rounded-full bg-primary/20 blur-[120px]"
+            animate={{
+              x: [0, 50, 0],
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 12,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          <motion.div
+            className="absolute -right-32 top-60 h-80 w-80 rounded-full bg-primary/15 blur-[100px]"
+            animate={{
+              x: [0, -40, 0],
+              y: [0, 40, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          <motion.div
+            className="absolute left-1/4 top-20 h-64 w-64 rounded-full bg-primary/10 blur-[80px]"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          {/* Grid pattern overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `linear-gradient(var(--foreground) 1px, transparent 1px), linear-gradient(90deg, var(--foreground) 1px, transparent 1px)`,
+              backgroundSize: '60px 60px',
+            }}
+          />
+          {/* Floating particles */}
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute h-1 w-1 rounded-full bg-primary/40"
+              style={{
+                left: `${10 + (i * 4) % 80}%`,
+                top: `${5 + (i * 7) % 90}%`,
+              }}
+              animate={{
+                y: [0, -30 - (i % 3) * 20, 0],
+                opacity: [0.2, 0.8, 0.2],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: 4 + (i % 4),
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: i * 0.2,
+              }}
+            />
+          ))}
         </div>
 
         <div className="mx-auto max-w-7xl px-6">
-          <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto max-w-4xl text-center">
             {/* Announcement banner */}
             <Link href="/blog/pi-1-5-turbo">
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 cursor-pointer hover:bg-primary/10 hover:border-primary/30 transition-colors"
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 px-5 py-2 cursor-pointer hover:from-primary/15 hover:via-primary/10 hover:to-primary/15 hover:border-primary/40 transition-all shadow-lg shadow-primary/5"
               >
-                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-primary-foreground bg-primary px-2 py-0.5 rounded">
+                <span className="flex items-center gap-1.5 text-[11px] font-bold text-primary-foreground bg-gradient-to-r from-primary to-primary/80 px-2.5 py-1 rounded-full shadow-sm">
                   v2.5
                 </span>
-                <span className="h-4 w-px bg-border" />
-                <span className="text-xs text-foreground">
-                  <span className="font-semibold">Pictura 2.5</span> — video & music are here
+                <span className="h-4 w-px bg-primary/30" />
+                <span className="text-sm text-foreground font-medium">
+                  <span className="font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Pictura 2.5</span> — video & music are here
                 </span>
-                <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                <ArrowRight className="h-3.5 w-3.5 text-primary" />
               </motion.div>
             </Link>
 
-            {/* Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 16 }}
+            {/* Headline with gradient text */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
+              transition={{ duration: 0.8, delay: 0.1 }}
             >
-              Turn words into
-              <br />
-              <span className="text-primary">
-                {displayText}
-                <motion.span 
-                  className="ml-0.5 inline-block w-[2px] bg-primary align-baseline"
-                  style={{ height: '0.7em' }}
-                  animate={{ opacity: [1, 0] }}
-                  transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
-                />
-              </span>
-            </motion.h1>
+              <h1 className="text-5xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-8xl">
+                Turn words into
+                <br />
+                <span className="relative inline-block mt-2">
+                  <span className="relative z-10 bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
+                    {displayText}
+                  </span>
+                  <motion.span
+                    className="absolute -bottom-1 left-0 h-3 w-full bg-primary/10 rounded-full blur-sm"
+                    animate={{ scaleX: [1, 1.05, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                  <motion.span
+                    className="ml-1 inline-block w-[3px] bg-gradient-to-b from-primary to-primary/50 rounded-full align-baseline"
+                    style={{ height: '0.6em' }}
+                    animate={{ opacity: [1, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, repeatType: 'reverse' }}
+                  />
+                </span>
+              </h1>
+            </motion.div>
 
             {/* Subheadline */}
             <motion.p
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg"
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl"
             >
-              Free, open source AI image generation by Imoogle Labs. Create stunning visuals from text or transform existing images.
+              Free, open source AI image generation by{' '}
+              <span className="font-semibold text-foreground">Imoogle Labs</span>.
+              Create stunning visuals from text or transform existing images in seconds.
             </motion.p>
 
-            {/* CTA buttons - minimal shadows */}
+            {/* CTA buttons - Enhanced */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
             >
               <Link
                 href="/studio"
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98] sm:w-auto"
+                className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-primary via-primary to-primary/90 px-8 py-4 text-base font-bold text-primary-foreground shadow-xl shadow-primary/25 transition-all hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] sm:w-auto"
               >
-                Start Creating
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                <span className="relative z-10 flex items-center gap-2">
+                  Start Creating
+                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                </span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                />
               </Link>
               <Link
                 href="/about"
-                className="inline-flex w-full items-center justify-center rounded-full border border-border px-7 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary sm:w-auto"
+                className="inline-flex w-full items-center justify-center rounded-full border-2 border-border/60 bg-background/50 backdrop-blur-sm px-8 py-4 text-base font-bold text-foreground transition-all hover:border-primary/40 hover:bg-secondary/50 hover:shadow-lg active:scale-[0.98] sm:w-auto"
               >
                 Learn More
               </Link>
             </motion.div>
+
+            {/* Social proof */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.6 }}
+              className="mt-8 flex items-center justify-center gap-6 text-sm text-muted-foreground"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                  {['🧑‍💻', '👩‍🎨', '👨‍🔬', '👩‍💼'].map((emoji, i) => (
+                    <div key={i} className="h-8 w-8 rounded-full bg-secondary border-2 border-background flex items-center justify-center text-sm">
+                      {emoji}
+                    </div>
+                  ))}
+                </div>
+                <span><span className="font-semibold text-foreground">10K+</span> creators</span>
+              </div>
+              <div className="h-4 w-px bg-border" />
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="h-4 w-4 fill-primary text-primary" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+                <span className="ml-1 font-semibold text-foreground">4.9</span>
+              </div>
+            </motion.div>
           </div>
 
-          {/* Real Studio UI Mockup */}
+          {/* Real Studio UI Mockup - Enhanced */}
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-12 sm:mt-16 -mx-6 px-3 sm:px-4"
+            transition={{ duration: 1, delay: 0.5 }}
+            className="mt-16 sm:mt-20 -mx-6 px-3 sm:px-4"
           >
+            {/* Glow effect behind mockup */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[400px] bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 blur-[80px] pointer-events-none" />
+            
             {/* App Window */}
-            <div className="relative rounded-xl sm:rounded-2xl border border-border/40 bg-card overflow-hidden">
+            <div className="relative rounded-2xl border border-border/50 bg-card/95 backdrop-blur-xl overflow-hidden shadow-2xl shadow-primary/10">
               {/* Window Chrome */}
-              <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border/40 bg-secondary/30">
-                <div className="flex items-center gap-2">
-                  <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-md bg-primary/15 flex items-center justify-center">
-                    <PicturaIcon size={12} className="text-primary" />
+              <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border/40 bg-secondary/40 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex gap-2">
+                    <div className="h-3 w-3 rounded-full bg-red-500/80" />
+                    <div className="h-3 w-3 rounded-full bg-yellow-500/80" />
+                    <div className="h-3 w-3 rounded-full bg-green-500/80" />
                   </div>
-                  <span className="text-[10px] sm:text-xs font-medium text-foreground hidden sm:inline">Pictura</span>
+                  <div className="hidden sm:flex items-center gap-2 ml-3">
+                    <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                      <PicturaIcon size={14} className="text-primary" />
+                    </div>
+                    <span className="text-sm font-semibold text-foreground">Pictura Studio</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-background/60 border border-border/30">
-                  <svg className="h-3 w-3 text-muted-foreground/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground">picturaai.sbs</span>
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-background/60 border border-border/30">
+                  <svg className="h-3.5 w-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
+                  <span className="text-xs font-medium text-muted-foreground">picturaai.sbs/studio</span>
                 </div>
-                <div className="w-12 sm:w-16" />
+                <div className="w-16 sm:w-24" />
               </div>
 
-              {/* App Content - No sidebar on mobile for more space */}
-              <div className="p-3 sm:p-4">
+              {/* App Content */}
+              <div className="p-4 sm:p-6">
                 {/* Prompt Input */}
-                <div className="flex gap-2 mb-3">
-                  <div className="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-lg border border-border/50 bg-background min-w-0">
-                    <svg className="h-4 w-4 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                <div className="flex gap-3 mb-4">
+                  <div className="flex-1 flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border/50 bg-background/80 backdrop-blur-sm shadow-sm">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </div>
                     <AnimatePresence mode="wait">
                       <motion.span
                         key={activeImage}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex-1 text-xs sm:text-sm text-foreground truncate"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex-1 text-sm sm:text-base text-foreground truncate font-medium"
                       >
                         {showcaseImages[activeImage].prompt.replace(/"/g, '')}
                       </motion.span>
                     </AnimatePresence>
                   </div>
-                  <button className="px-3 sm:px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 flex-shrink-0">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                    <span className="hidden xs:inline sm:inline">Generate</span>
+                  <button className="px-5 sm:px-6 py-3.5 rounded-xl bg-gradient-to-r from-primary to-primary/90 text-primary-foreground text-sm font-bold flex items-center gap-2 flex-shrink-0 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <ArrowRight className="h-4 w-4" />
+                    <span className="hidden sm:inline">Generate</span>
                   </button>
                 </div>
 
                 {/* Main Output Image */}
-                <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-secondary/30">
+                <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-secondary/30 shadow-inner">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeImage}
-                      initial={{ opacity: 0, scale: 1.02 }}
+                      initial={{ opacity: 0, scale: 1.03 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.5 }}
                       className="absolute inset-0"
                     >
                       <Image
@@ -337,108 +472,106 @@ export function Landing() {
                       />
                     </motion.div>
                   </AnimatePresence>
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
                   {/* Badge */}
-                  <div className="absolute top-2.5 left-2.5">
-                    <span className="px-2.5 py-1 rounded-lg bg-primary/90 backdrop-blur-sm text-[10px] font-medium text-primary-foreground">
+                  <motion.div
+                    key={`badge-${activeImage}`}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute top-4 left-4"
+                  >
+                    <span className="px-4 py-1.5 rounded-full bg-primary/90 backdrop-blur-md text-sm font-semibold text-primary-foreground shadow-lg">
                       {showcaseImages[activeImage].label}
                     </span>
-                  </div>
+                  </motion.div>
                   {/* Action buttons */}
-                  <div className="absolute top-2.5 right-2.5 flex gap-1.5">
-                    <button className="h-7 w-7 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center">
-                      <svg className="h-3.5 w-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <button className="h-10 w-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
+                      <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     </button>
-                    <button className="h-7 w-7 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center">
-                      <svg className="h-3.5 w-3.5 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <button className="h-10 w-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition-colors border border-white/10">
+                      <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </button>
                   </div>
                   {/* Logo watermark */}
-                  <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-sm">
-                    <PicturaIcon size={12} className="text-white" />
-                    <span className="text-[10px] font-medium text-white/90">Pictura</span>
+                  <div className="absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-black/40 backdrop-blur-md border border-white/10">
+                    <PicturaIcon size={14} className="text-white" />
+                    <span className="text-xs font-semibold text-white/90">Pictura AI</span>
+                  </div>
+                  {/* Generation time badge */}
+                  <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500/90 backdrop-blur-md shadow-lg">
+                    <svg className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                    <span className="text-xs font-bold text-white">Generated in 8.3s</span>
                   </div>
                 </div>
 
-                {/* Thumbnails - always 5 columns, evenly spaced */}
-                <div className="grid grid-cols-5 gap-1.5 sm:gap-2 mt-2.5">
+                {/* Thumbnails */}
+                <div className="grid grid-cols-5 gap-2 sm:gap-3 mt-4">
                   {showcaseImages.slice(0, 5).map((img, i) => (
                     <button
                       key={i}
                       onClick={() => setActiveImage(i)}
-                      className={`relative aspect-square rounded-lg overflow-hidden transition-all ${
-                        i === activeImage ? 'ring-2 ring-primary' : 'opacity-60 hover:opacity-100'
+                      className={`relative aspect-square rounded-xl overflow-hidden transition-all duration-300 ${
+                        i === activeImage
+                          ? 'ring-3 ring-primary ring-offset-2 ring-offset-card scale-[1.02]'
+                          : 'opacity-50 hover:opacity-100 hover:scale-[1.02]'
                       }`}
                     >
                       <Image src={img.src} alt="" fill className="object-cover" sizes="20vw" />
+                      {i === activeImage && (
+                        <motion.div
+                          layoutId="activeThumbnail"
+                          className="absolute inset-0 bg-primary/20"
+                        />
+                      )}
                     </button>
                   ))}
                 </div>
 
                 {/* Settings Bar */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
-                  <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted-foreground">
-                    <span><span className="font-medium text-foreground">Model:</span> pi-1.5-turbo</span>
-                    <span className="hidden sm:inline"><span className="font-medium text-foreground">Size:</span> 1024 x 1024</span>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/30">
+                  <div className="flex items-center gap-4 text-xs sm:text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-500" /> Ready</span>
+                    <span><span className="font-semibold text-foreground">Model:</span> pi-1.5-turbo</span>
+                    <span className="hidden sm:inline"><span className="font-semibold text-foreground">Size:</span> 1024×1024</span>
+                    <span className="hidden md:inline"><span className="font-semibold text-foreground">Steps:</span> 50</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-primary">
-                    <PicturaIcon size={10} className="text-primary" />
-                    <span className="font-medium">Pictura AI</span>
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-primary font-semibold">
+                    <PicturaIcon size={12} className="text-primary" />
+                    Pictura AI
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Stats - Clean horizontal layout */}
-            <div className="mt-10 sm:mt-12 px-3">
-              <div className="flex items-center justify-center gap-6 sm:gap-12 md:gap-16">
-                {/* Free */}
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <CircleDollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground">Free</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Forever</p>
-                  </div>
-                </div>
-                
-                {/* 10s */}
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground">10s</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Generation</p>
-                  </div>
-                </div>
-                
-                {/* HD */}
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground">HD</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Quality</p>
-                  </div>
-                </div>
-
-                {/* Open source */}
-                <a
-                  href={GITHUB_REPO_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hidden items-center gap-3 sm:flex"
-                >
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <GitHubIcon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground">Open</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Source</p>
-                  </div>
-                </a>
+            {/* Stats - Enhanced */}
+            <div className="mt-12 sm:mt-16 px-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
+                {[
+                  { Icon: CircleDollarSign, value: 'Free', label: 'Forever', color: 'from-green-500 to-emerald-500' },
+                  { Icon: Clock, value: '10s', label: 'Generation', color: 'from-blue-500 to-cyan-500' },
+                  { Icon: ImageIcon, value: 'HD', label: 'Quality', color: 'from-purple-500 to-pink-500' },
+                  { Icon: GitHubIcon, value: 'Open', label: 'Source', color: 'from-orange-500 to-red-500' },
+                ].map(({ Icon, value, label, color }, i) => (
+                  <motion.div
+                    key={value}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8 + i * 0.1 }}
+                    className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card/50 border border-border/30 backdrop-blur-sm hover:border-primary/30 transition-all group"
+                  >
+                    <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${color} p-0.5 shadow-lg`}>
+                      <div className="h-full w-full rounded-[10px] bg-card flex items-center justify-center group-hover:bg-transparent transition-colors">
+                        <Icon className="h-5 w-5 text-primary group-hover:text-white transition-colors" />
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl sm:text-2xl font-bold text-foreground">{value}</p>
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </div>
           </motion.div>
