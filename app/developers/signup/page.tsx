@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { Navbar } from '@/components/pictura/navbar'
 import { Footer } from '@/components/pictura/footer'
 import { SmartCaptcha } from '@/components/pictura/smart-captcha'
+import { GitHubIcon } from '@/components/pictura/github-star-button'
 
 const COUNTRIES = [
   { code: 'NG', name: 'Nigeria', currency: 'NGN', dialCode: '+234', flag: '🇳🇬' },
@@ -609,6 +610,25 @@ export default function SignupPage() {
                     </>
                   )}
                 </button>
+
+                {/* Divider */}
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-card px-3 text-muted-foreground">or continue with</span>
+                  </div>
+                </div>
+
+                {/* GitHub Signup Button */}
+                <a
+                  href="/api/developers/auth/github"
+                  className="w-full h-10 rounded-lg border border-border bg-card text-foreground text-sm font-medium hover:bg-secondary/60 hover:border-primary/40 transition-colors flex items-center justify-center gap-2"
+                >
+                  <GitHubIcon className="h-4 w-4" />
+                  Sign up with GitHub
+                </a>
 
                 <p className="text-center text-sm text-muted-foreground">
                   Already have an account?{' '}
