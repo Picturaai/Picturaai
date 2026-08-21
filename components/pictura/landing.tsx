@@ -688,6 +688,9 @@ export function Landing() {
       <section className="relative overflow-hidden border-t border-border/40 py-20 md:py-28">
         {/* Subtle brand glow */}
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(ellipse_60%_60%_at_50%_-10%,var(--primary)/0.10,transparent_70%)]" />
+        {/* Musical note accents */}
+        <div className="pointer-events-none absolute -right-20 top-40 -z-10 h-64 w-64 rounded-full bg-primary/5 blur-[80px]" />
+        <div className="pointer-events-none absolute -left-20 bottom-20 -z-10 h-48 w-48 rounded-full bg-primary/5 blur-[60px]" />
 
         <div className="mx-auto max-w-7xl px-6">
           {/* Header */}
@@ -735,7 +738,7 @@ export function Landing() {
                   <span className="hidden h-4 w-px bg-border/60 sm:inline-block" />
                   {/* Model pill */}
                   <div className="flex items-center gap-1 rounded-lg border border-border/40 bg-card px-1.5 py-1 text-[10px] font-medium text-foreground sm:gap-1.5 sm:px-2 sm:text-[11px]">
-                    <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
+                    <Music className="h-3 w-3 flex-shrink-0 text-primary" />
                     <span className="truncate">PicturaSound</span>
                     <span className="rounded bg-primary/10 px-1 py-px text-[8px] font-bold uppercase tracking-wide text-primary sm:text-[9px]">v1</span>
                     <ChevronDown className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
@@ -785,7 +788,41 @@ export function Landing() {
                 />
               </div>
 
+              {/* Prompt input area — shows example prompts */}
+              <div className="border-t border-border/40 bg-card p-3 sm:p-4">
+                <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-background px-3 py-2.5 shadow-sm">
+                  <Music className="h-4 w-4 flex-shrink-0 text-primary" />
+                  <span className="flex-1 truncate text-xs text-foreground sm:text-sm">
+                    Upbeat lo-fi beat with soft piano and rain sounds, 85 BPM
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Generate"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground"
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
 
+                {/* Quick prompt suggestions */}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mr-1 self-center">Try:</span>
+                  {[
+                    'Cinematic orchestral epic',
+                    'Lo-fi hip hop chill',
+                    'Pop ballad with vocals',
+                    'Electronic dance drop',
+                  ].map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      className="rounded-full border border-border/40 bg-secondary/40 px-2.5 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Caption */}
@@ -794,28 +831,32 @@ export function Landing() {
             </p>
           </motion.div>
 
-          {/* Feature highlights — mirrors video section structure */}
-          <div className="mx-auto mt-14 grid max-w-5xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Feature highlights — enhanced with better visual hierarchy */}
+          <div className="mx-auto mt-14 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 Icon: Mic2,
-                title: 'Real songs',
-                desc: 'Full tracks with vocals, lyrics, and song structure — not just loops.',
+                title: 'Real songs, not loops',
+                desc: 'Full-length tracks with verses, choruses, and bridges. Complete song structure with intro and outro.',
+                highlight: '2-4 min tracks',
               },
               {
                 Icon: SlidersHorizontal,
-                title: 'Steerable',
-                desc: 'Pick mood, BPM, key, instruments, and vocal style.',
+                title: 'Full creative control',
+                desc: 'Adjust mood, tempo, key, instruments, and vocal style. Fine-tune every aspect of your sound.',
+                highlight: '10+ parameters',
               },
               {
                 Icon: Clapperboard,
-                title: 'Pairs with video',
-                desc: 'Drop any track straight onto a PicturaGen video.',
+                title: 'Perfect for video',
+                desc: 'Export audio directly to PicturaGen videos. Sync music to scene changes automatically.',
+                highlight: 'Auto-sync',
               },
               {
                 Icon: Download,
-                title: 'Yours to use',
-                desc: 'Download stereo WAV/MP3 — clear license for your projects.',
+                title: 'Commercial license',
+                desc: 'Download in WAV or MP3. Use tracks in projects, content, and commercial work with clear rights.',
+                highlight: 'Royalty-free',
               },
             ].map((f, i) => (
               <motion.div
@@ -825,38 +866,76 @@ export function Landing() {
                 viewport={{ once: true, margin: '-30px' }}
                 custom={i + 2}
                 variants={fadeUp}
-                className="rounded-2xl border border-border/50 bg-card p-5 transition-colors hover:border-primary/30"
+                className="group rounded-2xl border border-border/50 bg-card p-5 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                  <f.Icon className="h-4 w-4 text-primary" />
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/15">
+                    <f.Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="rounded-full bg-secondary/60 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {f.highlight}
+                  </span>
                 </div>
                 <p className="mt-4 text-sm font-semibold text-foreground">{f.title}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{f.desc}</p>
               </motion.div>
             ))}
           </div>
+
+          {/* Genre showcase — visual representation of capabilities */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-30px' }}
+            custom={7}
+            variants={fadeUp}
+            className="mx-auto mt-12 max-w-3xl"
+          >
+            <div className="rounded-2xl border border-border/40 bg-gradient-to-br from-card to-secondary/20 p-6 sm:p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                  <Music className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Any genre, any style</p>
+                  <p className="text-xs text-muted-foreground">From lo-fi to orchestral, PicturaSound adapts to your vision</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {['Lo-Fi', 'Hip Hop', 'Electronic', 'Pop', 'Rock', 'Jazz', 'Classical', 'R&B', 'Cinematic', 'Ambient', 'Reggae', 'Country'].map((genre) => (
+                  <span
+                    key={genre}
+                    className="rounded-full border border-border/30 bg-background/50 px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:border-primary/30 hover:bg-primary/5"
+                  >
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
 
           {/* CTA */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-30px' }}
-            custom={6}
+            custom={8}
             variants={fadeUp}
             className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
             <Link
               href="/sound"
-              className="group inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 hover:shadow-lg hover:shadow-primary/20"
             >
               <Bell className="h-4 w-4" />
               Notify me at launch
             </Link>
             <Link
               href="/models"
-              className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:border-primary/20"
             >
-              Learn more
+              Explore all models
+              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </motion.div>
         </div>
