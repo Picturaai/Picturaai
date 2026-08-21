@@ -773,7 +773,7 @@ export function Landing() {
               </div>
 
               {/* Output area — real, playable demo track */}
-              <div className="relative bg-secondary/20 p-4 sm:p-6">
+              <div className="relative bg-secondary/20 p-4 sm:p-8">
                 <AudioPreviewPlayer
                   src="/audio/midnight-drive-demo.mp3"
                   title="Midnight Drive"
