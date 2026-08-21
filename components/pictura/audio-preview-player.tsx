@@ -92,38 +92,38 @@ export function AudioPreviewPlayer({
       />
 
       {/* Top: cover + meta — stacks on mobile */}
-      <div className="grid gap-0 sm:grid-cols-[180px_1fr]">
-        <div className="relative aspect-square overflow-hidden bg-secondary/30 sm:aspect-auto">
-          <Image src={cover} alt={`${title} cover art`} fill className="object-cover" sizes="(min-width: 640px) 180px, 100vw" />
+      <div className="grid gap-0 sm:grid-cols-[220px_1fr]">
+        <div className="relative aspect-square overflow-hidden bg-secondary/30 sm:aspect-auto sm:h-full">
+          <Image src={cover} alt={`${title} cover art`} fill className="object-cover" sizes="(min-width: 640px) 220px, 100vw" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/40" />
           {/* Vinyl accent spins only while the track plays */}
           <motion.div
-            className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 backdrop-blur-md"
+            className="absolute bottom-4 right-4 flex h-12 w-12 items-center justify-center rounded-full bg-black/45 backdrop-blur-md"
             animate={playing ? { rotate: 360 } : { rotate: 0 }}
             transition={playing ? { duration: 8, repeat: Infinity, ease: 'linear' } : { duration: 0.4 }}
           >
-            <Disc3 className="h-4 w-4 text-white" />
+            <Disc3 className="h-5 w-5 text-white" />
           </motion.div>
         </div>
 
-        <div className="flex flex-col justify-between gap-3 p-4 sm:p-5">
+        <div className="flex flex-col justify-between gap-4 p-5 sm:p-6">
           <div>
             <div className="flex items-center gap-2">
-              <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-primary">Demo</span>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">Demo</span>
+              <span className="text-xs text-muted-foreground">
                 {formatMediaTime(duration)} · 44.1kHz · Stereo
               </span>
             </div>
-            <h3 className="mt-2 text-lg font-bold text-foreground sm:text-xl">{title}</h3>
-            <p className="text-xs text-muted-foreground sm:text-sm">{subtitle}</p>
+            <h3 className="mt-3 text-xl font-bold text-foreground sm:text-2xl">{title}</h3>
+            <p className="mt-1 text-sm text-muted-foreground sm:text-base">{subtitle}</p>
           </div>
 
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => seek(currentTime - SKIP_SECONDS)}
               aria-label={`Back ${SKIP_SECONDS} seconds`}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               <SkipBack className="h-4 w-4 fill-current" />
             </button>
@@ -131,21 +131,21 @@ export function AudioPreviewPlayer({
               type="button"
               onClick={toggle}
               aria-label={playing ? 'Pause track' : 'Play track'}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md shadow-primary/20 transition-transform hover:scale-105 active:scale-95"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-transform hover:scale-105 active:scale-95"
             >
-              {playing ? <Pause className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 translate-x-0.5 fill-current" />}
+              {playing ? <Pause className="h-6 w-6 fill-current" /> : <Play className="h-6 w-6 translate-x-0.5 fill-current" />}
             </button>
             <button
               type="button"
               onClick={() => seek(currentTime + SKIP_SECONDS)}
               aria-label={`Forward ${SKIP_SECONDS} seconds`}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               <SkipForward className="h-4 w-4 fill-current" />
             </button>
 
-            <div className="ml-1 flex min-w-0 flex-1 items-center gap-2 sm:ml-2">
-              <span className="flex-shrink-0 font-mono text-[10px] text-muted-foreground tabular-nums">{formatMediaTime(currentTime)}</span>
+            <div className="ml-2 flex min-w-0 flex-1 items-center gap-3 sm:ml-3">
+              <span className="flex-shrink-0 font-mono text-xs text-muted-foreground tabular-nums">{formatMediaTime(currentTime)}</span>
               <input
                 type="range"
                 min={0}
@@ -154,19 +154,19 @@ export function AudioPreviewPlayer({
                 value={currentTime}
                 onChange={(e) => seek(Number(e.target.value))}
                 aria-label="Seek track"
-                className="h-1 w-full min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-secondary outline-none [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+                className="h-1.5 w-full min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-secondary outline-none [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
                 style={{
                   backgroundImage: `linear-gradient(to right, var(--primary) ${ratio * 100}%, transparent ${ratio * 100}%)`,
                 }}
               />
-              <span className="flex-shrink-0 font-mono text-[10px] text-muted-foreground tabular-nums">{formatMediaTime(duration)}</span>
+              <span className="flex-shrink-0 font-mono text-xs text-muted-foreground tabular-nums">{formatMediaTime(duration)}</span>
             </div>
 
             <button
               type="button"
               onClick={toggleMuted}
               aria-label={muted ? 'Unmute track' : 'Mute track'}
-              className="hidden h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:flex"
+              className="hidden h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:flex"
             >
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </button>
@@ -175,7 +175,7 @@ export function AudioPreviewPlayer({
               onClick={() => setLiked((prev) => !prev)}
               aria-label={liked ? 'Remove from favourites' : 'Add to favourites'}
               aria-pressed={liked}
-              className={`hidden h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-secondary sm:flex ${
+              className={`hidden h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-secondary sm:flex ${
                 liked ? 'text-primary' : 'text-muted-foreground hover:text-primary'
               }`}
             >
@@ -185,7 +185,7 @@ export function AudioPreviewPlayer({
               href={src}
               download
               aria-label="Download track"
-              className="hidden h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:flex"
+              className="hidden h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground sm:flex"
             >
               <Download className="h-4 w-4" />
             </a>
@@ -194,11 +194,11 @@ export function AudioPreviewPlayer({
       </div>
 
       {/* Waveform — click to scrub, animates only while playing */}
-      <div className="border-t border-border/30 bg-secondary/20 p-4 sm:p-5">
+      <div className="border-t border-border/30 bg-secondary/20 p-5 sm:p-6">
         <div
           onClick={seekToRatio}
           role="presentation"
-          className="flex h-16 cursor-pointer items-center gap-[2px] sm:h-20 sm:gap-[3px]"
+          className="flex h-20 cursor-pointer items-center gap-[3px] sm:h-24 sm:gap-1"
         >
           {WAVEFORM.map((h, i) => {
             const played = i / (WAVEFORM.length - 1) <= ratio
@@ -220,12 +220,12 @@ export function AudioPreviewPlayer({
       </div>
 
       {/* Lyrics preview row */}
-      <div className="border-t border-border/30 bg-card px-4 py-3 sm:px-5">
+      <div className="border-t border-border/30 bg-card px-5 py-4 sm:px-6">
         <div className="flex items-center gap-2">
-          <Mic2 className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">Lyrics</p>
+          <Mic2 className="h-4 w-4 flex-shrink-0 text-primary" />
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Lyrics</p>
         </div>
-        <p className="mt-2 text-xs leading-relaxed text-foreground sm:text-sm">{lyrics}</p>
+        <p className="mt-2 text-sm leading-relaxed text-foreground sm:text-base">{lyrics}</p>
       </div>
     </div>
   )
